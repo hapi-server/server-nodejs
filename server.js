@@ -415,9 +415,12 @@ function csv2fcsv(lines,startsec) {
 
 	var linesarr = lines.split("\n");
 	var Nr = linesarr.length; // Number of rows
+	var line1 = linesarr[0].split(",");	
+	var firstsec = moment(line1[0]+"Z").valueOf()/1000 - startsec;
+
 	for (var i = 0; i < Nr; i++) {
 		var line = linesarr[i].split(",");
-		line[0] = i;
+		line[0] = firstsec+i;
 		linesarr[i] = line.join(",");
 	}
 	return linesarr.join("\n");
