@@ -1,0 +1,28 @@
+{
+  "name": "hapi-server",
+  "version": "0.0.1",
+  "license": "MIT",
+  "engines": {
+    "node": "7.10"
+  },
+  "people": {
+    "name": "Bob Weigel",
+    "email": "rweigel@gmu.edu",
+    "url": "http://bobweigel.info/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hapi-server/nodejs-server.git"
+  },
+  "dependencies": {
+    "express": "^4.15.3",
+    "moment": "^2.18.1",
+    "cli-color": "^1.2.0",
+    "compression": "^1.6.2",
+    "yargs": "^8.0.1"
+  },
+  "scripts": {
+    "start": "node server.js --port 8999",
+    "test": "bash test.sh"
+  }
+}

@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+		<title>__CATALOG__</title>
+	</head>
+	<body>
+		<h2>HAPI Server for __CATALOG__ data</h2>
+		<p>
+			This server supports the <a href="https://github.com/hapi-server/data-specification">HAPI __VERSION__ API</a> specification for delivery of time series data. The server consists of the following endpoints that respond to HTTP GET requests:
+		</p>
+		<ul>
+			<li>
+				<a href="./hapi/capabilities"><code>capabilities</code></a> - list the API version and output options
+			</li>
+			<li>
+				<a href="./hapi/catalog"><code>catalog</code></a> - list the datasets that are available
+			</li>
+			<li>
+				<code>info</code> - list the parameters in the dataset; example:
+				<ul>
+					<li><a href="./hapi/info?id=TestData">info?id=TestData</a></li>
+				</ul>
+			</li>
+			<li>
+				<code>data</code> - stream data content for a parameter; examples:
+				<ul>
+					<li><a href="./hapi/data?id=TestData&parameters=scalar&time.min=2000-01-01&time.max=2000-01-02">data?id=TestData&amp;parameters=scalar&time.min=2000-01-01&time.max=2000-01-02</a></li>
+				</ul>
+				<ul>
+					<li><a href="./hapi/data?id=TestData&parameters=vector&time.min=2000-01-01&time.max=2000-01-02">data?id=TestData&amp;parameters=vector&time.min=2000-01-01&time.max=2000-01-02</a></li>
+				</ul>
+				<ul>
+					<li><a href="./hapi/data?id=TestData&parameters=spectra&time.min=2000-01-01&time.max=2000-01-02">data?id=TestData&amp;parameters=spectra&time.min=2000-01-02&time.max=2000-01-02</a></li>
+				</ul>
+				<ul>
+					<li><a href="./hapi/data?id=TestData&parameters=scalar,vector&time.min=2000-01-01&time.max=2000-01-02">data?id=TestData&amp;parameters=scalar,vector&time.min=2000-01-02&time.max=2000-01-02</a></li>
+				</ul>
+				<ul>
+					<li><a href="./hapi/data?id=TestData&time.min=2000-01-01&time.max=2000-01-02">data?id=TestData&time.min=2000-01-02&time.max=2000-01-02</a></li>
+				</ul>
+			</li>
+		</ol>
+	</body>
+<html>
