@@ -319,14 +319,14 @@ function data(req,res,header,timeRange) {
 	var all = !scalar && !scalarint && !vector && !spectra;
 	if (all) {scalar = true;scalarint = true;vector = true;spectra = true;}	
 
-	if (scalar) {var seps = ","} else {var seps = ""};
+	if (scalar) {var sepi = ","} else {var sepi= ""};
 	if (scalar || scalarint) {var sepv = ","} else {var sepv = ""};
 	if (scalar || vector) {var seps = ","} else {var seps = ""};
 
 	var line = "";
-	var data = "";
 	var types = ["double"];
 	for (var i = startsec; i < stopsec;i++) {
+		var data = "";
 		var time = new Date(i*1000).toISOString();
 		if (scalar) {
 			data = Math.sin(Math.PI*i/600);
@@ -334,7 +334,7 @@ function data(req,res,header,timeRange) {
 		}
 
 		if (scalarint) {
-			data = data + seps + Math.sin(Math.PI*i/600);
+			data = data + sepi + Math.sin(Math.PI*i/600);
 			if (i==startsec) {types.push('integer');}
 		}
 		if (vector) {
@@ -362,25 +362,29 @@ function data(req,res,header,timeRange) {
 			if (line.length > 1e4) {
 				var linebuff = csv2bin(line);
 				res.write(linebuff);
-				data = "";
 				line = "";
 			}
 		} else if (req.query["format"] === "fbinary") {
 			if (line.length > 1e4) {
 				var linebuff = csv2fbin(line,startsec,types);
 				res.write(linebuff);
-				data = "";
+				line = "";
+			}
+		} else if (req.query["format"] === "fcsv") {
+			if (line.length > 1e4) {
+				var linebuff = csv2fcsv(line,startsec);
+				res.write(linebuff + "\n");
 				line = "";
 			}
 		} else {
 			if (line.length > 1e4) {
 				res.write(line + "\n");
-				data = "";
 				line = "";
-			}
+			}			
 		}
 
 	}
+
 	if (req.query["format"] === "binary") {
 		if (line.length > 0) {
 			var linebuff = csv2bin(line);
@@ -393,12 +397,30 @@ function data(req,res,header,timeRange) {
 			res.write(linebuff);
 		}
 		res.end();
+	} else if (req.query["format"] === "fcsv") {
+		if (line.length > 0) {
+			var linebuff = csv2fcsv(line,startsec);
+			res.write(linebuff + "\n");
+		}
+		res.end();
 	} else {
 		if (line.length > 0) {
 			res.write(line + "\n");
 		}
 		res.end();
 	}
+}
+
+function csv2fcsv(lines,startsec) {
+
+	var linesarr = lines.split("\n");
+	var Nr = linesarr.length; // Number of rows
+	for (var i = 0; i < Nr; i++) {
+		var line = linesarr[i].split(",");
+		line[0] = i;
+		linesarr[i] = line.join(",");
+	}
+	return linesarr.join("\n");
 }
 
 function csv2bin(lines) {
@@ -456,19 +478,20 @@ function csv2fbin(lines,startsec,types) {
 	//console.log(Nb)
 	//console.log(types)
 	var linebuff = new Buffer.alloc(Nr*Nb);
-
+	//console.log(linesarr)
 	var pos = 0;
 	for (var i = 0; i < Nr; i++) {
 		var line = linesarr[i].split(",");
 		line[0] = firstsec+i; // Overwrite ISO time with seconds
 		//console.log(line.join(","))
+		
 		for (var j = 0;j < Nd+1;j++) {
 			if (types[j] === 'double') {
 				linebuff.writeDoubleLE(line[j],pos);
 				pos = pos + 8;
 			}
 			if (types[j] === 'integer') {
-				linebuff.writeInt16LE(line[j],pos);	
+				linebuff.writeInt32LE(line[j]*1000,pos);	
 				pos = pos + 4;
 			}
 		}
