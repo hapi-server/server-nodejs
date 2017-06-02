@@ -156,6 +156,14 @@ function parameters(req,res) {
 						"description": "Sine wave with 600 s period"
 					},
 					{ 
+						"name": "scalarint",
+						"type": "int",
+						"units": "m",
+						"fill": "-1e31",
+						"size": [1],
+						"description": "Sine wave with 600 s period"
+					},
+					{ 
 						"name": "vector",
 						"type": "double",
 						"units": "m",
@@ -174,7 +182,7 @@ function parameters(req,res) {
 					}
 				]
 		};
-	var i = 0;while(i < 100){json.parameters[3].bins.centers.push(i++);};
+	var i = 0;while(i < 100){json.parameters[4].bins.centers.push(i++);};
 
 	// Create arrray from comma-separated parameter list
 	if (req.query.parameters) {
@@ -301,34 +309,46 @@ function data(req,res,header,timeRange) {
 		res.write(fbinhead(startsec));
 	}
 
-	var scalar = false, vector = false, spectra = false;
+	var scalar = false, scalarint = false, vector = false, spectra = false;
 	for (var i = 1;i < header.parameters.length; i++) {
 		if (header.parameters[i].name == "scalar")  {scalar  = true};
+		if (header.parameters[i].name == "scalarint")  {scalarint  = true};
 		if (header.parameters[i].name == "vector")  {vector  = true};
 		if (header.parameters[i].name == "spectra") {spectra = true};
 	}
-	var all = !scalar && !vector && !spectra;
-	if (all) {scalar = true;vector = true;spectra = true;}	
+	var all = !scalar && !scalarint && !vector && !spectra;
+	if (all) {scalar = true;scalarint = true;vector = true;spectra = true;}	
 
-	if (scalar) {var sepv = ","} else {var sepv = ""};
+	if (scalar) {var seps = ","} else {var seps = ""};
+	if (scalar || scalarint) {var sepv = ","} else {var sepv = ""};
 	if (scalar || vector) {var seps = ","} else {var seps = ""};
 
 	var line = "";
 	var data = "";
+	var types = ["double"];
 	for (var i = startsec; i < stopsec;i++) {
 		var time = new Date(i*1000).toISOString();
 		if (scalar) {
 			data = Math.sin(Math.PI*i/600);
+			if (i==startsec) {types.push('double');}
+		}
+
+		if (scalarint) {
+			data = data + seps + Math.sin(Math.PI*i/600);
+			if (i==startsec) {types.push('integer');}
 		}
 		if (vector) {
 			data = data + sepv + Math.sin(Math.PI*(i-startsec)/600) 
 						+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
 						+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
+			if (i==startsec) {types.push('double');}
 		}
 		if (spectra) {
 			data = data + seps + 0;
 			for (var j = 1;j < 10;j++) {data = data + "," + 1/j;}
+			if (i==startsec) {types.push('double');}
 		}
+
 		var str = time.slice(0,-1) + "," + data;
 
 		if (line.length > 0) {
@@ -347,7 +367,7 @@ function data(req,res,header,timeRange) {
 			}
 		} else if (req.query["format"] === "fbinary") {
 			if (line.length > 1e4) {
-				var linebuff = csv2fbin(line,startsec);
+				var linebuff = csv2fbin(line,startsec,types);
 				res.write(linebuff);
 				data = "";
 				line = "";
@@ -361,7 +381,6 @@ function data(req,res,header,timeRange) {
 		}
 
 	}
-
 	if (req.query["format"] === "binary") {
 		if (line.length > 0) {
 			var linebuff = csv2bin(line);
@@ -370,7 +389,7 @@ function data(req,res,header,timeRange) {
 		res.end();
 	} else if (req.query["format"] === "fbinary") {
 		if (line.length > 0) {
-			var linebuff = csv2fbin(line,startsec);
+			var linebuff = csv2fbin(line,startsec,types);
 			res.write(linebuff);
 		}
 		res.end();
@@ -415,7 +434,7 @@ function fbinhead(startsec) {
 	return headbuff;
 }
 
-function csv2fbin(lines,startsec) {
+function csv2fbin(lines,startsec,types) {
 
 	var linesarr = lines.split("\n");
 	var Nr = linesarr.length; // Number of rows
@@ -424,7 +443,19 @@ function csv2fbin(lines,startsec) {
 	var Nd    = line1.length - 1; // Number of data columns
 	var firstsec = moment(line1[0]+"Z").valueOf()/1000 - startsec;
 
-	var linebuff = new Buffer.alloc(Nr*8*(Nd+1));
+	Nb = 8; // Time
+	for (var i = 1;i < types.length;i++) {
+		if (types[i] === 'double') {
+			Nb = Nb + 8;
+		}
+		if (types[i] === 'integer') {
+			Nb = Nb + 4;
+		}		
+	}
+	//console.log(Nr)
+	//console.log(Nb)
+	//console.log(types)
+	var linebuff = new Buffer.alloc(Nr*Nb);
 
 	var pos = 0;
 	for (var i = 0; i < Nr; i++) {
@@ -432,8 +463,14 @@ function csv2fbin(lines,startsec) {
 		line[0] = firstsec+i; // Overwrite ISO time with seconds
 		//console.log(line.join(","))
 		for (var j = 0;j < Nd+1;j++) {
-			linebuff.writeDoubleLE(line[j],pos);
-			pos = pos + 8;
+			if (types[j] === 'double') {
+				linebuff.writeDoubleLE(line[j],pos);
+				pos = pos + 8;
+			}
+			if (types[j] === 'integer') {
+				linebuff.writeInt16LE(line[j],pos);	
+				pos = pos + 4;
+			}
 		}
 	}
 	return linebuff;
