@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "engines": {
-    "node": "7.10"
+    "node": ">=5.10.0"
   },
   "people": {
     "name": "Bob Weigel",

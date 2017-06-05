@@ -10,7 +10,6 @@ var stopDate    = "2016-12-31";
 var fs      = require('fs');
 var os      = require("os");
 
-var request = require("request");
 var express = require('express');
 var app     = express();
 var compression = require('compression');
@@ -55,9 +54,9 @@ app.get('/hapi', function (req, res) {
 app.get('/hapi/capabilities', function (req, res) {
 	cors(res);
 	res.contentType("application/json");
-	var json = {"HAPI": hapiversion,"outputFormats": ["csv","binary","fbinary"],"status": {"code": 1200,"message": "OK"}};
+	var json = {"HAPI": hapiversion,"outputFormats": ["csv","fcsv","binary","fbinary"],"status": {"code": 1200,"message": "OK"}};
 	console.log(ds() + req.originalUrl);
-	res.send(JSON.stringify(json));
+	res.send(JSON.stringify(json) + "\n");
 })
 
 // /catalog
@@ -145,7 +144,7 @@ function parameters(req,res) {
 						"type": "isotime",
 						"units": "UTC",
 						"fill": null,
-						"length": 24
+						"length": 24,
 					},
 					{ 
 						"name": "scalar",
@@ -157,7 +156,7 @@ function parameters(req,res) {
 					},
 					{ 
 						"name": "scalarint",
-						"type": "int",
+						"type": "integer",
 						"units": "m",
 						"fill": "-1e31",
 						"size": [1],
@@ -334,19 +333,21 @@ function data(req,res,header,timeRange) {
 		}
 
 		if (scalarint) {
-			data = data + sepi + Math.sin(Math.PI*i/600);
+			data = data + sepi + Math.round(1000*Math.sin(Math.PI*i/600));
 			if (i==startsec) {types.push('integer');}
 		}
 		if (vector) {
 			data = data + sepv + Math.sin(Math.PI*(i-startsec)/600) 
 						+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
 						+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
-			if (i==startsec) {types.push('double');}
+			if (i==startsec) {types = types.concat(['double','double','double']);}
 		}
 		if (spectra) {
 			data = data + seps + 0;
-			for (var j = 1;j < 10;j++) {data = data + "," + 1/j;}
-			if (i==startsec) {types.push('double');}
+			for (var j = 1;j < 10;j++) {
+				data = data + "," + 1/j;
+				if (i==startsec) {types.push('double');}
+			}
 		}
 
 		var str = time.slice(0,-1) + "," + data;
@@ -494,7 +495,7 @@ function csv2fbin(lines,startsec,types) {
 				pos = pos + 8;
 			}
 			if (types[j] === 'integer') {
-				linebuff.writeInt32LE(line[j]*1000,pos);	
+				linebuff.writeInt32LE(line[j],pos);	
 				pos = pos + 4;
 			}
 		}
