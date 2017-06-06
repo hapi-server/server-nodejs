@@ -361,13 +361,13 @@ function data(req,res,header,timeRange) {
 		// Flush to output ~80,000 Bytes (more does not speed up; less slows down)
 		if (req.query["format"] === "binary") {
 			if (line.length > 1e4) {
-				var linebuff = csv2bin(line);
+				var linebuff = csv2bin(line,types);
 				res.write(linebuff);
 				line = "";
 			}
 		} else if (req.query["format"] === "fbinary") {
 			if (line.length > 1e4) {
-				var linebuff = csv2fbin(line,startsec,types);
+				var linebuff = csv2fbin(line,types,startsec);
 				res.write(linebuff);
 				line = "";
 			}
@@ -388,13 +388,13 @@ function data(req,res,header,timeRange) {
 
 	if (req.query["format"] === "binary") {
 		if (line.length > 0) {
-			var linebuff = csv2bin(line);
+			var linebuff = csv2bin(line,types);
 			res.write(linebuff);
 		}
 		res.end();
 	} else if (req.query["format"] === "fbinary") {
 		if (line.length > 0) {
-			var linebuff = csv2fbin(line,startsec,types);
+			var linebuff = csv2fbin(line,types,startsec);
 			res.write(linebuff);
 		}
 		res.end();
@@ -427,7 +427,8 @@ function csv2fcsv(lines,startsec) {
 	return linesarr.join("\n");
 }
 
-function csv2bin(lines) {
+// TODO: Merge this with csv2fbin
+function csv2bin(lines,types) {
 	var linesarr = lines.split("\n");
 	var Nr = linesarr.length; // Number of rows
 
@@ -435,7 +436,19 @@ function csv2bin(lines) {
 	var Nt    = line1[0].length + 1; // Number of time characters (+1 for null)
 	var Nd    = line1.length - 1;	 // Number of data columns
 
-	var linebuff = new Buffer.alloc(Nr*(Nt + 8*Nd));
+	Nb = 0;
+	for (var i = 1;i < types.length;i++) {
+		if (types[i] === 'double') {
+			Nb = Nb + 8;
+		}
+		if (types[i] === 'integer') {
+			Nb = Nb + 4;
+		}		
+	}
+
+	console.log(types)
+	console.log(Nr*(Nt+Nb))
+	var linebuff = new Buffer.alloc(Nr*(Nt + Nb));
 	var pos = 0;
 	for (var i = 0; i < Nr; i++) {
 		var line = linesarr[i].split(",");
@@ -443,9 +456,15 @@ function csv2bin(lines) {
 		pos = pos + Nt - 1;
 		linebuff.write("\0",pos);
 		pos = pos + 1;
-		for (var j = 1;j < Nd + 1;j++) {
-			linebuff.writeDoubleLE(line[j],pos);
-			pos = pos + 8;
+		for (var j = 1;j < Nd+1;j++) {
+			if (types[j] === 'double') {
+				linebuff.writeDoubleLE(line[j],pos);
+				pos = pos + 8;
+			}
+			if (types[j] === 'integer') {
+				linebuff.writeInt32LE(line[j],pos);	
+				pos = pos + 4;
+			}
 		}
 	}
 	return linebuff;
@@ -460,7 +479,7 @@ function fbinhead(startsec) {
 	return headbuff;
 }
 
-function csv2fbin(lines,startsec,types) {
+function csv2fbin(lines,types,startsec) {
 
 	var linesarr = lines.split("\n");
 	var Nr = linesarr.length; // Number of rows
