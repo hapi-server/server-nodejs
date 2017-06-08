@@ -151,7 +151,6 @@ function parameters(req,res) {
 						"type": "double",
 						"units": "m",
 						"fill": "-1e31",
-						"size": [1],
 						"description": "Sine wave with 600 s period"
 					},
 					{ 
@@ -159,8 +158,23 @@ function parameters(req,res) {
 						"type": "integer",
 						"units": "m",
 						"fill": "-1e31",
-						"size": [1],
 						"description": "Sine wave with 600 s period"
+					},
+					{ 
+						"name": "scalarstr",
+						"type": "string",
+						"units": null,
+						"fill": null,
+						"length": 4,
+						"description": "Status checks result; P = Pass, F = Fail."
+					},
+					{ 
+						"name": "scalarcats",
+						"type": "integer",
+						"units": null,
+						"fill": null,
+						"categorymap": {"good":0,"bad ":1,"ugly":2},
+						"description": "Category of personality"
 					},
 					{ 
 						"name": "vector",
@@ -181,7 +195,9 @@ function parameters(req,res) {
 					}
 				]
 		};
-	var i = 0;while(i < 100){json.parameters[4].bins.centers.push(i++);};
+	// Assumes spectra is last parameter!
+	var sl = json.parameters.length; // spectra location
+	var i = 0;while(i < 100){json.parameters[sl-1].bins.centers.push(i++);};
 
 	// Create arrray from comma-separated parameter list
 	if (req.query.parameters) {
@@ -216,7 +232,7 @@ function parameters(req,res) {
 
 	// Invalid parameter found
 	if (validparams.length != wantedparams.length) {
-		error(res,1401);//"Bad request - unknown request parameter(s)" + "'" + invalidparams.join(",") + "'.");
+		error(res,1401);
 		return false;
 	}
 
@@ -308,48 +324,51 @@ function data(req,res,header,timeRange) {
 		res.write(fbinhead(startsec));
 	}
 
-	var scalar = false, scalarint = false, vector = false, spectra = false;
-	for (var i = 1;i < header.parameters.length; i++) {
-		if (header.parameters[i].name == "scalar")  {scalar  = true};
-		if (header.parameters[i].name == "scalarint")  {scalarint  = true};
-		if (header.parameters[i].name == "vector")  {vector  = true};
-		if (header.parameters[i].name == "spectra") {spectra = true};
-	}
-	var all = !scalar && !scalarint && !vector && !spectra;
-	if (all) {scalar = true;scalarint = true;vector = true;spectra = true;}	
-
-	if (scalar) {var sepi = ","} else {var sepi= ""};
-	if (scalar || scalarint) {var sepv = ","} else {var sepv = ""};
-	if (scalar || vector) {var seps = ","} else {var seps = ""};
+	wantedparameters = req.query.parameters.split(",");
 
 	var line = "";
 	var types = ["double"];
+	scalarstrs = ["P/P","P/F","F/P","F/F"];
+	scalarcats = [0,1,2];
 	for (var i = startsec; i < stopsec;i++) {
 		var data = "";
 		var time = new Date(i*1000).toISOString();
-		if (scalar) {
+		if (wantedparameters.indexOf('scalar') > -1) {
 			data = Math.sin(Math.PI*i/600);
 			if (i==startsec) {types.push('double');}
 		}
-
-		if (scalarint) {
-			data = data + sepi + Math.round(1000*Math.sin(Math.PI*i/600));
+		if (wantedparameters.indexOf('scalarint') > -1) {
+			if (data !== '') {sep = ",";} else {sep = "";};
+			data = data + sep + Math.round(1000*Math.sin(Math.PI*i/600));
 			if (i==startsec) {types.push('integer');}
 		}
-		if (vector) {
-			data = data + sepv + Math.sin(Math.PI*(i-startsec)/600) 
+		if (wantedparameters.indexOf('scalarstr') > -1) {
+			if (data !== '') {sep = ",";} else {sep = "";};
+			data = data + sep + scalarstrs[(i-startsec) % scalarstrs.length];
+			if (i==startsec) {types.push('string');}
+		}
+		if (wantedparameters.indexOf('scalarcats') > -1) {
+			if (data !== '') {sep = ",";} else {sep = "";};
+			data = data + sep + scalarcats[(i-startsec) % scalarcats.length];
+			if (i==startsec) {types.push('integer');}
+		}
+		if (wantedparameters.indexOf('vector') > -1) {
+			if (data !== '') {sep = ",";} else {sep = "";};
+			data = data + sep + Math.sin(Math.PI*(i-startsec)/600) 
 						+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
 						+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
 			if (i==startsec) {types = types.concat(['double','double','double']);}
 		}
-		if (spectra) {
-			data = data + seps + 0;
+		if (wantedparameters.indexOf('spectra') > -1) {
+			if (data !== '') {sep = ",";} else {sep = "";};
+			data = data + sep + 0;
 			for (var j = 1;j < 10;j++) {
 				data = data + "," + 1/j;
 				if (i==startsec) {types.push('double');}
 			}
 		}
 
+		// -1 to remove Z
 		var str = time.slice(0,-1) + "," + data;
 
 		if (line.length > 0) {
