@@ -1,11 +1,10 @@
 // R.S. Weigel <rweigel@gmu.edu>
 // License: Public Domain
 
-var hapiversion = "1.1"; // Spec version implemeted
-var catalogID   = "TestData";
-var datasetID   = "TestData";
-var startDate   = "1970-01-01";
-var stopDate    = "2016-12-31";
+// Global variables
+var __HAPIVERSION = "1.1"; // Spec version implemeted
+var __CATALOGID     = "TestData";
+var __DATASETID     = "TestData";
 
 var fs      = require('fs');
 var os      = require("os");
@@ -45,8 +44,8 @@ app.get('/hapi', function (req, res) {
 	res.send(fs.
 				readFileSync(__dirname+"/server.htm","utf8")
 				.toString()
-				.replace(/__VERSION__/g, hapiversion)
-				.replace(/__CATALOG__/g, catalogID)
+				.replace(/__VERSION__/g, __HAPIVERSION)
+				.replace(/__CATALOG__/g, __CATALOGID)
 			);
 })
 
@@ -54,7 +53,7 @@ app.get('/hapi', function (req, res) {
 app.get('/hapi/capabilities', function (req, res) {
 	cors(res);
 	res.contentType("application/json");
-	var json = {"HAPI": hapiversion,"outputFormats": ["csv","fcsv","binary","fbinary"],"status": {"code": 1200,"message": "OK"}};
+	var json = {"HAPI": __HAPIVERSION,"outputFormats": ["csv","fcsv","binary","fbinary"],"status": {"code": 1200,"message": "OK"}};
 	console.log(ds() + req.originalUrl);
 	res.send(JSON.stringify(json) + "\n");
 })
@@ -65,11 +64,11 @@ app.get('/hapi/catalog', function (req, res) {
 	res.contentType("application/json");
 	var json =
 		{
-			"HAPI" : "1.1",
+			"HAPI" : __HAPIVERSION,
 			"status": { "code": 1200, "message": "OK"},
 			"catalog" : 
 				[
-					{"id": datasetID, title: "Test dataset"}
+					{"id": __DATASETID, title: "Test dataset"}
 				]
 		};
 	console.log(ds() + req.originalUrl);
@@ -80,8 +79,8 @@ app.get('/hapi/catalog', function (req, res) {
 app.get('/hapi/info', function (req, res) {
 	cors(res);
 	res.contentType("application/json");
-	if (req.query.id !== datasetID) {
-		error(res,1401);
+	if (req.query.id !== __DATASETID) {
+		error(req,res,1401);
 		return;
 	}
 	var header = parameters(req,res);
@@ -94,23 +93,35 @@ app.get('/hapi/info', function (req, res) {
 
 // /data
 app.get('/hapi/data', function (req, res) {
+
 	cors(res);
 
 	console.log(ds() + req.originalUrl);
 
 	var header = parameters(req,res);
-	if (header == false) {return;};
+	if (header == false) {return;}; // Error occured and sent.
 
-	var timeRange = startstop(req,res,header)
-	if (timeRange == false) {return;};
+	var timeRange = timerange(req,res,header)
+	if (timeRange == false) {return;}; // Error occured and sent.
 
-	if (req.query["format"] === "binary") {
-		res.contentType("application/octet-stream");
-	} else if (req.query["format"] === "fbinary") {
-		res.contentType("application/octet-stream");
-	} else {
+	if (typeof(req.query["format"]) === "undefined") {
+		req.query["format"] = "csv";
+	}
+
+	if (req.query["format"] === "csv") {
 		res.contentType("text/csv"); 	 // Triggers d/l dialog in most browsers
 		//res.contentType("text/plain"); // For testing; so displays in browser
+	} else if (req.query["format"] === "binary") {
+		res.contentType("application/octet-stream");
+	} else if (req.query["format"] === "json") {
+		res.contentType("application/json");
+	} else if (req.query["format"] === "fbinary") {
+		res.contentType("application/octet-stream");
+	} else if (req.query["format"] === "fcsv") {
+		res.contentType("text/csv");
+	} else {
+		error(req,res,1409); // Unsupported output format.
+		return;
 	}
 
 	if (req.query["include"] === "header") {
@@ -130,71 +141,33 @@ console.log(ds()+"Listening on port "+argv.port+". See http://localhost:"+argv.p
 
 function parameters(req,res) {
 
-	var json = 
-		{
-			"HAPI": hapiversion,
-			"status": { "code": 1200, "message": "OK"},
-			"startDate": startDate,
-			"stopDate" : stopDate,
-			"cadence": "PT1S",
-			"parameters":
-				[
-					{ 
-						"name": "Time",
-						"type": "isotime",
-						"units": "UTC",
-						"fill": null,
-						"length": 24,
-					},
-					{ 
-						"name": "scalar",
-						"type": "double",
-						"units": "m",
-						"fill": "-1e31",
-						"description": "Sine wave with 600 s period"
-					},
-					{ 
-						"name": "scalarint",
-						"type": "integer",
-						"units": "m",
-						"fill": "-1e31",
-						"description": "Sine wave with 600 s period"
-					},
-					{ 
-						"name": "scalarstr",
-						"type": "string",
-						"units": null,
-						"fill": null,
-						"length": 4,
-						"description": "Status checks result; P = Pass, F = Fail."
-					},
-					{ 
-						"name": "scalarcats",
-						"type": "integer",
-						"units": null,
-						"fill": null,
-						"categorymap": {"good":0,"bad ":1,"ugly":2},
-						"description": "Category of personality"
-					},
-					{ 
-						"name": "vector",
-						"type": "double",
-						"units": "m",
-						"fill": "-1e31",
-						"size": [3],
-						"description ": "Each component is a sine wave with a 600 s period with differing phases."
-					},
-					{ 
-						"name": "spectra",
-						"type": "double",
-						"units": "m",
-						"fill": "-1e31",
-						"size" : [100],
-						"bins": {"name": "frequency", "units": "Hz","centers":[]},
-						"description": "A time indepentent 1/f spectra."
-					}
-				]
-		};
+	jsonstr = fs.readFileSync(__dirname + "/parameters.json");
+	json    = JSON.parse(jsonstr);
+
+	json["HAPI"]   = __HAPIVERSION;
+	json["status"] = { "code": 1200, "message": "OK"};
+
+	maxDurations = {
+		"Time": "P366D",
+		"scalar": "P366D",
+		"scalarint": "P366D",
+		"scalariso": "P366D",
+		"scalarstr": "P366D",
+		"scalarcats": "P366D",
+		"vector": "P366D",
+		"vectoriso": "P366D",
+		"spectra": "P1D"
+	};
+	for (var i = 0;i < json.parameters.length;i++) {
+		name = json.parameters[i]["name"];
+		if (!maxDurations[name]) {
+			console.log(ds() + "Warning: Parameter " + name + " does not have a maxDuration set in server.js.  Using P1D.")
+			json.parameters[i]["x_maxDuration"] = "P1D";
+		} else {
+			json.parameters[i]["x_maxDuration"] = maxDurations[name];
+		}
+	}
+
 	// Assumes spectra is last parameter!
 	var sl = json.parameters.length; // spectra location
 	var i = 0;while(i < 100){json.parameters[sl-1].bins.centers.push(i++);};
@@ -232,7 +205,7 @@ function parameters(req,res) {
 
 	// Invalid parameter found
 	if (validparams.length != wantedparams.length) {
-		error(res,1401);
+		error(req,res,1401);
 		return false;
 	}
 
@@ -248,23 +221,23 @@ function parameters(req,res) {
 	return json;
 }
 
-function startstop(req,res,header) {
+function timerange(req,res,header) {
 
 	// TODO: Handle less than milliseconds resolution.
 
 	var times = [req.query["time.min"],req.query["time.max"],header.startDate,header.stopDate];
 
 	if (!moment(times[0], moment.ISO_8601).isValid()) {
-		error(res,1402);return false;
+		error(req,res,1402);return false;
 	}
 	if (!moment(times[1], moment.ISO_8601).isValid()) {
-		error(res,1403);return false;
+		error(req,res,1403);return false;
 	}
 	if (!moment(times[2], moment.ISO_8601).isValid()) {
-		error(res,1409);return false;
+		error(req,res,1409);return false;
 	}
 	if (!moment(times[3], moment.ISO_8601).isValid()) {
-		error(res,1409);return false;
+		error(req,res,1409);return false;
 	}
 
 	for (var i = 0;i < times.length;i++) {
@@ -291,15 +264,15 @@ function startstop(req,res,header) {
 	var stopmsMax  = moment(times[3]).valueOf();
 
 	if (stopms < startms) {
-		error(res,1404);
+		error(req,res,1404);
 		return false;
 	}
 	if (startms < startmsMin) {
-		error(res,1405);
+		error(req,res,1405);
 		return false;
 	} 
 	if (stopms > stopmsMax) {
-		error(res,1405);
+		error(req,res,1405);
 		return false;
 	}
 	return times[0] + "/" + times[1];
@@ -312,22 +285,22 @@ function datacl(req,res,header,timeRange) {
 function data(req,res,header,timeRange) {
 
 	var start = timeRange.split("/")[0];
-	var stop = timeRange.split("/")[1];
+	var stop  = timeRange.split("/")[1];
 
 	var startsec = moment(start).valueOf()/1000;
 	var stopsec  = moment(stop).valueOf()/1000;
 
 	startsec = Math.floor(startsec);
-	stopsec = Math.floor(stopsec);
-
-	if (req.query["format"] === "fbinary") {
-		res.write(fbinhead(startsec));
-	}
+	stopsec  = Math.floor(stopsec);
 
 	wantedparameters = req.query.parameters.split(",");
 
-	var line = "";
-	var types = ["double"];
+	var records = "";
+	var record  = "";
+	var wrote   = false;
+	var Nwrote  = 0;
+	var types   = ["isotime"]; // Time parameter
+
 	scalarstrs = ["P/P","P/F","F/P","F/F"];
 	scalarcats = [0,1,2];
 	for (var i = startsec; i < stopsec;i++) {
@@ -352,6 +325,18 @@ function data(req,res,header,timeRange) {
 			data = data + sep + scalarcats[(i-startsec) % scalarcats.length];
 			if (i==startsec) {types.push('integer');}
 		}
+		if (wantedparameters.indexOf('scalariso') > -1) {
+			if (data !== '') {sep = ",";} else {sep = "";};
+			data = data + sep + (new Date((i+1)*1000).toISOString()).slice(0,-5) + "Z";
+			if (i==startsec) {types.push('isotime');}
+		}
+		if (wantedparameters.indexOf('vectoriso') > -1) {
+			if (data !== '') {sep = ",";} else {sep = "";};
+			data = data + sep + (new Date((i+1)*1000).toISOString()).slice(0,-5)
+						+ "," + (new Date((i+2)*1000).toISOString()).slice(0,-5)
+						+ "," + (new Date((i+3)*1000).toISOString()).slice(0,-5)
+			if (i==startsec) {types = types.concat(['isotime','isotime','isotime']);}
+		}
 		if (wantedparameters.indexOf('vector') > -1) {
 			if (data !== '') {sep = ",";} else {sep = "";};
 			data = data + sep + Math.sin(Math.PI*(i-startsec)/600) 
@@ -362,98 +347,105 @@ function data(req,res,header,timeRange) {
 		if (wantedparameters.indexOf('spectra') > -1) {
 			if (data !== '') {sep = ",";} else {sep = "";};
 			data = data + sep + 0;
-			for (var j = 1;j < 10;j++) {
+			for (var j = 1;j < 100;j++) {
 				data = data + "," + 1/j;
 				if (i==startsec) {types.push('double');}
 			}
 		}
 
 		// -1 to remove Z
-		var str = time.slice(0,-1) + "," + data;
+		record = time.slice(0,-1) + "," + data;
 
-		if (line.length > 0) {
-			line = line + "\n" + str;
+		if (records.length > 0) {
+			records = records + "\n" + record;
 		} else {
-			line = str;
+			records = record;
 		}
 
-		// Flush to output ~80,000 Bytes (more does not speed up; less slows down)
-		if (req.query["format"] === "binary") {
-			if (line.length > 1e4) {
-				var linebuff = csv2bin(line,types);
-				res.write(linebuff);
-				line = "";
+		var flush = (i > startsec) && ((i-startsec) % 100 === 0);
+		// Flush to output every 100 records (lines)
+		if (flush && !(req.query["format"] === "json")) {
+			if (req.query["format"] === "binary") {
+				var xrecords = csv2bin(records,types);
+				res.write(xrecords);
+			} else if (req.query["format"] === "fbinary") {
+				var xrecords = csv2fbin(records,types,Nwrote);
+				Nwrote = (i-startsec);
+				res.write(xrecords);
+			} else if (req.query["format"] === "fcsv") {
+				var xrecords = csv2fcsv(records,Nwrote);
+				Nwrote = (i-startsec);
+				res.write(xrecords + "\n");
+			} else {
+				res.write(records + "\n");
 			}
-		} else if (req.query["format"] === "fbinary") {
-			if (line.length > 1e4) {
-				var linebuff = csv2fbin(line,types,startsec);
-				res.write(linebuff);
-				line = "";
-			}
-		} else if (req.query["format"] === "fcsv") {
-			if (line.length > 1e4) {
-				var linebuff = csv2fcsv(line,startsec);
-				res.write(linebuff + "\n");
-				line = "";
-			}
-		} else {
-			if (line.length > 1e4) {
-				res.write(line + "\n");
-				line = "";
-			}			
+			records = "";
 		}
-
 	}
 
-	if (req.query["format"] === "binary") {
-		if (line.length > 0) {
-			var linebuff = csv2bin(line,types);
-			res.write(linebuff);
+	if (req.query["format"] === "csv") {
+		if (records.length > 0) {
+			res.write(records + "\n");
 		}
-		res.end();
-	} else if (req.query["format"] === "fbinary") {
-		if (line.length > 0) {
-			var linebuff = csv2fbin(line,types,startsec);
-			res.write(linebuff);
+	} else if (req.query["format"] === "binary") {
+		if (records.length > 0) {
+			var xrecords = csv2bin(records,types);
+			res.write(xrecords);
 		}
-		res.end();
+	} else if (req.query["format"] === "json") {
+		var xrecords = csv2json(records,types,header);
+		res.write('{"data":\n' + xrecords + "}\n");
 	} else if (req.query["format"] === "fcsv") {
-		if (line.length > 0) {
-			var linebuff = csv2fcsv(line,startsec);
-			res.write(linebuff + "\n");
+		if (records.length > 0) {
+			var xrecords = csv2fcsv(records,Nwrote);
+			res.write(xrecords + "\n");
 		}
-		res.end();
-	} else {
-		if (line.length > 0) {
-			res.write(line + "\n");
+	} else if (req.query["format"] === "fbinary") {
+		if (records.length > 0) {
+			var xrecords = csv2fbin(records,types,Nwrote);
+			res.write(xrecords);
 		}
-		res.end();
-	}
+	} 
+	res.end();
 }
 
-function csv2fcsv(lines,startsec) {
-
-	var linesarr = lines.split("\n");
-	var Nr = linesarr.length; // Number of rows
-	var line1 = linesarr[0].split(",");	
-	var firstsec = moment(line1[0]+"Z").valueOf()/1000 - startsec;
-
-	for (var i = 0; i < Nr; i++) {
-		var line = linesarr[i].split(",");
-		line[0] = firstsec+i;
-		linesarr[i] = line.join(",");
+function csv2json(records,types,header) {
+	// TODO: Flush JSON every 100 lines or so or send error if lines is too large.
+	// TODO: Need to place array parameter columns in array.
+	var xtypes = [];
+	var xsizes = [];
+	for (var i = 0;i < header.parameters.length;i++) {
+		xtypes[i] = header.parameters[i].type;
+		xsizes[i] = header.parameters[i].type;
 	}
-	return linesarr.join("\n");
+	recordsarr = records.split("\n");
+	var cols = [];
+	var json = [];
+	for (var i = 0;i < recordsarr.length;i++) {
+		cols    = recordsarr[i].split(",");
+		json[i] = [];
+		for (var j = 0;j < cols.length;j++) {
+			if (types[j] === "integer") {
+				json[i][j] = parseInt(cols[j]);
+			} else if (types[j] === "double") {
+				json[i][j] = parseFloat(cols[j]);
+			} else {
+				json[i][j] = cols[j];
+			}
+		}
+	}
+	return JSON.stringify(json).replace(/\],/g,"],\n").replace(/]$/,"\n]\n").replace(/^\[/,"[\n");
 }
 
 // TODO: Merge this with csv2fbin
-function csv2bin(lines,types) {
-	var linesarr = lines.split("\n");
-	var Nr = linesarr.length; // Number of rows
+function csv2bin(records,types) {
+	// TODO: Get types from header and don't compute types in parameters().
+	var recordsarr = records.split("\n");
+	var Nr = recordsarr.length; // Number of rows
 
-	var line1 = linesarr[0].split(",");
-	var Nt    = line1[0].length + 1; // Number of time characters (+1 for null)
-	var Nd    = line1.length - 1;	 // Number of data columns
+	var record1 = recordsarr[0].split(",");
+	var Nt    = record1[0].length + 1; // Number of time characters (+1 for null)
+	var Nd    = record1.length - 1;	 // Number of data columns
 
 	Nb = 0;
 	for (var i = 1;i < types.length;i++) {
@@ -467,46 +459,46 @@ function csv2bin(lines,types) {
 
 	console.log(types)
 	console.log(Nr*(Nt+Nb))
-	var linebuff = new Buffer.alloc(Nr*(Nt + Nb));
+	var recordbuff = new Buffer.alloc(Nr*(Nt + Nb));
 	var pos = 0;
 	for (var i = 0; i < Nr; i++) {
-		var line = linesarr[i].split(",");
-		linebuff.write(line[0],pos);
+		var record = recordsarr[i].split(",");
+		recordbuff.write(record[0],pos);
 		pos = pos + Nt - 1;
-		linebuff.write("\0",pos);
+		recordbuff.write("\0",pos);
 		pos = pos + 1;
 		for (var j = 1;j < Nd+1;j++) {
 			if (types[j] === 'double') {
-				linebuff.writeDoubleLE(line[j],pos);
+				recordbuff.writeDoubleLE(record[j],pos);
 				pos = pos + 8;
 			}
 			if (types[j] === 'integer') {
-				linebuff.writeInt32LE(line[j],pos);	
+				recordbuff.writeInt32LE(records[j],pos);	
 				pos = pos + 4;
 			}
 		}
 	}
-	return linebuff;
+	return recordbuff;
 }
 
-function fbinhead(startsec) {
-	var start = (new Date(startsec*1000)).toISOString().replace(/\..*/,'');
-	//console.log(start.length)
-	var headbuff = new Buffer.alloc(21);
-	//console.log("0" + start + "\0");
-	headbuff.write("0" + start + "\0");
-	return headbuff;
+function csv2fcsv(records,Nwrote) {
+	var recordsarr = records.split("\n");
+	var Nr = recordsarr.length; // Number of rows
+	//console.log("Converting " + Nr + " records.");
+
+	for (var i = 0; i < Nr; i++) {
+		var record = recordsarr[i].split(",");
+		record[0]  = Nwrote+i;
+		recordsarr[i] = record.join(",");
+	}
+	return recordsarr.join("\n");
 }
 
-function csv2fbin(lines,types,startsec) {
+function csv2fbin(records,types,Nwrote) {
 
-	var linesarr = lines.split("\n");
-	var Nr = linesarr.length; // Number of rows
-
-	var line1 = linesarr[0].split(",");
-	var Nd    = line1.length - 1; // Number of data columns
-	var firstsec = moment(line1[0]+"Z").valueOf()/1000 - startsec;
-
+	var recordsarr = records.split("\n");
+	var Nr = recordsarr.length; // Number of rows
+	console.log(Nwrote)
 	Nb = 8; // Time
 	for (var i = 1;i < types.length;i++) {
 		if (types[i] === 'double') {
@@ -514,64 +506,78 @@ function csv2fbin(lines,types,startsec) {
 		}
 		if (types[i] === 'integer') {
 			Nb = Nb + 4;
-		}		
+		}
 	}
-	//console.log(Nr)
-	//console.log(Nb)
-	//console.log(types)
-	var linebuff = new Buffer.alloc(Nr*Nb);
-	//console.log(linesarr)
+
+	var recordsbuff = new Buffer.alloc(Nr*Nb);
 	var pos = 0;
 	for (var i = 0; i < Nr; i++) {
-		var line = linesarr[i].split(",");
-		line[0] = firstsec+i; // Overwrite ISO time with seconds
-		//console.log(line.join(","))
-		
-		for (var j = 0;j < Nd+1;j++) {
+		var record = recordsarr[i].split(",");
+		record[0] = Nwrote + i; // Overwrite ISO time with seconds
+		//console.log("Writing " + record[0]);
+		recordsbuff.writeDoubleLE(record[0],pos);
+		pos = pos + 8;
+		for (var j = 1;j < record.length;j++) {
+			//console.log("Writing " + record[j]);
 			if (types[j] === 'double') {
-				linebuff.writeDoubleLE(line[j],pos);
+				recordsbuff.writeDoubleLE(record[j],pos);
 				pos = pos + 8;
 			}
 			if (types[j] === 'integer') {
-				linebuff.writeInt32LE(line[j],pos);	
+				recordsbuff.writeInt32LE(record[j],pos);	
 				pos = pos + 4;
 			}
 		}
 	}
-	return linebuff;
+	return recordsbuff;
 }
 
 function cors(res) {
-	// CORS
+	// CORS headers
 	res.header('Access-Control-Allow-Origin', '*');
 	res.header('Access-Control-Allow-Methods', 'GET');
 	res.header('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-function error(res,code,msg) {
-	
-	var errs = {
-		"1400": {status: 400, "msg": "Bad request - user input error"},
-		"1401": {status: 400, "msg": "Bad request - unknown request parameter"},
-		"1402": {status: 400, "msg": "Bad request - error in start time"},
-		"1403": {status: 400, "msg": "Bad request - error in stop time"},
-		"1404": {status: 400, "msg": "Bad request - start time after stop time"},
-		"1405": {status: 400, "msg": "Bad request - time outside valid range"},
-		"1406": {status: 404, "msg": "Bad request - unknown dataset id"},
-		"1407": {status: 404, "msg": "Bad request - unknown dataset parameter"},
-		"1408": {status: 400, "msg": "Bad request - too much time or data requested"},
-		"1409": {status: 400, "msg": "Internal server error"},
-		"1500": {status: 500, "msg": "Internal server error - upstream request error"}
-	};
+function error(req,res,code) {
 
+	var errs = {
+		"1400": {status: 400, "msg": "HAPI error 1400: user input error"},
+		"1401": {status: 400, "msg": "HAPI error 1401: unknown request parameter"},
+		"1402": {status: 400, "msg": "HAPI error 1402: error in start time"},
+		"1403": {status: 400, "msg": "HAPI error 1403: error in stop time"},
+		"1404": {status: 400, "msg": "HAPI error 1404: start time after stop time"},
+		"1405": {status: 400, "msg": "HAPI error 1405: time outside valid range"},
+		"1406": {status: 404, "msg": "HAPI error 1406: unknown dataset id"},
+		"1407": {status: 404, "msg": "HAPI error 1407: unknown dataset parameter"},
+		"1408": {status: 400, "msg": "HAPI error 1408: too much time or data requested"},
+		"1409": {status: 400, "msg": "HAPI error 1409: unsupported output format"},
+		"1500": {status: 500, "msg": "HAPI error 1500: internal server error"},
+		"1501": {status: 500, "msg": "HAPI error 1501: upstream request error"}
+	}
+
+	// Defaults
 	var json =
 			{
-				"HAPI" : "1.1",
-				"status": { "code": code || errs[code+""], "message": msg || errs[code+""]}
+				"HAPI" : __HAPIVERSION,
+				"status": { "code": 1500, "message": "Internal server error"}
 			};
-	var status = 500;
-	if (errs[code+""]) {status = errs[code+""].status;}
-	res.status(status).send(JSON.stringify(json, null, 4) + "\n");
+	var httpcode = 500;
+	var httpmesg = "Internal server error";
+
+	// Modify defaults
+	if (errs[code+""]) {
+		json["status"]["code"] = code+"";
+		json["status"]["msg"]  = errs[code+""]["msg"];
+		httpcode = errs[code+""]["status"];
+		httpmesg = errs[code+""]["msg"];
+	}
+
+	console.log(ds() + req.originalUrl + " " + httpcode + "/" + json["status"]["code"]);
+
+	res.contentType("application/json");
+	res.statusMessage = httpmesg;
+	res.status(httpcode).send(JSON.stringify(json, null, 4) + "\n");
 }
 
 function exceptions() {

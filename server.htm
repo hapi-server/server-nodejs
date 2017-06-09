@@ -7,7 +7,16 @@
 	<body>
 		<h2>HAPI Server for __CATALOG__ data</h2>
 		<p>
-			This server supports the <a href="https://github.com/hapi-server/data-specification">HAPI __VERSION__ API</a> specification for delivery of time series data. The server consists of the following endpoints that respond to HTTP GET requests:
+			This server supports the <a href="https://github.com/hapi-server/data-specification">HAPI __VERSION__ API</a> specification for delivery of time series data.
+		</p>
+		<p>
+			The parameters in this dataset are code-generated and intended for testing <a href="https://github.com/hapi-server">HAPI clients</a>.  The parameters include most types of allowed HAPI parameters including scalars paramters of <code>integer</code>, <code>double</code>, <code>string</code> and <code>isotime</code> are and array parameters of type <code>integer</code> and <code>double</code> (but not yet <code>string</code> or <code>isotime</code>).  The HAPI output formats of <code>CSV</code> and <code>binary</code> are supported (but not yet <code>JSON</code>). Experimental support for alternative output formats <code>fcsv</code> and <code>fbin</code> are also included and will be eventually be removed.  The metadata for the <code>scalarcats</code> parameter has a non-HAPI standard field of <code>categorymap</code> that will probably change or be removed in the future.
+		</p>
+		<p>
+			The source code for this server is available in a <a href="https://github.com/hapi-server/nodejs-server">GitHub Repository</a>.
+		</p>
+		<p>
+			The server responds to GET requests to the following <a href="https://github.com/hapi-server/data-specification/tree/v1.1.0#endpoints">HAPI endpoints</a>:
 		</p>
 		<ul>
 			<li>
