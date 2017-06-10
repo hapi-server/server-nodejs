@@ -58,6 +58,23 @@
 				"description ": "Each component is a sine wave with a 600 s period with differing phases."
 			},
 			{ 
+				"name": "vectorint",
+				"type": "int",
+				"units": "m",
+				"fill": "-1e31",
+				"size": [3],
+				"description ": "Each component is a sine wave with a 600 s period with differing phases."
+			},
+			{ 
+				"name": "vectorstr",
+				"type": "string",
+				"units": null,
+				"fill": null,
+				"length": 4,
+				"size": [3],
+				"description": "Status checks result; P = Pass, F = Fail"
+			},
+			{ 
 				"name": "vectoriso",
 				"type": "isotime",
 				"units": "UTC",
@@ -65,6 +82,15 @@
 				"fill": "0000-00-00:T00:00:00",
 				"size": [3],
 				"description ": "Each component is a sine wave with a 600 s period with differing phases."
+			},
+			{ 
+				"name": "vectorcats",
+				"type": "integer",
+				"units": null,
+				"fill": null,
+				"size": [3],
+				"categorymap": {"good":0,"bad ":1,"ugly":2},
+				"description": "Category of personality"
 			},
 			{ 
 				"name": "spectra",
