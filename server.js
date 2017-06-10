@@ -83,7 +83,7 @@ app.get('/hapi/info', function (req, res) {
 		error(req,res,1401);
 		return;
 	}
-	var header = parameters(req,res);
+	var header = info(req,res);
 	if (header != false) {
 		console.log(ds() + req.originalUrl);
 		res.send(JSON.stringify(header, null, 4) + "\n");
@@ -98,37 +98,31 @@ app.get('/hapi/data', function (req, res) {
 
 	console.log(ds() + req.originalUrl);
 
-	var header = parameters(req,res);
-	if (header == false) {return;}; // Error occured and sent.
+	var format = req.query["format"] || "csv";
 
-	var timeRange = timerange(req,res,header)
-	if (timeRange == false) {return;}; // Error occured and sent.
+	var header = info(req,res);
+	if (header == false) {return;}; // Error occured and was sent.
 
-	if (typeof(req.query["format"]) === "undefined") {
-		req.query["format"] = "csv";
+	header["_startDateRequested"] = req.query["time.min"];
+	header["_stopDateRequested"]  = req.query["time.max"];
+
+	var timeOK = timeCheck(req,res,header)
+	if (timeOK == false) {return}; // Error occured and was sent.
+
+	if (format === "csv")            {res.contentType("text/csv");
+	} else if (format === "binary")  {res.contentType("application/octet-stream");
+	} else if (format === "json")    {res.contentType("application/json");
+	} else if (format === "fbinary") {res.contentType("application/octet-stream");
+	} else if (format === "fcsv")    {res.contentType("text/csv");
+	} else {error(req,res,1409); return; // Unsupported output format.
 	}
 
-	if (req.query["format"] === "csv") {
-		res.contentType("text/csv"); 	 // Triggers d/l dialog in most browsers
-		//res.contentType("text/plain"); // For testing; so displays in browser
-	} else if (req.query["format"] === "binary") {
-		res.contentType("application/octet-stream");
-	} else if (req.query["format"] === "json") {
-		res.contentType("application/json");
-	} else if (req.query["format"] === "fbinary") {
-		res.contentType("application/octet-stream");
-	} else if (req.query["format"] === "fcsv") {
-		res.contentType("text/csv");
-	} else {
-		error(req,res,1409); // Unsupported output format.
-		return;
-	}
-
+	header["format"] = format; // Header must contain format if data requested.
 	if (req.query["include"] === "header") {
-		res.write("#" + JSON.stringify(header, null, 4) + "\n");
+		res.write("#" + JSON.stringify(header) + "\n");
 	}
 
-	data(req,res,header,timeRange);
+	data(res,header);
 
 	return;
 })
@@ -139,7 +133,7 @@ app.listen(argv.port);
 console.log(ds()+"Listening on port "+argv.port+". See http://localhost:"+argv.port+"/hapi");
 ////////////////////////////////////////////////////////////////////////////////
 
-function parameters(req,res) {
+function info(req,res) {
 
 	jsonstr = fs.readFileSync(__dirname + "/parameters.json");
 	json    = JSON.parse(jsonstr);
@@ -230,11 +224,12 @@ function parameters(req,res) {
 	return json;
 }
 
-function timerange(req,res,header) {
+function timeCheck(req,res,header) {
 
 	// TODO: Handle less than milliseconds resolution.
 
-	var times = [req.query["time.min"],req.query["time.max"],header.startDate,header.stopDate];
+	var times = [header["_startDateRequested"],header["_stopDateRequested"],
+				 header.startDate,header.stopDate];
 
 	if (!moment(times[0], moment.ISO_8601).isValid()) {
 		error(req,res,1402);return false;
@@ -284,17 +279,16 @@ function timerange(req,res,header) {
 		error(req,res,1405);
 		return false;
 	}
-	return times[0] + "/" + times[1];
+	return true;
 }
 
-function datacl(req,res,header,timeRange) {
+function data(res,header) {
+
 	// TODO: Demo of piping output from command line program through.
-}
 
-function data(req,res,header,timeRange) {
-
-	var start = timeRange.split("/")[0];
-	var stop  = timeRange.split("/")[1];
+	var format = header["format"];
+	var start  = header["_startDateRequested"];
+	var stop   = header["_stopDateRequested"];
 
 	var startsec = moment(start).valueOf()/1000;
 	var stopsec  = moment(stop).valueOf()/1000;
@@ -302,119 +296,71 @@ function data(req,res,header,timeRange) {
 	startsec = Math.floor(startsec);
 	stopsec  = Math.floor(stopsec);
 
-	var wantedparameters = [];
+	var wanted  = {};  // Wanted parameters object
 	for (var i = 0;i < header.parameters.length; i++) {
-		wantedparameters[i] = header.parameters[i]["name"];
+		wanted[header.parameters[i]["name"]] = true;
 	}
 
-	var records = "";
-	var record  = "";
-	var wrote   = false;
-	var Nwrote  = 0;
-	var types   = ["isotime"]; // Time parameter
-	var names   = ["Time"];
+	var records = ""; // Number of records (line)
+	var record  = ""; // A record with comma-separated columns
+	var Nwrote  = 0;  // Number of records flushed
 
 	scalarstrs = ["P/P","P/F","F/P","F/F"];
 	scalarcats = [0,1,2];
 	for (var i = startsec; i < stopsec;i++) {
 		var record = "";
-		if (wantedparameters.indexOf('Time') > -1) {
-			// -1 to remove Z
+		if (wanted['Time'] == true) {
 			record = (new Date(i*1000).toISOString()).slice(0,-1);
 		}
-		if (wantedparameters.indexOf('scalar') > -1) {
+		if (wanted['scalar'] == true) {
 			record = record + "," + Math.sin(Math.PI*i/600);
-			if (i==startsec) {
-				types.push('double');
-				names.push('scalar');
-			}
 		}
-		if (wantedparameters.indexOf('scalarint') > -1) {
+		if (wanted['scalarint'] == true) {
 			record = record + "," + Math.round(1000*Math.sin(Math.PI*i/600));
-			if (i==startsec) {
-				types.push('integer');
-				names.push('scalarint');
-			}
 		}
-		if (wantedparameters.indexOf('scalarstr') > -1) {
+		if (wanted['scalarstr'] == true) {
 			record = record + "," + scalarstrs[(i-startsec) % scalarstrs.length];
-			if (i==startsec) {
-				types.push('string');
-				names.push('scalarstr');
-			}
 		}
-		if (wantedparameters.indexOf('scalarcats') > -1) {
+		if (wanted['scalarcats'] == true) {
 			record = record + "," + scalarcats[(i-startsec) % scalarcats.length];
-			if (i==startsec) {
-				types.push('integer');
-				names.push('scalarcats');
-			}
 		}
-		if (wantedparameters.indexOf('scalariso') > -1) {
+		if (wanted['scalariso'] == true) {
 			record = record + "," + (new Date((i+1)*1000).toISOString()).slice(0,-5) + "Z";
-			if (i==startsec) {
-				types.push('isotime');
-				names.push('scalariso');
-			}
 		}
-		if (wantedparameters.indexOf('vector') > -1) {
+		if (wanted['vector'] == true) {
 			record = record 
 						+ "," + Math.sin(Math.PI*(i-startsec)/600) 
 						+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
 						+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
-			if (i==startsec) {
-				types = types.concat(['double','double','double']);
-				names = names.concat(['vector','vector','vector']);
-			}
 		}
-		if (wantedparameters.indexOf('vectorint') > -1) {
+		if (wanted['vectorint'] == true) {
 			record = record 
 						+ "," + Math.round(1000*Math.sin(Math.PI*i/600))
 						+ "," + Math.round(1000*Math.sin(Math.PI*i/600))
 						+ "," + Math.round(1000*Math.sin(Math.PI*i/600));
-			if (i==startsec) {
-				types = types.concat(['integer','integer','integer']);
-				names = names.concat(['vectorint','vectorint','vectorint']);
-			}
 		}
-		if (wantedparameters.indexOf('vectorstr') > -1) {
+		if (wanted['vectorstr'] == true) {
 			record = record 
 							+ "," + scalarstrs[(i-startsec) % scalarstrs.length]
 							+ "," + scalarstrs[(i-startsec+1) % scalarstrs.length]
 							+ "," + scalarstrs[(i-startsec+2) % scalarstrs.length];
-			if (i==startsec) {
-				types = types.concat(['string','string','string']);
-				names = names.concat(['vectorstr','vectorstr','vectorstr']);
-			}
 		}
-		if (wantedparameters.indexOf('vectoriso') > -1) {
+		if (wanted['vectoriso'] == true) {
 			record = record 
 						+ "," + (new Date((i+1)*1000).toISOString()).slice(0,-5)
 						+ "," + (new Date((i+2)*1000).toISOString()).slice(0,-5)
-						+ "," + (new Date((i+3)*1000).toISOString()).slice(0,-5)
-			if (i==startsec) {
-				types = types.concat(['isotime','isotime','isotime']);
-				names = names.concat(['vectoriso','vectoriso','vectoriso']);
-			}
+						+ "," + (new Date((i+3)*1000).toISOString()).slice(0,-5);
 		}
-		if (wantedparameters.indexOf('vectorcats') > -1) {
+		if (wanted['vectorcats'] == true) {
 			record = record 
 						+ "," + scalarcats[(i-startsec)   % scalarcats.length]
 						+ "," + scalarcats[(i-startsec+1) % scalarcats.length]
 						+ "," + scalarcats[(i-startsec+2) % scalarcats.length];
-			if (i==startsec) {
-				types = types.concat(['integer','integer','integer']);
-				names = names.concat(['vectorcats','vectorcats','vectorcats']);
-			}
 		}
-		if (wantedparameters.indexOf('spectra') > -1) {
+		if (wanted['spectra'] == true) {
 			record = record + "," + 0; // f = 0 bin.
 			for (var j = 1;j < 100;j++) {
 				record = record + "," + 1/j;
-				if (i==startsec) {
-					types = types.push('double');
-					names = names.push('double');
-				}
 			}
 		}
 
@@ -424,203 +370,164 @@ function data(req,res,header,timeRange) {
 			records = record;
 		}
 
-		var flush = (i > startsec) && ((i-startsec) % 100 === 0);
-		// Flush to output every 100 records (lines)
-		if (flush && !(req.query["format"] === "json")) {
-			if (req.query["format"] === "binary") {
-				var xrecords = csv2bin(records,types);
-				res.write(xrecords);
-			} else if (req.query["format"] === "fbinary") {
-				var xrecords = csv2fbin(records,types,Nwrote);
-				Nwrote = (i-startsec);
-				res.write(xrecords);
-			} else if (req.query["format"] === "fcsv") {
-				var xrecords = csv2fcsv(records,Nwrote);
-				Nwrote = (i-startsec);
-				res.write(xrecords + "\n");
-			} else {
+		// Flush to output at end and every 100 records (lines)
+		var flush = (i == stopsec - 1) || (i > startsec && (i-startsec) % 100 === 0);
+		if (flush) {
+			if (format === "csv"){
 				res.write(records + "\n");
-			}
+			} else {
+				var xrecords = csvTo(records,Nwrote,(i == stopsec-1),(Nwrote == 0),header,format);
+				res.write(xrecords);
+			} 
 			records = "";
+			Nwrote  = (i-startsec);
 		}
 	}
-
-	if (req.query["format"] === "csv") {
-		if (records.length > 0) {
-			res.write(records + "\n");
-		}
-	} else if (req.query["format"] === "binary") {
-		if (records.length > 0) {
-			var xrecords = csv2bin(records,types);
-			res.write(xrecords);
-		}
-	} else if (req.query["format"] === "json") {
-		var xrecords = csv2json(records,types,names,header);
-		res.write('{"data":\n' + xrecords + "\n}\n");
-	} else if (req.query["format"] === "fcsv") {
-		if (records.length > 0) {
-			var xrecords = csv2fcsv(records,Nwrote);
-			res.write(xrecords + "\n");
-		}
-	} else if (req.query["format"] === "fbinary") {
-		if (records.length > 0) {
-			var xrecords = csv2fbin(records,types,Nwrote);
-			res.write(xrecords);
-		}
-	} 
 	res.end();
 }
 
-function csv2json(records,types,names,header) {
+function csvTo(records,Nwrote,first,last,header,format) {
 
-	// TODO: Flush JSON every 100 lines or so or send error if lines is too large.
+	// Helper functions
+	function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
+	function append(str,arr,N) {for (var i=0;i<N;i++) {arr.push(str);};return arr;}
 
-	var po = {}; // Parameter object
-	for (var i = 0;i < header.parameters.length;i++) {
+	var size    = [];
+	var type    = "";
+	var types   = []; // Type associated with number in each column 
+	var name    = "";
+	var names   = []; // Name associated with number in each column
+	var po      = {}; // Parameter object
+	for (var i = 0;i < header.parameters.length; i++) {
+		size  = header.parameters[i]["size"] || [1];
+		name  = header.parameters[i]["name"];
+		names = append(name,names,prod(size));
+		type  = header.parameters[i]["type"];
+		types = append(type,types,prod(size));
 		po[header.parameters[i].name] = {};
 		po[header.parameters[i].name]["type"] = header.parameters[i].type;
 		po[header.parameters[i].name]["size"] = header.parameters[i].size || [1];
 	}
-	//console.log(po)
-	//console.log(types)
-	//console.log(names)
-	recordsarr = records.split("\n");
-	var cols = [];
-	var json = [];
-	var records = "";
-	var open = "";
-	var nw = 0;
-	for (var i = 0;i < recordsarr.length;i++) {
-		cols    = recordsarr[i].split(",");
-		record = "";
-		nw = 0;
 
-		for (var j = 0;j < cols.length;j++) {
-			if (j == 0) {
-				record = "[";
+	if (format === "binary")  return csv2bin(records,types);
+	if (format === "json")    return csv2json(records,po,names,first,last);
+	if (format === "fcsv")    return csv2fcsv(records,Nwrote);
+	if (format === "fbinary") return csv2bin(records,types,Nwrote);
+
+	function csv2json(records,po,names,first,last) {
+
+		// Only handles 1-D arrays, e.g., size = [N], N integer.
+
+		recordsarr  = records.split("\n");
+		var cols    = [];
+		var records = "";
+		var open    = "";
+		var close   = "";
+		var nw      = 0;
+		for (var i = 0;i < recordsarr.length;i++) {
+			cols    = recordsarr[i].split(",");
+			record  = "";
+			nw      = 0;
+			for (var j = 0;j < cols.length;j++) {
+				if (j == 0) {
+					record = "[";
+				}
+				open  = "";
+				close = "";
+				if (po[names[j]].size[0] > 1) {
+					if (open.length == 0 && nw == 0) {open = "["};
+					nw = nw + 1;
+				}
+				if (po[names[j]].size[0] > 1 && nw == po[names[j]].size[0]) {
+					close = "]";
+					open = "";
+					nw = 0;
+				}
+				if (types[j] === "integer") {
+					record = record + open + parseInt(cols[j])   + close + ",";
+				} else if (types[j] === "double") {
+					record = record + open + parseFloat(cols[j]) + close + ",";
+				} else {
+					record = record + open + "'" + cols[j] + "'" + close + ",";
+				}
 			}
-			open = "";
-			close = "";
-			if (po[names[j]].size[0] > 1 && open.length == 0 && nw == 0) {
-				open = "[";
-			}
-			nw = nw + 1;
-			if (nw == po[names[j]].size[0]) {
-				close = "]";
-				open = "";
-				nw = 0;
-			}
-			if (types[j] === "integer") {
-				record = record + open + parseInt(cols[j]) + close + ",";
-			} else if (types[j] === "double") {
-				record = record + open + parseFloat(cols[j]) + close + ",";
+			if (i > 0) {
+				records = records + "\n" + record.slice(0,-1) + "],";
 			} else {
-				record = record + open + "'" + cols[j] + "'" + close + ",";
+				records = record.slice(0,-1) + "],";
 			}
 		}
-		if (i > 0) {
-			records = records + "\n" + record.slice(0,-1) + "],";
+		open = "";close = "";
+		if (first == true) {open = '{"data":\n';}
+		if (last == true) {close = "\n}\n";}
+		return open + records.slice(0,-1) + close;
+	}
+
+	function csv2bin(records,types,Nwrote) {
+
+		var fbin = false;
+		if (typeof(Nwrote) !== "undefined") {fbin = true;};
+
+		var recordsarr = records.split("\n");
+		var Nr = recordsarr.length; // Number of rows
+
+		var record1 = recordsarr[0].split(",");
+		var Nd      = record1.length - 1;	 // Number of data columns
+		
+		if (fbin) {
+			var Nt = 8; // Time is double
 		} else {
-			records = record.slice(0,-1) + "],";
+			var Nt = record1[0].length + 1; // Number of time characters (+1 for null)			
 		}
-	}
-	return records.slice(0,-1);
-	//return JSON.stringify(json).replace(/\],/g,"],\n").replace(/]$/,"\n]\n").replace(/^\[/,"[\n");
-}
 
-// TODO: Merge this with csv2fbin
-function csv2bin(records,types) {
-	// TODO: Get types from header and don't compute types in parameters().
-	var recordsarr = records.split("\n");
-	var Nr = recordsarr.length; // Number of rows
-
-	var record1 = recordsarr[0].split(",");
-	var Nt    = record1[0].length + 1; // Number of time characters (+1 for null)
-	var Nd    = record1.length - 1;	 // Number of data columns
-
-	Nb = 0;
-	for (var i = 1;i < types.length;i++) {
-		if (types[i] === 'double') {
-			Nb = Nb + 8;
-		}
-		if (types[i] === 'integer') {
-			Nb = Nb + 4;
-		}		
-	}
-
-	//console.log(types)
-	//console.log(Nr*(Nt+Nb))
-	var recordbuff = new Buffer.alloc(Nr*(Nt + Nb));
-	var pos = 0;
-	for (var i = 0; i < Nr; i++) {
-		var record = recordsarr[i].split(",");
-		recordbuff.write(record[0],pos);
-		pos = pos + Nt - 1;
-		recordbuff.write("\0",pos);
-		pos = pos + 1;
-		for (var j = 1;j < Nd+1;j++) {
-			if (types[j] === 'double') {
-				recordbuff.writeDoubleLE(record[j],pos);
-				pos = pos + 8;
+		Nb = 0;
+		for (var i = 1;i < types.length;i++) {
+			if (types[i] === 'double') {
+				Nb = Nb + 8;
 			}
-			if (types[j] === 'integer') {
-				recordbuff.writeInt32LE(records[j],pos);	
-				pos = pos + 4;
+			if (types[i] === 'integer') {
+				Nb = Nb + 4;
+			}		
+		}
+
+		var recordsbuff = new Buffer.alloc(Nr*(Nt + Nb));
+		var pos = 0;
+		for (var i = 0; i < Nr; i++) {
+			var record = recordsarr[i].split(",");
+			if (fbin) {
+				record[0] = Nwrote + i; // Overwrite ISO time with seconds
+				recordsbuff.writeDoubleLE(record[0],pos);
+				pos = pos + Nt;
+			} else {
+				recordsbuff.write(record[0],pos);
+				pos = pos + Nt - 1;
+				recordsbuff.write("\0",pos);
+				pos = pos + 1;
+			}
+			for (var j = 1;j < Nd+1;j++) {
+				if (types[j] === 'double') {
+					recordsbuff.writeDoubleLE(record[j],pos);
+					pos = pos + 8;
+				}
+				if (types[j] === 'integer') {
+					recordsbuff.writeInt32LE(records[j],pos);	
+					pos = pos + 4;
+				}
 			}
 		}
+		return recordsbuff;
 	}
-	return recordbuff;
-}
 
-function csv2fcsv(records,Nwrote) {
-	var recordsarr = records.split("\n");
-	var Nr = recordsarr.length; // Number of rows
-	//console.log("Converting " + Nr + " records.");
-
-	for (var i = 0; i < Nr; i++) {
-		var record = recordsarr[i].split(",");
-		record[0]  = Nwrote+i;
-		recordsarr[i] = record.join(",");
-	}
-	return recordsarr.join("\n");
-}
-
-function csv2fbin(records,types,Nwrote) {
-
-	var recordsarr = records.split("\n");
-	var Nr = recordsarr.length; // Number of rows
-	//console.log(Nwrote)
-	Nb = 8; // Time
-	for (var i = 1;i < types.length;i++) {
-		if (types[i] === 'double') {
-			Nb = Nb + 8;
+	function csv2fcsv(records,Nwrote) {
+		var recordsarr = records.split("\n");
+		var Nr = recordsarr.length; // Number of rows
+		for (var i = 0; i < Nr; i++) {
+			var record = recordsarr[i].split(",");
+			record[0]     = Nwrote+i;
+			recordsarr[i] = record.join(",");
 		}
-		if (types[i] === 'integer') {
-			Nb = Nb + 4;
-		}
+		return recordsarr.join("\n") + "\n";
 	}
-
-	var recordsbuff = new Buffer.alloc(Nr*Nb);
-	var pos = 0;
-	for (var i = 0; i < Nr; i++) {
-		var record = recordsarr[i].split(",");
-		record[0] = Nwrote + i; // Overwrite ISO time with seconds
-		//console.log("Writing " + record[0]);
-		recordsbuff.writeDoubleLE(record[0],pos);
-		pos = pos + 8;
-		for (var j = 1;j < record.length;j++) {
-			//console.log("Writing " + record[j]);
-			if (types[j] === 'double') {
-				recordsbuff.writeDoubleLE(record[j],pos);
-				pos = pos + 8;
-			}
-			if (types[j] === 'integer') {
-				recordsbuff.writeInt32LE(record[j],pos);	
-				pos = pos + 4;
-			}
-		}
-	}
-	return recordsbuff;
 }
 
 function cors(res) {
