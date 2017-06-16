@@ -1,0 +1,106 @@
+{
+	"startDate": "1970-01-01",
+	"stopDate" : "2016-12-31",
+	"cadence": "PT1M",
+	"parameters":
+		[
+			{ 
+				"name": "Time",
+				"type": "isotime",
+				"units": "UTC",
+				"length": 10,
+				"description": "Missing fill and incorrect length"
+			},
+			{ 
+				"name": "scalar",
+				"type": "double",
+				"units": "m",
+				"description": "Missing units"
+			},
+			{ 
+				"name": "scalar",
+				"type": "double",
+				"description": "Duplicated parameter name"
+			},
+			{ 
+				"name": "scalarint",
+				"type": "integer",
+				"units": "m",
+				"fill": -1e31,
+				"description": "Floating point value for fill instead of string"
+			},
+			{ 
+				"name": "scalarstr",
+				"type": "string",
+				"units": null,
+				"fill": "-10",
+				"length": 4,
+				"description": "Numerical value for fill for string parameter but with the correct length"
+			},
+			{ 
+				"name": "scalariso",
+				"type": "isotime",
+				"units": "UTC",
+				"fill": "0000-00-00:T00:00:00",
+				"length": 21,
+				"description": "Fill is not the same length as parameter (shorter by 1 character)"
+			},
+			{ 
+				"name": "scalarcats",
+				"type": "integer",
+				"units": null,
+				"fill": null,
+				"categorymap": {"good":0,"bad ":1,"ugly":2}
+			},
+			{ 
+				"name": "vector",
+				"type": "double",
+				"units": "m",
+				"fill": "-1e31",
+				"size": [2],
+				"description ": "Size is wrong (2 given but should be 3)."
+			},
+			{ 
+				"name": "vectorint",
+				"type": "int",
+				"units": "m",
+				"fill": "-1e31",
+				"size": [3],
+				"description ": "Type is 'int' instead of 'integer'."
+			},
+			{ 
+				"name": "vectorstr",
+				"type": "str",
+				"units": null,
+				"fill": null,
+				"length": 4,
+				"size": [3],
+				"description": "Type is 'str' instead of 'string'"
+			},
+			{ 
+				"name": "vectoriso",
+				"type": "isotime",
+				"units": "UTC",
+				"length": 20,
+				"fill": "0000-00-00:T00:00:00",
+				"size": [3],
+				"description ": "Type is 'iso' instead of 'isotime'."
+			},
+			{ 
+				"name": "vectorcats",
+				"type": "integer",
+				"size": [3],
+				"categorymap": {"good":0,"bad ":1,"ugly":2},
+				"description": "Units and fill missing"
+			},
+			{ 
+				"name": "spectra",
+				"type": "double",
+				"units": "m",
+				"fill": "-1e31",
+				"size" : [100],
+				"bins": {"name": "frequency","centers":[]},
+				"description": "Units missing on bins."
+			}
+		]
+}

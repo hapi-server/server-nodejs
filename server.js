@@ -3,17 +3,17 @@
 
 // Global variables
 var __HAPIVERSION = "1.1"; // Spec version implemeted
-var __CATALOGID     = "TestData";
-var __DATASETID     = "TestData";
+var __CATALOGID   = "TestData";
+var __DATASETID   = "TestData";
 
 var fs      = require('fs');
 var os      = require("os");
 
-var express = require('express');
-var app     = express();
-var compression = require('compression');
-var server  = require("http").createServer(app);
-var moment  = require('moment');
+var express  = require('express');
+var app      = express();
+var compress = require('compression');
+var server   = require("http").createServer(app);
+var moment   = require('moment');
 
 var clc     = require('cli-color');
 var argv    = require('yargs')
@@ -29,16 +29,17 @@ function ds() {return (new Date()).toISOString() + " ";};
 
 exceptions(); // Catch common exceptions
 
-app.use(compression()); // Compress responses
+app.use(compress()); // Compress responses
 
 app.get('/', function (req,res) {
 	console.log(ds() + req.originalUrl);
 	res.send("See <a href='./hapi'>HAPI Landing Page</a>");
 })
 
-// Info web page
+// Landing web page
 app.get('/hapi', function (req, res) {
 	cors(res);
+	//res.status(400).end();return; To set case where no landing page is given.
 	res.contentType('text/html');
 	console.log(ds() + req.originalUrl);
 	res.send(fs.
@@ -53,7 +54,13 @@ app.get('/hapi', function (req, res) {
 app.get('/hapi/capabilities', function (req, res) {
 	cors(res);
 	res.contentType("application/json");
-	var json = {"HAPI": __HAPIVERSION,"outputFormats": ["csv","fcsv","binary","fbinary"],"status": {"code": 1200,"message": "OK"}};
+
+	// Read capabilities metadata.
+	capabilities = fs.readFileSync(__dirname + "/capabilities.json");
+	json = JSON.parse(capabilities);
+	json["HAPI"] = __HAPIVERSION;
+	json["status"] = {"code": 1200,"message": "OK"};
+
 	console.log(ds() + req.originalUrl);
 	res.send(JSON.stringify(json) + "\n");
 })
@@ -61,53 +68,123 @@ app.get('/hapi/capabilities', function (req, res) {
 // /catalog
 app.get('/hapi/catalog', function (req, res) {
 	cors(res);
+
+	// Check for invalid query parameters
+	var keys = Object.keys(req.query);
+	if (keys.length > 0) {
+		error(req,res,1401);
+		return;
+	}
+
+	// Read dataset metadata.
+	datasets = fs.readFileSync(__dirname + "/datasets.json");
+	datasets = JSON.parse(datasets);
+
 	res.contentType("application/json");
-	var json =
-		{
-			"HAPI" : __HAPIVERSION,
-			"status": { "code": 1200, "message": "OK"},
-			"catalog" : 
-				[
-					{"id": __DATASETID, title: "Test dataset"}
-				]
-		};
+	datasets["HAPI"] = __HAPIVERSION;
+	datasets["status"] = { "code": 1200, "message": "OK"};
 	console.log(ds() + req.originalUrl);
-	res.send(JSON.stringify(json, null, 4));
+	res.send(JSON.stringify(datasets, null, 4));
 })
 
 // /info
 app.get('/hapi/info', function (req, res) {
 	cors(res);
 	res.contentType("application/json");
-	if (req.query.id !== __DATASETID) {
-		error(req,res,1401);
+
+	// Check for invalid query parameters
+	var keys = Object.keys(req.query);
+	if (!req.query.id) {
+		error(req,res,1400); // User input error
 		return;
 	}
-	var header = info(req,res);
-	if (header != false) {
+	if (keys.length > 2) {
+		error(req,res,1401); // Unknown request parameter
+	}
+	if (keys.length == 2 && !req.query.parameters) {
+		error(req,res,1401); // Unknown request parameter
+		return;		
+	}
+
+	// Read dataset metadata.
+	datasets = fs.readFileSync(__dirname + "/datasets.json");
+	datasets = JSON.parse(datasets).catalog;
+
+	var found = false;
+	for (var i=0;i<datasets.length;i++) {
+		if (datasets[i]['id'] === req.query.id) {found = true;break;}
+	}
+	if (!found) {
+		error(req,res,1406);
+		return;
+	}
+
+	var header = info(req,res); // Returns integer error code if error
+
+	if (typeof(header) !== "string") {
 		console.log(ds() + req.originalUrl);
 		res.send(JSON.stringify(header, null, 4) + "\n");
 		return;
+	} else {
+		error(req,res,header);
+		return;
 	}
+
 })
 
 // /data
 app.get('/hapi/data', function (req, res) {
 
 	cors(res);
+	for (var key in req.query) {
+		if (-1 == ["id","parameters","time.min","time.max","format","include"].indexOf(key)) {
+			error(req,res,1401); // Unknown request field
+			return;
+		}
+	}	
 
-	console.log(ds() + req.originalUrl);
+	var header = info(req,res); // Get header information for request.
+	if (typeof(header) === "number") {
+		error(req,res,header);
+		return;
+	};
 
-	var format = req.query["format"] || "csv";
+ 	// Non-standard element, but seems it should be in response
+	header["_startDateRequested"] = req.query["time.min"].replace("Z","");
+	header["_stopDateRequested"]  = req.query["time.max"].replace("Z","");
+	header["_parentDataset"]      = req.query["id"];
 
-	var header = info(req,res);
-	if (header == false) {return;}; // Error occured and was sent.
+	var timeOK = timeCheck(header)
+	if (timeOK != true) {
+		error(req,res,timeOK)
+		return
+	};
 
-	header["_startDateRequested"] = req.query["time.min"];
-	header["_stopDateRequested"]  = req.query["time.max"];
+	if (req.query["format"]) {
+		capabilities = fs.readFileSync(__dirname + "/capabilities.json");
+		outputFormats = JSON.parse(capabilities).outputFormats;
 
-	var timeOK = timeCheck(req,res,header)
-	if (timeOK == false) {return}; // Error occured and was sent.
+		// TODO: Read this from capabilities.json
+		if (outputFormats.indexOf(req.query["format"]) == -1) {
+			error(req,res,1409);
+			return;
+		}
+	} else {
+		var format = "csv";
+	}
+	header["format"] = format;
+	
+	var proto = req.connection.encrypted ? 'https' : 'http'; // Has not been tested under https.
+	if (header["status"]) { // If statement because dataset0 does not have status element.
+		header["status"]["request"] = proto + "://" + req.headers.host + req.originalUrl; // Non-standard element
+	}
+
+	if (req.query["include"]) {
+		if (req.query["include"] !== "header") {
+			error(req,res,1410); // Unknown include value
+			return;
+		}
+	}
 
 	if (format === "csv")            {res.contentType("text/csv");
 	} else if (format === "binary")  {res.contentType("application/octet-stream");
@@ -117,30 +194,34 @@ app.get('/hapi/data', function (req, res) {
 	} else {error(req,res,1409); return; // Unsupported output format.
 	}
 
-	header["format"] = format; // Header must contain format if data requested.
-	if (req.query["include"] === "header") {
+	var include = req.query["include"] === "header"
+	if (include && !(format == "json")) {
+ 		// Send header now unless format = json (will be sent later).
 		res.write("#" + JSON.stringify(header) + "\n");
 	}
 
-	data(res,header);
+	data(res,header,include); // Send data
 
 	return;
 })
 
-////////////////////////////////////////////////////////////////////////////////
 // Start the server.
 app.listen(argv.port);
-console.log(ds()+"Listening on port "+argv.port+". See http://localhost:"+argv.port+"/hapi");
-////////////////////////////////////////////////////////////////////////////////
+console.log(ds() + "Listening on port "+argv.port
+				 + ". See http://localhost:"+argv.port+"/hapi");
 
 function info(req,res) {
 
-	jsonstr = fs.readFileSync(__dirname + "/parameters.json");
+	// Read parameter metadata.
+	jsonstr = fs.readFileSync(__dirname + "/" + req.query.id + ".json");
 	json    = JSON.parse(jsonstr);
 
-	json["HAPI"]   = __HAPIVERSION;
-	json["status"] = { "code": 1200, "message": "OK"};
+	if (req.query.id !== "dataset0") { // Make dataset0 have more invalid metadata than given in dataset0.json.
+		json["HAPI"]   = __HAPIVERSION;
+		json["status"] = { "code": 1200, "message": "OK"};
+	}
 
+	// Put experimental maxDurations in response.
 	maxDurations = {
 		"Time": "P366D",
 		"scalar": "P366D",
@@ -155,49 +236,54 @@ function info(req,res) {
 		"vectorcats": "P366D",
 		"spectra": "P1D"
 	};
-	// Add content to parameters.json.
-	// Add _maxDuration element.
+
+	// Add non-standard _maxDuration element.
 	for (var i = 0;i < json.parameters.length;i++) {
 		name = json.parameters[i]["name"];
 		if (!maxDurations[name]) {
-			console.log(ds() + "Warning: Parameter " + name + " does not have a maxDuration set in server.js.  Using P1D.")
+			console.log(ds() 
+				+ "Warning: Parameter " 
+				+ name + " does not have a maxDuration set in server.js.  Using P1D.");
 			json.parameters[i]["x_maxDuration"] = "P1D";
 		} else {
 			json.parameters[i]["x_maxDuration"] = maxDurations[name];
 		}
 	}
-	// Add bins to spectra parameter.  Assumes spectra is last parameter!
-	var sl = json.parameters.length; // spectra location
-	var i = 0;while(i < 100){json.parameters[sl-1].bins.centers.push(i++);};
 
+	// Add bins values to spectra parameter.  Assumes spectra is last parameter!
+	// Normally this would already be metadata file, but we do here for convenience.
+	if (req.query.id !== "dataset0") { // Make dataset0 have more invalid metadata
+		var sl = json.parameters.length;
+		var i = 0;while(i < 100){json.parameters[sl-1].bins.centers.push(i++);};
+	}
 
-	// Create list of known parameters from JSON
+	// Create array of parameters
 	var knownparams = [];
 	for (var i = 0;i < json.parameters.length;i++) {
 		knownparams[i] = json.parameters[i].name;
 	}
 
-	// Create arrray from comma-separated parameter list
+	// Create arrray from comma-separated parameters in query
 	if (req.query.parameters) {
 		wantedparams = req.query.parameters.split(",");
 	} else {
-		// If parameter key not in query string, defualt is all
+		// If parameters field not in query string, defualt is all.
 		wantedparams = knownparams;
 	}
 
-	// Remove duplicates
+	// Remove duplicate parameters from query
 	var wantedparams = Array.from(new Set(wantedparams));
 
-	// No parameters specified means all.  This catches case where 
-	// parameters= is given in URL.
+	// Catches case where parameters= is given in query string.
+	// Assume it means same as if no parameters field was given (all parameters).
 	if (wantedparams.length == 0) {return json;}
 
-	// Determine if any parameters requested are invalid.
+	// Determine if any parameters requested are invalid
 	validparams = []; iv = 0;
 	invalidparams = []; ii = 0;
 	for (var i = 0;i < wantedparams.length;i++) {
 		if (knownparams.indexOf(wantedparams[i]) > -1) {
-			// TODO: For speed, consider using objects if parameters lists are very long.
+			// TODO: Consider using objects if parameter lists are very long.
 			validparams[iv] = wantedparams[i];
 			iv++;
 		} else {
@@ -208,40 +294,42 @@ function info(req,res) {
 
 	// Invalid parameter found
 	if (validparams.length != wantedparams.length) {
-		error(req,res,1401);
-		return false;
+		return 1401;
 	}
 
-	// Delete parameters not requested from JSON
+	// Delete parameters from JSON response that were not requested
 	for (var i = 1;i < knownparams.length;i++) {
 		if (!(wantedparams.indexOf(knownparams[i]) > -1)) {
 			delete json.parameters[i];
 		}
 	}
-	// Remove nulls placed when array element deleted.
+	// Remove nulls placed when array element is deleted
 	json.parameters = json.parameters.filter(function(n){ return n != undefined }); 
 
+	// Return JSON string
 	return json;
 }
 
-function timeCheck(req,res,header) {
+function timeCheck(header) {
 
 	// TODO: Handle less than milliseconds resolution.
+	// TODO: If one of the times had Z and the other does not, should warn that all time
+	// stamps are interpreted as Z.
 
 	var times = [header["_startDateRequested"],header["_stopDateRequested"],
 				 header.startDate,header.stopDate];
 
 	if (!moment(times[0], moment.ISO_8601).isValid()) {
-		error(req,res,1402);return false;
+		return 1402;
 	}
 	if (!moment(times[1], moment.ISO_8601).isValid()) {
-		error(req,res,1403);return false;
+		return 1403;
 	}
 	if (!moment(times[2], moment.ISO_8601).isValid()) {
-		error(req,res,1409);return false;
+		return 1409;
 	}
 	if (!moment(times[3], moment.ISO_8601).isValid()) {
-		error(req,res,1409);return false;
+		return 1409;
 	}
 
 	for (var i = 0;i < times.length;i++) {
@@ -252,8 +340,8 @@ function timeCheck(req,res,header) {
 			var doyms  = (doy-1)*86400000;
 			times[i] = (new Date(yearms + doyms)).toISOString();
 		}
-		// Date YYYY-MM-DD or YYY-DDD with no Z is ambiguous timezone.  
-		if (times[i].length == 10 || times[i].length == 8) {
+		// Date YYYY-MM-DD with no Z is ambiguous timezone.  
+		if (times[i].length == 10) {
 			times[i] = times[i] + "T00:00:00.000Z";
 		}
 		// Make times UTC
@@ -268,27 +356,26 @@ function timeCheck(req,res,header) {
 	var stopmsMax  = moment(times[3]).valueOf();
 
 	if (stopms < startms) {
-		error(req,res,1404);
-		return false;
+		return 1404;
 	}
 	if (startms < startmsMin) {
-		error(req,res,1405);
-		return false;
+		return 1405;
 	} 
 	if (stopms > stopmsMax) {
-		error(req,res,1405);
-		return false;
+		return 1405;
 	}
+
 	return true;
 }
 
-function data(res,header) {
+function data(res,header,include) {
 
 	// TODO: Demo of piping output from command line program through.
 
 	var format = header["format"];
 	var start  = header["_startDateRequested"];
 	var stop   = header["_stopDateRequested"];
+	var id     = header["_parentDataset"];
 
 	var startsec = moment(start).valueOf()/1000;
 	var stopsec  = moment(stop).valueOf()/1000;
@@ -307,6 +394,7 @@ function data(res,header) {
 
 	scalarstrs = ["P/P","P/F","F/P","F/F"];
 	scalarcats = [0,1,2];
+
 	for (var i = startsec; i < stopsec;i++) {
 		var record = "";
 		if (wanted['Time'] == true) {
@@ -363,6 +451,9 @@ function data(res,header) {
 				record = record + "," + 1/j;
 			}
 		}
+		if (id === "dataset0") {
+			record.replace(/,/g,", ");  // Make dataset0 use space after comma.
+		}
 
 		if (records.length > 0) {
 			records = records + "\n" + record;
@@ -376,7 +467,7 @@ function data(res,header) {
 			if (format === "csv"){
 				res.write(records + "\n");
 			} else {
-				var xrecords = csvTo(records,Nwrote,(i == stopsec-1),(Nwrote == 0),header,format);
+				var xrecords = csvTo(records,Nwrote,(i == stopsec-1),(Nwrote == 0),header,include);
 				res.write(xrecords);
 			} 
 			records = "";
@@ -386,7 +477,7 @@ function data(res,header) {
 	res.end();
 }
 
-function csvTo(records,Nwrote,first,last,header,format) {
+function csvTo(records,Nwrote,first,last,header,include) {
 
 	// Helper functions
 	function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
@@ -409,12 +500,13 @@ function csvTo(records,Nwrote,first,last,header,format) {
 		po[header.parameters[i].name]["size"] = header.parameters[i].size || [1];
 	}
 
+	var format = header["format"];
 	if (format === "binary")  return csv2bin(records,types);
-	if (format === "json")    return csv2json(records,po,names,first,last);
+	if (format === "json")    return csv2json(records,po,names,first,last,header,include);
 	if (format === "fcsv")    return csv2fcsv(records,Nwrote);
 	if (format === "fbinary") return csv2bin(records,types,Nwrote);
 
-	function csv2json(records,po,names,first,last) {
+	function csv2json(records,po,names,first,last,header,include) {
 
 		// Only handles 1-D arrays, e.g., size = [N], N integer.
 
@@ -458,8 +550,21 @@ function csvTo(records,Nwrote,first,last,header,format) {
 			}
 		}
 		open = "";close = "";
-		if (first == true) {open = '{"data":\n';}
-		if (last == true) {close = "\n}\n";}
+		if (first == true) {
+			if (include) {
+				// Remove closing } and replace with new element.
+				open = JSON.stringify(header).replace(/}\s*$/,"") + ',"data":\n[\n';
+			} else {
+				open = '[\n';				
+			}
+		}
+		if (last == true) {
+			if (include) {
+				close = "\n]\n}\n";
+			} else {
+				close = "\n]\n";
+			}
+		}
 		return open + records.slice(0,-1) + close;
 	}
 
@@ -541,7 +646,7 @@ function error(req,res,code) {
 
 	var errs = {
 		"1400": {status: 400, "msg": "HAPI error 1400: user input error"},
-		"1401": {status: 400, "msg": "HAPI error 1401: unknown request parameter"},
+		"1401": {status: 400, "msg": "HAPI error 1401: unknown request field"},
 		"1402": {status: 400, "msg": "HAPI error 1402: error in start time"},
 		"1403": {status: 400, "msg": "HAPI error 1403: error in stop time"},
 		"1404": {status: 400, "msg": "HAPI error 1404: start time after stop time"},
@@ -550,6 +655,7 @@ function error(req,res,code) {
 		"1407": {status: 404, "msg": "HAPI error 1407: unknown dataset parameter"},
 		"1408": {status: 400, "msg": "HAPI error 1408: too much time or data requested"},
 		"1409": {status: 400, "msg": "HAPI error 1409: unsupported output format"},
+		"1410": {status: 400, "msg": "HAPI error 1410: unsupported include value"},
 		"1500": {status: 500, "msg": "HAPI error 1500: internal server error"},
 		"1501": {status: 500, "msg": "HAPI error 1501: upstream request error"}
 	}
