@@ -32,16 +32,16 @@ exceptions(); // Catch common exceptions
 app.use(compress()); // Compress responses
 
 app.get('/', function (req,res) {
-	console.log(ds() + req.originalUrl);
+	logreq(req);
 	res.send("See <a href='./hapi'>HAPI Landing Page</a>");
 })
 
 // Landing web page
 app.get('/hapi', function (req, res) {
+	logreq(req);
 	cors(res);
-	//res.status(400).end();return; To set case where no landing page is given.
 	res.contentType('text/html');
-	console.log(ds() + req.originalUrl);
+	//res.status(400).end();return; To set case where no landing page is given.
 	res.send(fs.
 				readFileSync(__dirname+"/server.htm","utf8")
 				.toString()
@@ -52,22 +52,24 @@ app.get('/hapi', function (req, res) {
 
 // /capabilities
 app.get('/hapi/capabilities', function (req, res) {
+	logreq(req);
 	cors(res);
 	res.contentType("application/json");
 
 	// Read capabilities metadata.
-	capabilities = fs.readFileSync(__dirname + "/capabilities.json");
+	capabilities = fs.readFileSync(__dirname + "/metadata/capabilities.json");
 	json = JSON.parse(capabilities);
 	json["HAPI"] = __HAPIVERSION;
 	json["status"] = {"code": 1200,"message": "OK"};
 
-	console.log(ds() + req.originalUrl);
 	res.send(JSON.stringify(json) + "\n");
 })
 
 // /catalog
 app.get('/hapi/catalog', function (req, res) {
+	logreq(req);
 	cors(res);
+	res.contentType("application/json");
 
 	// Check for invalid query parameters
 	var keys = Object.keys(req.query);
@@ -77,37 +79,38 @@ app.get('/hapi/catalog', function (req, res) {
 	}
 
 	// Read dataset metadata.
-	datasets = fs.readFileSync(__dirname + "/datasets.json");
+	datasets = fs.readFileSync(__dirname + "/metadata/catalog.json");
 	datasets = JSON.parse(datasets);
 
-	res.contentType("application/json");
 	datasets["HAPI"] = __HAPIVERSION;
 	datasets["status"] = { "code": 1200, "message": "OK"};
-	console.log(ds() + req.originalUrl);
 	res.send(JSON.stringify(datasets, null, 4));
 })
 
 // /info
 app.get('/hapi/info', function (req, res) {
+	logreq(req);
 	cors(res);
 	res.contentType("application/json");
 
 	// Check for invalid query parameters
 	var keys = Object.keys(req.query);
 	if (!req.query.id) {
-		error(req,res,1400); // User input error
+		error(req,res,1400,"An id must be given."); // User input error
 		return;
 	}
 	if (keys.length > 2) {
-		error(req,res,1401); // Unknown request parameter
+		// Unknown request parameter
+		error(req,res,1401,"Only id and parameters are allowed inputs.");
 	}
-	if (keys.length == 2 && !req.query.parameters) {
-		error(req,res,1401); // Unknown request parameter
+	if (keys.length == 2 && typeof(req.query.parameters) === "undefined") {
+		 // Unknown request parameter
+		error(req,res,1401,"Only id and parameters are allowed inputs.");
 		return;		
 	}
 
-	// Read dataset metadata.
-	datasets = fs.readFileSync(__dirname + "/datasets.json");
+	// Read list of datasets.
+	datasets = fs.readFileSync(__dirname + "/metadata/catalog.json");
 	datasets = JSON.parse(datasets).catalog;
 
 	var found = false;
@@ -120,13 +123,11 @@ app.get('/hapi/info', function (req, res) {
 	}
 
 	var header = info(req,res); // Returns integer error code if error
-
-	if (typeof(header) !== "string") {
-		console.log(ds() + req.originalUrl);
-		res.send(JSON.stringify(header, null, 4) + "\n");
+	if (typeof(header) === "number") {
+		error(req,res,header,"Parameter not found in dataset");
 		return;
 	} else {
-		error(req,res,header);
+		res.send(header);
 		return;
 	}
 
@@ -134,8 +135,9 @@ app.get('/hapi/info', function (req, res) {
 
 // /data
 app.get('/hapi/data', function (req, res) {
-
+	logreq(req);
 	cors(res);
+
 	for (var key in req.query) {
 		if (-1 == ["id","parameters","time.min","time.max","format","include"].indexOf(key)) {
 			error(req,res,1401); // Unknown request field
@@ -150,8 +152,8 @@ app.get('/hapi/data', function (req, res) {
 	};
 
  	// Non-standard element, but seems it should be in response
-	header["_startDateRequested"] = req.query["time.min"].replace("Z","");
-	header["_stopDateRequested"]  = req.query["time.max"].replace("Z","");
+	header["_startDateRequested"] = req.query["time.min"];
+	header["_stopDateRequested"]  = req.query["time.max"];
 	header["_parentDataset"]      = req.query["id"];
 
 	var timeOK = timeCheck(header)
@@ -161,10 +163,9 @@ app.get('/hapi/data', function (req, res) {
 	};
 
 	if (req.query["format"]) {
-		capabilities = fs.readFileSync(__dirname + "/capabilities.json");
+		// If format given, see if server supports it.
+		capabilities = fs.readFileSync(__dirname + "/metadata/capabilities.json");
 		outputFormats = JSON.parse(capabilities).outputFormats;
-
-		// TODO: Read this from capabilities.json
 		if (outputFormats.indexOf(req.query["format"]) == -1) {
 			error(req,res,1409);
 			return;
@@ -176,7 +177,8 @@ app.get('/hapi/data', function (req, res) {
 	
 	var proto = req.connection.encrypted ? 'https' : 'http'; // Has not been tested under https.
 	if (header["status"]) { // If statement because dataset0 does not have status element.
-		header["status"]["request"] = proto + "://" + req.headers.host + req.originalUrl; // Non-standard element
+ 		// Non-standard element
+		header["status"]["_request"] = proto + "://" + req.headers.host + req.originalUrl;
 	}
 
 	if (req.query["include"]) {
@@ -185,6 +187,7 @@ app.get('/hapi/data', function (req, res) {
 			return;
 		}
 	}
+	var include = req.query["include"] === "header"
 
 	if (format === "csv")            {res.contentType("text/csv");
 	} else if (format === "binary")  {res.contentType("application/octet-stream");
@@ -194,8 +197,7 @@ app.get('/hapi/data', function (req, res) {
 	} else {error(req,res,1409); return; // Unsupported output format.
 	}
 
-	var include = req.query["include"] === "header"
-	if (include && !(format == "json")) {
+	if (include && format !== "json") {
  		// Send header now unless format = json (will be sent later).
 		res.write("#" + JSON.stringify(header) + "\n");
 	}
@@ -207,13 +209,13 @@ app.get('/hapi/data', function (req, res) {
 
 // Start the server.
 app.listen(argv.port);
-console.log(ds() + "Listening on port "+argv.port
-				 + ". See http://localhost:"+argv.port+"/hapi");
+console.log(ds() + "Listening on port " + argv.port
+				 + ". See http://localhost:" + argv.port + "/hapi");
 
 function info(req,res) {
 
 	// Read parameter metadata.
-	jsonstr = fs.readFileSync(__dirname + "/" + req.query.id + ".json");
+	jsonstr = fs.readFileSync(__dirname + "/metadata/" + req.query.id + ".json");
 	json    = JSON.parse(jsonstr);
 
 	if (req.query.id !== "dataset0") { // Make dataset0 have more invalid metadata than given in dataset0.json.
@@ -221,43 +223,7 @@ function info(req,res) {
 		json["status"] = { "code": 1200, "message": "OK"};
 	}
 
-	// Put experimental maxDurations in response.
-	maxDurations = {
-		"Time": "P366D",
-		"scalar": "P366D",
-		"scalarint": "P366D",
-		"scalariso": "P366D",
-		"scalarstr": "P366D",
-		"scalarcats": "P366D",
-		"vector": "P366D",
-		"vectorint": "P366D",
-		"vectorstr": "P366D",
-		"vectoriso": "P366D",
-		"vectorcats": "P366D",
-		"spectra": "P1D"
-	};
-
-	// Add non-standard _maxDuration element.
-	for (var i = 0;i < json.parameters.length;i++) {
-		name = json.parameters[i]["name"];
-		if (!maxDurations[name]) {
-			console.log(ds() 
-				+ "Warning: Parameter " 
-				+ name + " does not have a maxDuration set in server.js.  Using P1D.");
-			json.parameters[i]["x_maxDuration"] = "P1D";
-		} else {
-			json.parameters[i]["x_maxDuration"] = maxDurations[name];
-		}
-	}
-
-	// Add bins values to spectra parameter.  Assumes spectra is last parameter!
-	// Normally this would already be metadata file, but we do here for convenience.
-	if (req.query.id !== "dataset0") { // Make dataset0 have more invalid metadata
-		var sl = json.parameters.length;
-		var i = 0;while(i < 100){json.parameters[sl-1].bins.centers.push(i++);};
-	}
-
-	// Create array of parameters
+	// Create array of parameter names
 	var knownparams = [];
 	for (var i = 0;i < json.parameters.length;i++) {
 		knownparams[i] = json.parameters[i].name;
@@ -344,7 +310,7 @@ function timeCheck(header) {
 		if (times[i].length == 10) {
 			times[i] = times[i] + "T00:00:00.000Z";
 		}
-		// Make times UTC
+		// Make times all times UTC
 		if (times[i].match(/Z$/) == null) {
 			times[i] = times[i] + "Z";
 		}
@@ -355,7 +321,7 @@ function timeCheck(header) {
 	var stopms  = moment(times[1]).valueOf();
 	var stopmsMax  = moment(times[3]).valueOf();
 
-	if (stopms < startms) {
+	if (stopms <= startms) {
 		return 1404;
 	}
 	if (startms < startmsMin) {
@@ -369,16 +335,25 @@ function timeCheck(header) {
 }
 
 function data(res,header,include) {
+	// Generate and send data.
 
 	// TODO: Demo of piping output from command line program through.
 
 	var format = header["format"];
-	var start  = header["_startDateRequested"];
-	var stop   = header["_stopDateRequested"];
+	var start  = header["_startDateRequested"].replace("Z","");
+	var stop   = header["_stopDateRequested"].replace("Z","");
 	var id     = header["_parentDataset"];
 
-	var startsec = moment(start).valueOf()/1000;
-	var stopsec  = moment(stop).valueOf()/1000;
+	// Date YYYY-MM-DD with no Z is ambiguous timezone.  
+	if (start.length == 10) { // YYYY-MM-DD
+		start = start + "T00:00:00.000";
+	}
+	if (stop.length == 10) { // YYYY-MM-DD
+		stop = stop + "T00:00:00.000";
+	}
+
+	var startsec = moment(start+"Z").valueOf()/1000;
+	var stopsec  = moment(stop+"Z").valueOf()/1000;
 
 	startsec = Math.floor(startsec);
 	stopsec  = Math.floor(stopsec);
@@ -388,8 +363,8 @@ function data(res,header,include) {
 		wanted[header.parameters[i]["name"]] = true;
 	}
 
-	var records = ""; // Number of records (line)
-	var record  = ""; // A record with comma-separated columns
+	var records = ""; // Number of records (lines)
+	var record  = ""; // A record with comma-separated fields (columns)
 	var Nwrote  = 0;  // Number of records flushed
 
 	scalarstrs = ["P/P","P/F","F/P","F/F"];
@@ -415,6 +390,9 @@ function data(res,header,include) {
 		if (wanted['scalariso'] == true) {
 			record = record + "," + (new Date((i+1)*1000).toISOString()).slice(0,-5) + "Z";
 		}
+		if (wanted['scalarmulti'] == true) {
+			record = record + "," + Math.sin(Math.PI*i/600);
+		}
 		if (wanted['vector'] == true) {
 			record = record 
 						+ "," + Math.sin(Math.PI*(i-startsec)/600) 
@@ -433,17 +411,36 @@ function data(res,header,include) {
 							+ "," + scalarstrs[(i-startsec+1) % scalarstrs.length]
 							+ "," + scalarstrs[(i-startsec+2) % scalarstrs.length];
 		}
+		if (wanted['vectorcats'] == true) {
+			record = record 
+						+ "," + scalarcats[(i-startsec)   % scalarcats.length]
+						+ "," + scalarcats[(i-startsec+1) % scalarcats.length]
+						+ "," + scalarcats[(i-startsec+2) % scalarcats.length];
+		}
 		if (wanted['vectoriso'] == true) {
 			record = record 
 						+ "," + (new Date((i+1)*1000).toISOString()).slice(0,-5)
 						+ "," + (new Date((i+2)*1000).toISOString()).slice(0,-5)
 						+ "," + (new Date((i+3)*1000).toISOString()).slice(0,-5);
 		}
-		if (wanted['vectorcats'] == true) {
+		if (wanted['vectormulti'] == true) {
 			record = record 
-						+ "," + scalarcats[(i-startsec)   % scalarcats.length]
-						+ "," + scalarcats[(i-startsec+1) % scalarcats.length]
-						+ "," + scalarcats[(i-startsec+2) % scalarcats.length];
+						+ "," + Math.sin(Math.PI*(i-startsec)/600) 
+						+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
+						+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
+						+ "," + Math.sin(Math.PI*(i-startsec)/600) 
+						+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
+						+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
+		}
+		if (wanted['transform'] == true) {
+			for (var j = 0;j < 9;j++) {
+				record = record + "," + Math.sin((Math.PI/300)*(i-startsec)/(j+1));
+			}
+		}
+		if (wanted['transformmulti'] == true) {
+			for (var j = 0;j < 9;j++) {
+				record = record + "," + Math.sin((Math.PI/300)*(i-startsec)/(j+1));
+			}
 		}
 		if (wanted['spectra'] == true) {
 			record = record + "," + 0; // f = 0 bin.
@@ -451,8 +448,21 @@ function data(res,header,include) {
 				record = record + "," + 1/j;
 			}
 		}
+		if (wanted['spectranobins'] == true) {
+			for (var j = 0;j < 10;j++) {
+				record = record + "," + j;
+			}
+		}
+		if (wanted['spectramulti'] == true) {
+			record = record + "," + 0; // f = 0 bin.
+			for (var j = 1;j < 100;j++) {
+				record = record + "," + 1/j;
+			}
+			record = record + "," + record;
+		}
+
 		if (id === "dataset0") {
-			record.replace(/,/g,", ");  // Make dataset0 use space after comma.
+			record = record.replace(/,/g,", ");  // Make dataset0 use space after comma.
 		}
 
 		if (records.length > 0) {
@@ -464,8 +474,26 @@ function data(res,header,include) {
 		// Flush to output at end and every 100 records (lines)
 		var flush = (i == stopsec - 1) || (i > startsec && (i-startsec) % 100 === 0);
 		if (flush) {
-			if (format === "csv"){
-				res.write(records + "\n");
+			if (format === "csv") {
+				if (id !== "dataset0") {
+					res.write(records + "\n"); // Correct way.					
+				} else {
+					// Make time non-monotonic.
+					records = records.split("\n");
+					l = records.length-1;
+					first = records[0];
+					last = records[l];
+					records[0] = last;
+					records[l] = first;
+					records = records.join("\n");
+					if ((i == stopsec - 1) && wanted['scalariso']) {
+	 					// Omit newline at end of file for dataset0 if scalariso requested
+						res.write(records);
+					} else {
+	 					// Add extra newline at end of file for dataset0 if scalariso not requested
+						res.write(records + "\n\n");
+					}
+				}
 			} else {
 				var xrecords = csvTo(records,Nwrote,(i == stopsec-1),(Nwrote == 0),header,include);
 				res.write(xrecords);
@@ -642,22 +670,22 @@ function cors(res) {
 	res.header('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-function error(req,res,code) {
+function error(req,res,code,message) {
 
 	var errs = {
-		"1400": {status: 400, "msg": "HAPI error 1400: user input error"},
-		"1401": {status: 400, "msg": "HAPI error 1401: unknown request field"},
-		"1402": {status: 400, "msg": "HAPI error 1402: error in start time"},
-		"1403": {status: 400, "msg": "HAPI error 1403: error in stop time"},
-		"1404": {status: 400, "msg": "HAPI error 1404: start time after stop time"},
-		"1405": {status: 400, "msg": "HAPI error 1405: time outside valid range"},
-		"1406": {status: 404, "msg": "HAPI error 1406: unknown dataset id"},
-		"1407": {status: 404, "msg": "HAPI error 1407: unknown dataset parameter"},
-		"1408": {status: 400, "msg": "HAPI error 1408: too much time or data requested"},
-		"1409": {status: 400, "msg": "HAPI error 1409: unsupported output format"},
-		"1410": {status: 400, "msg": "HAPI error 1410: unsupported include value"},
-		"1500": {status: 500, "msg": "HAPI error 1500: internal server error"},
-		"1501": {status: 500, "msg": "HAPI error 1501: upstream request error"}
+		"1400": {status: 400, "message": "HAPI error 1400: user input error"},
+		"1401": {status: 400, "message": "HAPI error 1401: unknown request field"},
+		"1402": {status: 400, "message": "HAPI error 1402: error in start time"},
+		"1403": {status: 400, "message": "HAPI error 1403: error in stop time"},
+		"1404": {status: 400, "message": "HAPI error 1404: start time equal to or after stop time"},
+		"1405": {status: 400, "message": "HAPI error 1405: time outside valid range"},
+		"1406": {status: 404, "message": "HAPI error 1406: unknown dataset id"},
+		"1407": {status: 404, "message": "HAPI error 1407: unknown dataset parameter"},
+		"1408": {status: 400, "message": "HAPI error 1408: too much time or data requested"},
+		"1409": {status: 400, "message": "HAPI error 1409: unsupported output format"},
+		"1410": {status: 400, "message": "HAPI error 1410: unsupported include value"},
+		"1500": {status: 500, "message": "HAPI error 1500: internal server error"},
+		"1501": {status: 500, "message": "HAPI error 1501: upstream request error"}
 	}
 
 	// Defaults
@@ -670,18 +698,28 @@ function error(req,res,code) {
 	var httpmesg = "Internal server error";
 
 	// Modify defaults
-	if (errs[code+""]) {
-		json["status"]["code"] = code+"";
-		json["status"]["msg"]  = errs[code+""]["msg"];
-		httpcode = errs[code+""]["status"];
-		httpmesg = errs[code+""]["msg"];
+	code = code+""; // Cast integer to string
+	if (errs[code]) {
+		json["status"]["code"] = code;
+		json["status"]["message"]  = errs[code]["message"];
+		httpcode = errs[code]["status"];
+		httpmesg = errs[code]["message"];
+	}
+	if (message) {
+		json["status"]["message"] = json["status"]["message"].replace(/\:.*/,": " + message);
 	}
 
-	console.log(ds() + req.originalUrl + " " + httpcode + "/" + json["status"]["code"]);
+	logreq(req,httpcode + "/" + json["status"]["code"]);
 
 	res.contentType("application/json");
 	res.statusMessage = httpmesg;
 	res.status(httpcode).send(JSON.stringify(json, null, 4) + "\n");
+}
+
+function logreq(req,extra) {
+	var extra = extra || "";
+	var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+	console.log(ds() + "Request from " + addr + ": " + req.originalUrl + " " + extra);
 }
 
 function exceptions() {

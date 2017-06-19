@@ -1,6 +1,8 @@
 {
 	"startDate": "1970-01-01",
 	"stopDate" : "2016-12-31",
+	"sampleStartDate": "1970-01-01",
+	"sampleStopDate" : "1970-01-01T00:00:10",
 	"cadence": "PT1M",
 	"parameters":
 		[
@@ -9,7 +11,7 @@
 				"type": "isotime",
 				"units": "UTC",
 				"length": 10,
-				"description": "Missing fill and incorrect length"
+				"description": "Missing fill, incorrect length, and non-monotonic."
 			},
 			{ 
 				"name": "scalar",
@@ -50,6 +52,7 @@
 				"type": "integer",
 				"units": null,
 				"fill": null,
+				"description":"This parameters should be before scalariso.  If both scalariso and scalarcats are requested, order will be wrong in CSV.",
 				"categorymap": {"good":0,"bad ":1,"ugly":2}
 			},
 			{ 

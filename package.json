@@ -23,6 +23,6 @@
   },
   "scripts": {
     "start": "node server.js --port 8999",
-    "test": "mkdir tmp; cd tmp; git clone https://github.com/hapi-server/nodejs-server-verifier.git; cd nodejs-server-verifier; npm install; node test.js http://localhost:8999/hapi"
+    "test": "mkdir tmp; cd tmp; git clone https://github.com/hapi-server/verifier-nodejs.git; cd verifier-nodejs; npm install; node test.js http://localhost:8999/hapi"
   }
 }
