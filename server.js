@@ -2,9 +2,8 @@
 // License: Public Domain
 
 // Global variables
+// TODO: Don't.
 var __HAPIVERSION = "1.1"; // Spec version implemeted
-var __CATALOGID   = "TestData";
-var __DATASETID   = "TestData";
 
 var fs      = require('fs');
 var os      = require("os");
@@ -27,7 +26,7 @@ var argv    = require('yargs')
 // date string
 function ds() {return (new Date()).toISOString() + " ";};
 
-exceptions(); // Catch common exceptions
+exceptions(); // Catch common exceptions (See TODO in exceptions().)
 
 app.use(compress()); // Compress responses
 
@@ -41,13 +40,7 @@ app.get('/hapi', function (req, res) {
 	logreq(req);
 	cors(res);
 	res.contentType('text/html');
-	//res.status(400).end();return; To set case where no landing page is given.
-	res.send(fs.
-				readFileSync(__dirname+"/server.htm","utf8")
-				.toString()
-				.replace(/__VERSION__/g, __HAPIVERSION)
-				.replace(/__CATALOG__/g, __CATALOGID)
-			);
+	res.send(files("landing"));
 })
 
 // /capabilities
@@ -56,13 +49,14 @@ app.get('/hapi/capabilities', function (req, res) {
 	cors(res);
 	res.contentType("application/json");
 
-	// Read capabilities metadata.
-	capabilities = fs.readFileSync(__dirname + "/metadata/capabilities.json");
-	json = JSON.parse(capabilities);
-	json["HAPI"] = __HAPIVERSION;
-	json["status"] = {"code": 1200,"message": "OK"};
+	// Check for invalid query parameters
+	var keys = Object.keys(req.query);
+	if (keys.length > 0) {
+		error(req,res,1401);
+		return;
+	}
 
-	res.send(JSON.stringify(json) + "\n");
+	res.send(files("capabilities"));
 })
 
 // /catalog
@@ -78,13 +72,7 @@ app.get('/hapi/catalog', function (req, res) {
 		return;
 	}
 
-	// Read dataset metadata.
-	datasets = fs.readFileSync(__dirname + "/metadata/catalog.json");
-	datasets = JSON.parse(datasets);
-
-	datasets["HAPI"] = __HAPIVERSION;
-	datasets["status"] = { "code": 1200, "message": "OK"};
-	res.send(JSON.stringify(datasets, null, 4));
+	res.send(files("catalog"));
 })
 
 // /info
@@ -109,20 +97,17 @@ app.get('/hapi/info', function (req, res) {
 		return;		
 	}
 
-	// Read list of datasets.
-	datasets = fs.readFileSync(__dirname + "/metadata/catalog.json");
-	datasets = JSON.parse(datasets).catalog;
-
+	// Get list of datasets.
+	var catalog = files('catalog','json');
+	var datasets = catalog.catalog;
 	var found = false;
+	// Determine if requested id is in list
 	for (var i=0;i<datasets.length;i++) {
 		if (datasets[i]['id'] === req.query.id) {found = true;break;}
 	}
-	if (!found) {
-		error(req,res,1406);
-		return;
-	}
+	if (!found) {error(req,res,1406);return;}
 
-	var header = info(req,res); // Returns integer error code if error
+	var header = info(req,res); // info() returns integer error code if error
 	if (typeof(header) === "number") {
 		error(req,res,header,"Parameter not found in dataset");
 		return;
@@ -145,6 +130,17 @@ app.get('/hapi/data', function (req, res) {
 		}
 	}	
 
+	// Get list of datasets.
+	// TODO: Code block below is duplicated from /catalog.
+	var catalog = files('catalog','json');
+	var datasets = catalog.catalog;
+	var found = false;
+	// See if requested dataset in list
+	for (var i=0;i<datasets.length;i++) {
+		if (datasets[i]['id'] === req.query.id) {found = true;break;}
+	}
+	if (!found) {error(req,res,1406);return;}
+
 	var header = info(req,res); // Get header information for request.
 	if (typeof(header) === "number") {
 		error(req,res,header);
@@ -162,6 +158,7 @@ app.get('/hapi/data', function (req, res) {
 		return
 	};
 
+	header["format"] = "csv";
 	if (req.query["format"]) {
 		// If format given, see if server supports it.
 		capabilities = fs.readFileSync(__dirname + "/metadata/capabilities.json");
@@ -170,10 +167,8 @@ app.get('/hapi/data', function (req, res) {
 			error(req,res,1409);
 			return;
 		}
-	} else {
-		var format = "csv";
+		header["format"] = req.query["format"];
 	}
-	header["format"] = format;
 	
 	var proto = req.connection.encrypted ? 'https' : 'http'; // Has not been tested under https.
 	if (header["status"]) { // If statement because dataset0 does not have status element.
@@ -187,17 +182,17 @@ app.get('/hapi/data', function (req, res) {
 			return;
 		}
 	}
-	var include = req.query["include"] === "header"
 
-	if (format === "csv")            {res.contentType("text/csv");
-	} else if (format === "binary")  {res.contentType("application/octet-stream");
-	} else if (format === "json")    {res.contentType("application/json");
-	} else if (format === "fbinary") {res.contentType("application/octet-stream");
-	} else if (format === "fcsv")    {res.contentType("text/csv");
+	if (header["format"] === "csv")            {res.contentType("text/csv");
+	} else if (header["format"] === "binary")  {res.contentType("application/octet-stream");
+	} else if (header["format"] === "json")    {res.contentType("application/json");
+	} else if (header["format"] === "fbinary") {res.contentType("application/octet-stream");
+	} else if (header["format"] === "fcsv")    {res.contentType("text/csv");
 	} else {error(req,res,1409); return; // Unsupported output format.
 	}
 
-	if (include && format !== "json") {
+	var include = req.query["include"] === "header"
+	if (include && header["format"] !== "json") {
  		// Send header now unless format = json (will be sent later).
 		res.write("#" + JSON.stringify(header) + "\n");
 	}
@@ -207,10 +202,55 @@ app.get('/hapi/data', function (req, res) {
 	return;
 })
 
-// Start the server.
-app.listen(argv.port);
-console.log(ds() + "Listening on port " + argv.port
-				 + ". See http://localhost:" + argv.port + "/hapi");
+// Read static JSON files by and then start the server.
+files(function () {
+	app.listen(argv.port); // Start server
+	console.log(ds() + "Listening on port " + argv.port
+					 + ". See http://localhost:" + argv.port + "/hapi");
+})
+
+// Return content of static JSON files
+function files(which,format) {
+
+	// Call before server starts as files(cb) to read and cache content from files.
+
+	if (files.cache) {
+		// Content has been read from disk into object before server started.  Return it.
+		return files.cache[which][format || "string"];
+	} else {
+		// Read content from disk.
+		// Landing page html
+		files.cache = {};
+		files.cache['landing'] = {};
+		files.cache['landing']['string'] = 
+			fs
+				.readFileSync(__dirname+"/server.htm","utf8")
+				.toString()
+				.replace(/__VERSION__/g, __HAPIVERSION);
+
+		// Capabilities 
+		var str  = fs.readFileSync(__dirname + "/metadata/capabilities.json")
+		var json = JSON.parse(str);
+		json["HAPI"]   = __HAPIVERSION;
+		json["status"] = {"code": 1200,"message": "OK"};
+		str = JSON.stringify(json) + "\n";
+		files.cache['capabilities'] = {};
+		files.cache['capabilities']['string'] = str;
+		files.cache['capabilities']['json'] = json;
+
+		// Catalog
+		var str = fs.readFileSync(__dirname + "/metadata/catalog.json");
+		var json = JSON.parse(str);
+		json["HAPI"] = __HAPIVERSION;
+		json["status"] = { "code": 1200, "message": "OK"};
+		str = JSON.stringify(json, null, 4);
+		files.cache['catalog'] = {};
+		files.cache['catalog']['string'] = str;
+		files.cache['catalog']['json'] = json;
+
+		which(); // Execute callback.
+	}
+}
 
 function info(req,res) {
 
@@ -444,7 +484,7 @@ function data(res,header,include) {
 		}
 		if (wanted['spectra'] == true) {
 			record = record + "," + 0; // f = 0 bin.
-			for (var j = 1;j < 100;j++) {
+			for (var j = 1;j < 10;j++) {
 				record = record + "," + 1/j;
 			}
 		}
@@ -453,12 +493,21 @@ function data(res,header,include) {
 				record = record + "," + j;
 			}
 		}
-		if (wanted['spectramulti'] == true) {
+		if (wanted['spectralarge'] == true) {
 			record = record + "," + 0; // f = 0 bin.
 			for (var j = 1;j < 100;j++) {
 				record = record + "," + 1/j;
 			}
-			record = record + "," + record;
+		}
+		if (wanted['spectramulti'] == true) {
+			record = record + "," + 0; // f = 0 bin.
+			for (var j = 1;j < 10;j++) {
+				record = record + "," + 1/j;
+			}
+			record = record + "," + 0; // f = 0 bin.
+			for (var j = 1;j < 10;j++) {
+				record = record + "," + 2/j;
+			}
 		}
 
 		if (id === "dataset0") {
@@ -698,12 +747,11 @@ function error(req,res,code,message) {
 	var httpmesg = "Internal server error";
 
 	// Modify defaults
-	code = code+""; // Cast integer to string
-	if (errs[code]) {
+	if (errs[code+""]) {
 		json["status"]["code"] = code;
-		json["status"]["message"]  = errs[code]["message"];
-		httpcode = errs[code]["status"];
-		httpmesg = errs[code]["message"];
+		json["status"]["message"]  = errs[code+""]["message"];
+		httpcode = errs[code+""]["status"];
+		httpmesg = errs[code+""]["message"];
 	}
 	if (message) {
 		json["status"]["message"] = json["status"]["message"].replace(/\:.*/,": " + message);
@@ -723,6 +771,8 @@ function logreq(req,extra) {
 }
 
 function exceptions() {
+	// TODO: This should be passed res and then server should send 500 error.
+	// See how verifier-nodejs/verifier.js does this.
 	process.on('uncaughtException', function(err) {
 		if (err.errno === 'EADDRINUSE') {
 			console.log(ds() + clc.red("Port " + argv.port + " already in use."));

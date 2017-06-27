@@ -2,11 +2,9 @@
 	"catalog" :
 		[
 			{"id": "dataset0",
-			"title": "Same values as dataset1, but with invalid HAPI 1.1 metadata"},
-			{"id": "dataset0",
-			"title": "A repeated id in the catalog"},
+			"title": "Test dataset with invalid HAPI 1.1 metadata and other errors"},
 			{"id": "dataset1",
 			"_idprev": "TestData",
-			"title": "Test dataset with required HAPI 1.1 metadata"}
+			"title": "Test dataset w/valid HAPI 1.1 metadata"}
 		]
 }
