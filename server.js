@@ -3,7 +3,7 @@
 
 // Global variables
 // TODO: Don't.
-var __HAPIVERSION = "1.1"; // Spec version implemeted
+var __HAPIVERSION = "2.0"; // Spec version implemeted
 
 var fs      = require('fs');
 var os      = require("os");
@@ -325,6 +325,19 @@ function timeCheck(header) {
 	var times = [header["_startDateRequested"],header["_stopDateRequested"],
 				 header.startDate,header.stopDate];
 
+	for (var i = 0;i < times.length;i++) {
+		// moment.js says YYYY-MM-DD and YYYY-DOY with no Z is
+		// "... not in a recognized RFC2822 or ISO format. moment construction falls back to js Date(), which is not reliable across all browsers and versions."		
+		// But HAPI says it is valid.
+		if (times[i].length == 8 || times[i].length == 10) {
+			times[i] = times[i] + "T00:00:00.000Z";
+		}
+		// Make times all times UTC
+		if (times[i].match(/Z$/) == null) {
+			times[i] = times[i] + "Z";
+		}
+	}
+
 	if (!moment(times[0], moment.ISO_8601).isValid()) {
 		return 1402;
 	}
@@ -336,24 +349,6 @@ function timeCheck(header) {
 	}
 	if (!moment(times[3], moment.ISO_8601).isValid()) {
 		return 1409;
-	}
-
-	for (var i = 0;i < times.length;i++) {
-		if (times[i].match(/^[0-9]{4}-[0-9]{3}/) != null) {
-			var year = times[i].split("-")[0];
-			var doy  = times[i].split("-")[1];
-			var yearms = moment(year + "-01-01T00:00:00.000Z").valueOf();
-			var doyms  = (doy-1)*86400000;
-			times[i] = (new Date(yearms + doyms)).toISOString();
-		}
-		// Date YYYY-MM-DD with no Z is ambiguous timezone.  
-		if (times[i].length == 10) {
-			times[i] = times[i] + "T00:00:00.000Z";
-		}
-		// Make times all times UTC
-		if (times[i].match(/Z$/) == null) {
-			times[i] = times[i] + "Z";
-		}
 	}
 
 	var startms = moment(times[0]).valueOf();
@@ -384,11 +379,12 @@ function data(res,header,include) {
 	var stop   = header["_stopDateRequested"].replace("Z","");
 	var id     = header["_parentDataset"];
 
-	// Date YYYY-MM-DD with no Z is ambiguous timezone.  
-	if (start.length == 10) { // YYYY-MM-DD
+	// Date YYYY-MM-DD or YYYY-DOY with no Z is considered invalid by moment.js
+	// see timeCheck().
+	if (start.length == 8 || start.length == 10) { // YYYY-MM-DD
 		start = start + "T00:00:00.000";
 	}
-	if (stop.length == 10) { // YYYY-MM-DD
+	if (stop.length == 8 || stop.length == 10) { // YYYY-DOY
 		stop = stop + "T00:00:00.000";
 	}
 
@@ -744,7 +740,7 @@ function error(req,res,code,message) {
 				"status": { "code": 1500, "message": "Internal server error"}
 			};
 	var httpcode = 500;
-	var httpmesg = "Internal server error";
+	var httpmesg = "Internal server error. Please report URL attempted to the <a href='https://github.com/hapi-server/server-nodejs/issues'>issue tracker</a>.";
 
 	// Modify defaults
 	if (errs[code+""]) {
@@ -772,13 +768,15 @@ function logreq(req,extra) {
 
 function exceptions() {
 	// TODO: This should be passed res and then server should send 500 error.
-	// See how verifier-nodejs/verifier.js does this.
+	// See how verifier-nodejs/verify.js does this.
 	process.on('uncaughtException', function(err) {
 		if (err.errno === 'EADDRINUSE') {
 			console.log(ds() + clc.red("Port " + argv.port + " already in use."));
 		} else {
 			console.log(err.stack);
 		}
+		var tmps = ds().split(" ")[0]
+		fs.appendFileSync('server-error-' + tmps + ".log", err)
 		process.exit(1);
 	});
 }
