@@ -1,12 +1,41 @@
-# Nodejs HAPI Sample Server
+# HAPI Server Front-End
 
-A (HAPI)[https://github.com/hapi-server/data-specification/] 1.1 implemented in (node.js)[http://node.js] intended for testing (HAPI clients)[https://github.com/hapi-server/data-specification/].
+The intended use case for this server is for a data provider that has
 
-Serves code-generated (parameters)[https://github.com/hapi-server/nodejs-server/blob/master/parameters.js] of most types allowed by the (HAPI specification)[https://github.com/hapi-server/data-specification/].
+# HAPI metadata for a set of datasets (see examples in `./metadata`) and
+# a command line program that returns at least HAPI CSV given inputs of a dataset, a list of one or more parameters in a dataset, start/stop times, and (optionally) a file format.
 
-A running instance of this server is available at (http://mag.gmu.edu/hapi)[http://mag.gmu.edu/hapi].
+This code takes care of
+# metadata validation
+# input validation
+# error responses
+# logging
+# sending emails when error occurs
+# generation of JSON or Binary (if needed)
 
-Software for a full-featured HAPI server, (TSDS)[http://tsds.org/], is available at (http://github.org/tsds/tsds2)[http://github.org/tsds/tsds2].  If you would like to use (TSDS)[http://tsds.org/] to make your data server or file-based data set HAPI compliant without developing your own server, contact <rweigel@gmu.edu>.  
+Usage:
+
+`node server.js --contact 'abc@example.com'`
+
+starts server on port 8999 and uses the catalog `./catalog/TestData.json`. If the command line program throws an error, the contact email address is included in the error response.
+ 
+All command line options:
+
+`server.js --port PORT --catalog CATALOG --contact CONTACT --debug true|false`
+
+All metadata for datasets to be served should be combined and placed in a single file, e.g., ./catalog/CATALOG.json.
+
+When a request is made for data, output from the command line program specified in `CATALOG.json` will be piped to the response.
+
+For example, in `./metadata/TestData.json`, the command line syntax is given as
+
+`node ./bin/TestData.js --dataset ${dataset} --parameters ${parameters} --start ${start} --stop ${stop} --format ${format}`
+
+and in `./metadata/TestDataSimple.json`, it is
+
+`python ./bin/TestDataSimple.py --dataset ${dataset} --parameters ${parameters} --start ${start} --stop ${stop} --format ${format}"`
+
+When data is requested, this command line program is executed after variable substitution and the output is sent as the response.
 
 # Installation
 
@@ -15,10 +44,23 @@ Install [nodejs](https://nodejs.org/en/download/) (tested with v7.10.0) and then
 ```bash
 git clone https://github.com/hapi-server/data-specification/nodejs-server
 cd nodejs-server; npm install
-node server.js --port 8999
+node server.js --port 8999 --contact 'abc@example.com'
 ```
 
-Open http://localhost:8999/hapi in a web browser.
+Then open http://localhost:8999/TestData/hapi in a web browser.
+
+To expose this URL through Apache, use
+
+```
+ProxyPass /TestData/hapi http://server:8999/TestData/hapi retry=1
+ProxyPassReverse /TestData/hapi http://server:8999/TestData/hapi
+```
+
+In production, it is recommended that `forever` is used to restart the application after a crash.
+
+```
+forever server.js --port 8999 --contact 'abc@example.com'
+```
 
 # Unit Tests
 
@@ -28,10 +70,6 @@ To run unit tests (executes `test` target in `package.json`)
 npm test
 ```
 
-# Sample Requests
-
-See [tests.sh](https://github.com/hapi-server/nodejs-server/blob/master/tests.sh) in <code>./nodejs-server</code>.
-
 # Contact
 
-Bob Weigel <rweigel@gmu.edu>.
+Bob Weigel <rweigel@gmu.edu>
