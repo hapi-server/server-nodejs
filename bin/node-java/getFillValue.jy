@@ -1,0 +1,29 @@
+f = open('ids_vars-in.txt', 'r')
+file= f.read()
+f.close()
+
+newlist = []
+lines= file.split()
+for el in lines:
+  vals= el.split("/")
+  uri= 'vap+cdaweb:ds='+vals[0]+'&id='+vals[1]+'&timerange='+vals[2]
+  print uri
+  ds= getDataSet(uri)
+  fill= ds.property('FILL_VALUE')
+  #cadence= ds.property('CADENCE')
+  m= getMetadata('vap+cdaweb:ds='+vals[0]+'&id='+vals[1]+'&timerange='+vals[2], monitor)
+  format= m["FORMAT"]
+  fill = -1e31
+  s = "/"
+  if (str(fill) == '-9.999999848243207E30'):
+     fill='-1e31'     
+  vals.append(str(fill))
+  vals.append(str(format))
+  #vals.append(str(cadence))
+  n = s.join(vals);
+  newlist.append(n)
+
+newlists = "\n".join(newlist)
+file= open('ids_vars-out.txt','w')
+file.write(newlists)
+file.close() 

@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+		<title>SSCWeb</title>
+	</head>
+	<body>
+		<h2>HAPI Server for SSCWeb datasets</h2>
+		<p>
+			This server supports the <a href="https://github.com/hapi-server/data-specification">HAPI __VERSION__ API</a> specification for delivery of time series data.
+		</p>
+
+		<p>
+			The source code for this server is available in a <a href="https://github.com/hapi-server/nodejs-server">GitHub Repository</a>.
+		</p>
+		<p>
+			The server responds to GET requests to the following <a href="https://github.com/hapi-server/data-specification/tree/v1.1.0#endpoints">HAPI endpoints</a>:
+		</p>
+		<ul>
+			<li>
+				<a href="./hapi/capabilities"><code>capabilities</code></a> - list the API version and output options
+			</li>
+			<li>
+				<a href="./hapi/catalog"><code>catalog</code></a> - list the datasets that are available
+			</li>
+			<li>
+				<code>info</code> - list the parameters in the dataset; example:
+				<ul>
+					<li><a href="./hapi/info?id=dataset0">info?id=dataset0</a></li>
+				</ul>
+			</li>
+			<li>
+				<code>data</code> - stream data content for a parameter; examples:
+				<ul>
+					<li><a href="./hapi/data?id=dataset1&parameters=scalar&time.min=2000-01-01&time.max=2000-01-02">data?id=dataset1&amp;parameters=scalar&time.min=2000-01-01&time.max=2000-01-02</a></li>
+				</ul>
+				<ul>
+					<li><a href="./hapi/data?id=dataset1&parameters=vector&time.min=2000-01-01&time.max=2000-01-02">data?id=dataset1&amp;parameters=vector&time.min=2000-01-01&time.max=2000-01-02</a></li>
+				</ul>
+				<ul>
+					<li><a href="./hapi/data?id=dataset1&parameters=spectra&time.min=2000-01-01&time.max=2000-01-02">data?id=dataset1&amp;parameters=spectra&time.min=2000-01-02&time.max=2000-01-02</a></li>
+				</ul>
+				<ul>
+					<li><a href="./hapi/data?id=dataset1&parameters=scalar,vector&time.min=2000-01-01&time.max=2000-01-02">data?id=dataset1&amp;parameters=scalar,vector&time.min=2000-01-02&time.max=2000-01-02</a></li>
+				</ul>
+				<ul>
+					<li><a href="./hapi/data?id=dataset1&time.min=2000-01-01&time.max=2000-01-02">data?id=datset1&time.min=2000-01-02&time.max=2000-01-02</a></li>
+				</ul>
+			</li>
+		</ol>
+	</body>
+<html>

@@ -1,0 +1,2 @@
+m= getMetadata('vap+cdaweb:ds=AC_H0_MFI&id=BGSEc&timerange=2014-08-27+through+2014-08-28',monitor)
+result= m['GlobalAttributes']

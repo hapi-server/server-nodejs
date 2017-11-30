@@ -15,25 +15,25 @@ This code takes care of
 
 Usage:
 
-`node server.js --contact 'abc@example.com'`
+`node server.js`
 
-starts server on port 8999 and uses the catalog `./catalog/TestData.json`. If the command line program throws an error, the contact email address is included in the error response.
+starts server on port 8999 and uses the catalog `./catalog/TestData.json`. 
  
 All command line options:
 
-`server.js --port PORT --catalog CATALOG --contact CONTACT --debug true|false`
+`server.js --port PORT --catalog CATALOG`
 
 All metadata for datasets to be served should be combined and placed in a single file, e.g., ./catalog/CATALOG.json.
 
 When a request is made for data, output from the command line program specified in `CATALOG.json` will be piped to the response.
 
-For example, in `./metadata/TestData.json`, the command line syntax is given as
-
-`node ./bin/TestData.js --dataset ${dataset} --parameters ${parameters} --start ${start} --stop ${stop} --format ${format}`
-
-and in `./metadata/TestDataSimple.json`, it is
+For example, in `./metadata/TestDataSimple.json`, the command line syntax is given as
 
 `python ./bin/TestDataSimple.py --dataset ${dataset} --parameters ${parameters} --start ${start} --stop ${stop} --format ${format}"`
+
+and in `./metadata/TestData.json`, it is
+
+`node ./bin/TestData.js --dataset ${dataset} --parameters ${parameters} --start ${start} --stop ${stop} --format ${format}`
 
 When data is requested, this command line program is executed after variable substitution and the output is sent as the response.
 
