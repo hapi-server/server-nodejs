@@ -18,9 +18,7 @@ var argv    = require('yargs')
 				.default
 				({
 					'port': 8999,
-					'catalog': "TestData",
-					'debug': true,
-					'contact': ''
+					'catalog': "TestDataSimple"
 				})
 				.argv;
 

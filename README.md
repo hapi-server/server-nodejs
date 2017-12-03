@@ -17,7 +17,7 @@ Usage:
 
 `node server.js`
 
-starts server on port 8999 and uses the catalog `./catalog/TestData.json`. 
+starts server on port 8999 and uses the catalog `./catalog/TestDataSimple.json`. 
  
 All command line options:
 
@@ -44,22 +44,22 @@ Install [nodejs](https://nodejs.org/en/download/) (tested with v7.10.0) and then
 ```bash
 git clone https://github.com/hapi-server/data-specification/nodejs-server
 cd nodejs-server; npm install
-node server.js --port 8999 --contact 'abc@example.com'
+node server.js
 ```
 
-Then open http://localhost:8999/TestData/hapi in a web browser.
+Then open http://localhost:8999/TestDataSimple/hapi in a web browser.
 
 To expose this URL through Apache, use
 
 ```
-ProxyPass /TestData/hapi http://server:8999/TestData/hapi retry=1
-ProxyPassReverse /TestData/hapi http://server:8999/TestData/hapi
+ProxyPass /TestDataSimple/hapi http://server:8999/TestDataSimple/hapi retry=1
+ProxyPassReverse /TestDataSimple/hapi http://server:8999/TestDataSimple/hapi
 ```
 
 In production, it is recommended that `forever` is used to restart the application after a crash.
 
 ```
-forever server.js --port 8999 --contact 'abc@example.com'
+forever server.js
 ```
 
 # Unit Tests
