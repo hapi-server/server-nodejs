@@ -7,58 +7,60 @@ var HAPIVERSION = "2.0"; // Spec version implemented
 var fs      = require('fs');
 var os      = require("os");
 
-var express  = require('express');
+var express  = require('express'); // Client/server library.
 var app      = express();
-var compress = require('compression');
 var server   = require("http").createServer(app);
-var moment   = require('moment');
+var compress = require('compression'); // Express module
+var moment   = require('moment'); // Time library
 
-var clc     = require('cli-color');
+var clc     = require('cli-color'); // Colorize command line output
 var argv    = require('yargs')
 				.default
 				({
 					'port': 8999,
-					'catalog': "TestDataSimple"
+					'catalog': "TestDataSimple",
+					'PREFIX': ''
 				})
 				.argv;
 
 var CATALOG = argv.catalog;
-var CONTACT = argv.contact;
+if (argv.prefix) {
+	var PREFIX = "/" + argv.prefix;
+} else {
+	var PREFIX = "";
+}
+// If PREFIX = '', serve from http://localhost:8999/hapi
+// Otherwise, serve from http://localhost:8999/${PREFIX}/hapi
 
-// Set prefix = "" to serve from http://localhost:8999/hapi
-// instead of http://localhost:8999/${catalog}/hapi
-var prefix = "";
-var prefix = "/" + CATALOG;
-
-exceptions(); // Catch common exceptions
+exceptions(); // Catch common start-up exceptions
 
 app.use(compress()); // Compress responses
 
+// Log all requests, then call next route handler
 app.get('*', function (req,res,next) {
 	logreq(req);
 	next();
 })
 
-// Redirect user to /hapi page.
+// Redirect / to /hapi page.
 app.get('/', function (req,res) {
-	res.send("See <a href='."+prefix+"/hapi'>HAPI Landing Page</a>");
+	res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
 })
 
-// Redirect user to /hapi page.
-app.get(prefix, function (req,res) {
-	res.send("See <a href='./"+prefix+"hapi'>HAPI Landing Page</a>");
+// Redirect /PREFIX to /PREFIX/hapi page.
+app.get(PREFIX, function (req,res) {
+	res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
 })
 
 // Landing web page
-app.get(prefix+'/hapi', function (req, res) {
-
+app.get(PREFIX+'/hapi', function (req, res) {
 	cors(res);
 	res.contentType('text/html');
 	res.send(files("landing"));
 })
 
 // /capabilities
-app.get(prefix+'/hapi/capabilities', function (req, res) {
+app.get(PREFIX+'/hapi/capabilities', function (req, res) {
 
 	cors(res);
 	res.contentType("application/json");
@@ -73,7 +75,7 @@ app.get(prefix+'/hapi/capabilities', function (req, res) {
 })
 
 // /catalog
-app.get(prefix+'/hapi/catalog', function (req, res) {
+app.get(PREFIX+'/hapi/catalog', function (req, res) {
 
 	cors(res);
 	res.contentType("application/json");
@@ -88,7 +90,7 @@ app.get(prefix+'/hapi/catalog', function (req, res) {
 })
 
 // /info
-app.get(prefix+'/hapi/info', function (req, res) {
+app.get(PREFIX+'/hapi/info', function (req, res) {
 
 	cors(res);
 	res.contentType("application/json");
@@ -124,7 +126,7 @@ app.get(prefix+'/hapi/info', function (req, res) {
 })
 
 // /data
-app.get(prefix+'/hapi/data', function (req, res) {
+app.get(PREFIX+'/hapi/data', function (req, res) {
 
 	cors(res);
 
@@ -224,14 +226,15 @@ app.get(prefix+'/hapi/data', function (req, res) {
 	var wroteerror = false;  // If 1500 message already sent.
 	var wroteheader = false; // If header already sent.
 	var outstr = "";
+
 	child.stderr.on('data', function (err) {
 		if (!wroteerror && !wroteheader) {
 			// If !wroteheader because if header sent, 
 			// then command line sent data before it gave
 			// an error signal.
 			wroteerror = true;
-			if (CONTACT !== '') {
-				error(req,res,1500,"Problem with the data server. Please send URL to " + CONTACT + ".");
+			if (d.contact) {
+				error(req,res,1500,"Problem with the data server. Please send URL to " + d.contact + ".");
 			} else {
 				error(req,res,1500,"Problem with the data server.");
 			}
