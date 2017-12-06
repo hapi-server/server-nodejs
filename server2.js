@@ -664,9 +664,9 @@ function error(req,res,code,message) {
 	var errs = {
 		"1400": {status: 400, "message": "HAPI error 1400: user input error"},
 		"1401": {status: 400, "message": "HAPI error 1401: unknown request field"},
-		"1402": {status: 400, "message": "HAPI error 1402: error in start time"},
-		"1403": {status: 400, "message": "HAPI error 1403: error in stop time"},
-		"1404": {status: 400, "message": "HAPI error 1404: start time equal to or after stop time"},
+		"1402": {status: 400, "message": "HAPI error 1402: error in time.min"},
+		"1403": {status: 400, "message": "HAPI error 1403: error in time.max"},
+		"1404": {status: 400, "message": "HAPI error 1404: time.min equal to or after time.max"},
 		"1405": {status: 400, "message": "HAPI error 1405: time outside valid range"},
 		"1406": {status: 404, "message": "HAPI error 1406: unknown dataset id"},
 		"1407": {status: 404, "message": "HAPI error 1407: unknown dataset parameter"},
