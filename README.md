@@ -2,17 +2,17 @@
 
 The intended use case for this server is for a data provider that has
 
-1. [HAPI](https://github.com/hapi-server/data-specification) metadata for a set of datasets (see examples in [`./metadata`]((https://github.com/hapi-server/server-nodejs/blob/v2/metadata/)) and
-2. a command line program that returns at least [HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) given inputs of a dataset, a list of one or more parameters in a dataset, start/stop times, and (optionally) a file format.
+1. [HAPI](https://github.com/hapi-server/data-specification) metadata for a set of datasets (see examples in [`./metadata`](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/)) and
+2. a command line program that returns at least [HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) given inputs of a dataset, a list of one or more parameters in a dataset, start/stop times, and (optionally) an output format.
 
 This server handles
 
-1. metadata validation,
-2. input validation,
+1. dataset metadata validation,
+2. API input validation,
 3. error responses,
 4. logging,
 5. sending emails when an error occurs, and
-6. generation of [HAPI JSONB](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (if needed)
+6. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (if needed)
 
 # Usage
 
@@ -74,19 +74,24 @@ ProxyPass /TestDataSimple/hapi http://server:8999/TestDataSimple/hapi retry=1
 ProxyPassReverse /TestDataSimple/hapi http://server:8999/TestDataSimple/hapi
 ```
 
-In production, it is recommended that [forever](https://github.com/foreverjs/forever) is used to restart the application after a crash.
+In production, it is recommended that [forever](https://github.com/foreverjs/forever) is used to automatically restart the application after an uncaught execption causes the application to abort (this should rarely happen).
 
 ```bash
 npm install -g forever # Install forever
 forever server.js
+# or forever server.js --port PORT --catalog CATALOG --prefix PREFIX
 ```
 
-# Unit Tests
+# Tests
 
-To run unit tests (executes `test` target in `package.json`)
+The following commands creates a local installation of the [HAPI verifier](https://github.com/hapi-server/verifier-nodejs) and tests the URL ```http://localhost:8999/hapi```.
 
 ```bash
-npm test
+mkdir tmp; cd tmp; 
+git clone https://github.com/hapi-server/verifier-nodejs.git; 
+cd verifier-nodejs; 
+npm install; 
+node test.js http://localhost:8999/hapi"
 ```
 
 # Contact

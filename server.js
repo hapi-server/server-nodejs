@@ -365,6 +365,12 @@ function files(which,format,id) {
 		process.exit(1);		
 	}
 
+	try {
+		// TODO: Do JSON validation here
+	} catch (e) {
+		// process.exit(1);
+	}
+
 	// Command line program information
 	files.cache['data'] = {};
 	files.cache['data']['json'] = json.data;
