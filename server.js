@@ -1,58 +1,71 @@
 // R.S. Weigel <rweigel@gmu.edu>
 // License: Public Domain
 
-// Global variables
-// TODO: Don't.
-var __HAPIVERSION = "2.0"; // Spec version implemeted
+// Global variable
+var HAPIVERSION = "2.0"; // Spec version implemented
 
 var fs      = require('fs');
 var os      = require("os");
 
-var express  = require('express');
+var express  = require('express'); // Client/server library
 var app      = express();
-var compress = require('compression');
 var server   = require("http").createServer(app);
-var moment   = require('moment');
+var compress = require('compression'); // Express module
+var moment   = require('moment'); // Time library
 
-var clc     = require('cli-color');
+var clc     = require('cli-color'); // Colorize command line output
 var argv    = require('yargs')
 				.default
 				({
 					'port': 8999,
-					'debug': true
+					'catalog': "TestDataSimple",
+					'PREFIX': ''
 				})
 				.argv;
 
-// date string
-function ds() {return (new Date()).toISOString() + " ";};
+var CATALOG = argv.catalog;
 
-exceptions(); // Catch common exceptions (See TODO in exceptions().)
+if (argv.prefix) {
+	// Remove one or more leading or trailing /.
+	var PREFIX = argv.prefix.replace(/^\/+/, '').replace(/\/+$/, '');
+	PREFIX = "/" + PREFIX;
+} else {
+	var PREFIX = "";
+}
+// If PREFIX = '', serves from http://localhost:PORT/hapi
+// Otherwise, s from http://localhost:PORT/PREFIX/hapi
 
-app.use(compress()); // Compress responses
+exceptions(); // Catch common start-up exceptions
 
-app.get('/', function (req,res) {
+app.use(compress()); // Compress responses using gzip
+
+// Log all requests, then call next route handler
+app.get('*', function (req,res,next) {
 	logreq(req);
-	res.send("See <a href='./hapi'>HAPI Landing Page</a>");
+	next();
 })
 
-// Landing web page
-app.get('/hapi', function (req, res) {
-	logreq(req);
-	cors(res);
+// Redirect http://localhost:PORT/ to http://localhost:PORT/hapi
+app.get(PREFIX || '/', function (req,res) {
+	res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
+})
+
+// Serve landing web page
+app.get(PREFIX + '/hapi', function (req, res) {
+	cors(res); // Set CORS headers
 	res.contentType('text/html');
 	res.send(files("landing"));
 })
 
 // /capabilities
-app.get('/hapi/capabilities', function (req, res) {
-	logreq(req);
+app.get(PREFIX + '/hapi/capabilities', function (req, res) {
+
 	cors(res);
 	res.contentType("application/json");
 
-	// Check for invalid query parameters
-	var keys = Object.keys(req.query);
-	if (keys.length > 0) {
-		error(req,res,1401);
+	// Send error if query parameters given
+	if (Object.keys(req.query).length > 0) {
+		error(req,res,1401, "This endpoint takes no query string.");
 		return;
 	}
 
@@ -60,15 +73,14 @@ app.get('/hapi/capabilities', function (req, res) {
 })
 
 // /catalog
-app.get('/hapi/catalog', function (req, res) {
-	logreq(req);
+app.get(PREFIX+'/hapi/catalog', function (req, res) {
+
 	cors(res);
 	res.contentType("application/json");
 
-	// Check for invalid query parameters
-	var keys = Object.keys(req.query);
-	if (keys.length > 0) {
-		error(req,res,1401);
+	// Send error if query parameters given
+	if (Object.keys(req.query).length > 0) {
+		error(req,res,1401,"This endpoint takes no query string.");
 		return;
 	}
 
@@ -76,194 +88,451 @@ app.get('/hapi/catalog', function (req, res) {
 })
 
 // /info
-app.get('/hapi/info', function (req, res) {
-	logreq(req);
+app.get(PREFIX+'/hapi/info', function (req, res) {
+
 	cors(res);
 	res.contentType("application/json");
 
-	// Check for invalid query parameters
-	var keys = Object.keys(req.query);
+	// Check for required id parameter
 	if (!req.query.id) {
-		error(req,res,1400,"An id must be given."); // User input error
+		error(req,res,1400,"A dataset id must be given.");
 		return;
 	}
-	if (keys.length > 2) {
-		// Unknown request parameter
-		error(req,res,1401,"Only id and parameters are allowed inputs.");
-	}
-	if (keys.length == 2 && typeof(req.query.parameters) === "undefined") {
-		 // Unknown request parameter
-		error(req,res,1401,"Only id and parameters are allowed inputs.");
-		return;		
-	}
 
-	// Get list of datasets.
-	var catalog = files('catalog','json');
-	var datasets = catalog.catalog;
-	var found = false;
-	// Determine if requested id is in list
-	for (var i=0;i<datasets.length;i++) {
-		if (datasets[i]['id'] === req.query.id) {found = true;break;}
-	}
-	if (!found) {error(req,res,1406);return;}
+	for (var key in req.query) {
+		if (!["id","parameters"].includes(key)) {
+			error(req,res,1401,"'id' and 'parameters' are the only valid query parameters.");
+			return;
+		}
+	}	
 
-	var header = info(req,res); // info() returns integer error code if error
+	// Check if id is valid
+	if (!idCheck(req.query.id)) {error(req,res,1406);return;}
+
+	// Get subsetted info response based on requested parameters.
+	// info() returns integer error code if error.
+	// TODO: Reconsider this interface to info() - 
+	// infoCheck() is more consistent with other code.
+	var header = info(req,res); 
 	if (typeof(header) === "number") {
-		error(req,res,header,"Parameter not found in dataset");
+		error(req,res,header,"At least one parameter not found in dataset.");
 		return;
 	} else {
 		res.send(header);
 		return;
 	}
-
 })
 
 // /data
-app.get('/hapi/data', function (req, res) {
-	logreq(req);
+app.get(PREFIX+'/hapi/data', function (req, res) {
+
 	cors(res);
 
+	// Check if query parameters are all valid
+	var allowed = ["id","parameters","time.min","time.max","format","include"];
 	for (var key in req.query) {
-		if (-1 == ["id","parameters","time.min","time.max","format","include"].indexOf(key)) {
-			error(req,res,1401); // Unknown request field
+		if (!allowed.includes(key)) {
+			error(req,res,1401,"The only allowed query parameters are " + allowed.join(", "));
 			return;
 		}
 	}	
 
-	// Get list of datasets.
-	// TODO: Code block below is duplicated from /catalog.
-	var catalog = files('catalog','json');
-	var datasets = catalog.catalog;
-	var found = false;
-	// See if requested dataset in list
-	for (var i=0;i<datasets.length;i++) {
-		if (datasets[i]['id'] === req.query.id) {found = true;break;}
+	if (!req.query.id) {
+		error(req,res,1400,"A dataset id must be given.");
+		return;
 	}
-	if (!found) {error(req,res,1406);return;}
+	if (!req.query["time.min"]) {
+		error(req,res,1402,"time.min is required");
+		return;
+	}
+	if (!req.query["time.max"]) {
+		error(req,res,1403,"time.max is required");
+		return;
+	}
 
-	var header = info(req,res); // Get header information for request.
+	// Check if id is valid
+	if (!idCheck(req.query.id)) {error(req,res,1406);return;}
+
+	// Get subsetted /info response based on requested parameters.
+	var header = info(req,res);
 	if (typeof(header) === "number") {
-		error(req,res,header);
+		// One or more of the requested parameters are invalid.
+		error(req,res,header,"At least one parameter not found in dataset.");
 		return;
 	};
 
- 	// Non-standard element, but seems it should be in response
-	header["_startDateRequested"] = req.query["time.min"];
-	header["_stopDateRequested"]  = req.query["time.max"];
-	header["_parentDataset"]      = req.query["id"];
+	// Add non-standard elements to header used later in code.
+	var proto = req.connection.encrypted ? 'https' : 'http'; // TODO: Not tested under https.	
+	header["status"]["x_request"] = proto + "://" + req.headers.host + req.originalUrl;
+	header["status"]["x_startDateRequested"] = req.query["time.min"];
+	header["status"]["x_stopDateRequested"]  = req.query["time.max"];
+	header["status"]["x_parentDataset"]      = req.query["id"];
 
+	// timeCheck() returns integer error code if error or true if no error.
 	var timeOK = timeCheck(header)
-	if (timeOK != true) {
-		error(req,res,timeOK)
-		return
-	};
+	if (!timeOK) {error(req,res,timeOK);return;};
 
-	header["format"] = "csv";
+	header["format"] = "csv"; // Set default format
 	if (req.query["format"]) {
-		// If format given, see if server supports it.
-		capabilities = fs.readFileSync(__dirname + "/metadata/capabilities.json");
-		outputFormats = JSON.parse(capabilities).outputFormats;
-		if (outputFormats.indexOf(req.query["format"]) == -1) {
-			error(req,res,1409);
+		if (!["csv","json","binary"].includes(req.query["format"])) {
+			error(req,res,1409,"Allowed values of 'format' are csv, json, and binary.");
 			return;
 		}
+		// Use requested format.
 		header["format"] = req.query["format"];
 	}
 	
-	var proto = req.connection.encrypted ? 'https' : 'http'; // Has not been tested under https.
-	if (header["status"]) { // If statement because dataset0 does not have status element.
- 		// Non-standard element
-		header["status"]["_request"] = proto + "://" + req.headers.host + req.originalUrl;
-	}
-
 	if (req.query["include"]) {
 		if (req.query["include"] !== "header") {
-			error(req,res,1410); // Unknown include value
+			error(req,res,1410,"Allowed value of 'include' is 'header'."); // Unknown include value
 			return;
 		}
 	}
+	// If include was given, set include = true
+	var include = req.query["include"] === "header";
 
-	if (header["format"] === "csv")            {res.contentType("text/csv");
-	} else if (header["format"] === "binary")  {res.contentType("application/octet-stream");
-	} else if (header["format"] === "json")    {res.contentType("application/json");
-	} else if (header["format"] === "fbinary") {res.contentType("application/octet-stream");
-	} else if (header["format"] === "fcsv")    {res.contentType("text/csv");
-	} else {error(req,res,1409); return; // Unsupported output format.
+	if (header["format"] === "csv")    {res.contentType("text/csv")};
+	if (header["format"] === "binary") {res.contentType("application/octet-stream")};
+	if (header["format"] === "json")   {res.contentType("application/json")};
+
+	// Extract command line (CL) command and replace placeholders.
+	var d = files('data','json');
+	var com = d.command; 
+	com = com.replace("${id}",req.query["id"]);
+	com = com.replace("${start}",req.query["time.min"]);
+	com = com.replace("${stop}",req.query["time.max"]);
+	com = com.replace("${parameters}",req.query["parameters"]);
+	com = com.replace("${format}",header["format"]);
+
+	// See if CL program supports requested format
+	var formats = d.formats;
+	var convert = true; // CL program can produce requested format
+	if (formats) {
+		if (formats.includes(req.query["format"])) {
+			var convert = false;
+		}
 	}
 
-	var include = req.query["include"] === "header"
-	if (include && header["format"] !== "json") {
- 		// Send header now unless format = json (will be sent later).
-		res.write("#" + JSON.stringify(header) + "\n");
-	}
+	// Call the CL command and send output.
+	var child = require('child_process').exec(com, {"encoding":"buffer"});
+	console.log(ds() + "Executing " + com);
+	console.log(com)
+	coms = com.split(/\s+/);
+	coms0 = coms.shift();
+	var child = require('child_process').spawn(coms0,coms,{"encoding":"buffer"})
 
-	data(res,header,include); // Send data
+	var wroteerror = false;  // If 1500 message already sent.
+	var wroteheader = false; // If header already sent.
+	var outstr = "";
 
-	return;
+	child.stderr.on('data', function (err) {
+		if (!wroteerror && !wroteheader) {
+			// If !wroteheader because if header sent, 
+			// then command line sent data before it gave
+			// an error signal.
+			wroteerror = true;
+			if (d.contact) {
+				error(req,res,1500,"Problem with the data server. Please send URL to " + d.contact + ".");
+			} else {
+				error(req,res,1500,"Problem with the data server.");
+			}
+		}
+		console.log(err);
+	})
+	child.stdout.on('data', function (buffer) {
+		if (!wroteheader && include && header["format"] !== "json") {
+			// If header not written, header requested, and format requested
+			// is not JSON, send header.
+			wroteheader = true;
+			res.write("#" + JSON.stringify(header) + "\n");
+		}
+		if (convert && header["format"] === "json") {
+			// JSON requested and CL program cannot produce it.
+			// Accumulate output and send everything at once for now.
+			// TODO: Write incrementally; use buffer.toString().lastIndexOf(/\n/)
+			outstr = outstr + buffer.toString();
+		} else {
+			if (header["format"] === "binary") {
+				res.write(buffer,'binary');
+			} else {
+				res.write(buffer.toString());
+			}
+
+		}
+	})
+	child.stdout.on('end', function() { 
+		if (convert && header["format"] === "json") {
+			// Convert accumulated data and send it.
+			res.write(csvTo(outstr,true,true,header,include));
+		}
+		res.end();
+	})
 })
 
-// Read static JSON files by and then start the server.
+// Fall through
+app.get('*', function(req, res){
+	//logreq(req,"Error");
+	res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
+});
+
+app.use(errorHandler); // Must always be after last app.get() statement.
+
+// Read static JSON files and then start the server.
 files(function () {
-	app.listen(argv.port); // Start server
-	console.log(ds() + "Listening on port " + argv.port
-					 + ". See http://localhost:" + argv.port + "/hapi");
+	app.listen(argv.port, function () {
+		console.log(ds() + "Server running at http://localhost:" + argv.port + PREFIX + "/hapi");
+	});
 })
 
 // Return content of static JSON files
-function files(which,format) {
+function files(which,format,id) {
 
-	// Call before server starts as files(cb) to read and cache content from files.
+	// Call before server starts as files(cb) to read 
+	// and cache content from files.
 
 	if (files.cache) {
-		// Content has been read from disk into object before server started.  Return it.
-		return files.cache[which][format || "string"];
-	} else {
-		// Read content from disk.
-		// Landing page html
-		files.cache = {};
-		files.cache['landing'] = {};
-		files.cache['landing']['string'] = 
-			fs
-				.readFileSync(__dirname+"/server.htm","utf8")
-				.toString()
-				.replace(/__VERSION__/g, __HAPIVERSION);
+		// Content has been read from disk into object before server started.
+		// Return it.
+		if (id) {
+			return files.cache[which][id][format || "string"];
+		} else {
+			return files.cache[which][format || "string"];
+		}
+	} 
 
-		// Capabilities 
-		var str  = fs.readFileSync(__dirname + "/metadata/capabilities.json")
-		var json = JSON.parse(str);
-		json["HAPI"]   = __HAPIVERSION;
+	// Read and cache content from disk.
+	files.cache = {};
+
+	// Landing page html
+	var landing = __dirname+"/metadata/"+CATALOG+".htm";
+	if (!fs.existsSync(landing)) {
+		console.log(ds() + "Did not find " + landing.replace(__dirname,".") + ". Will use ./metadata/default.htm");
+		landing = __dirname+"/metadata/default.htm";
+	}
+	console.log(ds() + "Reading " + landing.replace(__dirname,"."));
+	files.cache['landing'] = {};
+	files.cache['landing']['string'] = 
+		fs
+			.readFileSync(landing,"utf8")
+			.toString()
+			.replace(/__CATALOG__/g, CATALOG)
+			.replace(/__VERSION__/g, HAPIVERSION);
+
+	// Capabilities 
+	var capabilities = __dirname + "/metadata/capabilities.json";
+	if (!fs.existsSync(capabilities)) {
+		json = {};
+		json["outputFormats"] = ["csv","binary","json"];
+		console.log(ds() + "Did not find " + capabilities.replace(__dirname,"") + ". Using " + json["outputFormats"]);
+		json["HAPI"]   = HAPIVERSION;
 		json["status"] = {"code": 1200,"message": "OK"};
 		str = JSON.stringify(json) + "\n";
-		files.cache['capabilities'] = {};
-		files.cache['capabilities']['string'] = str;
-		files.cache['capabilities']['json'] = json;
-
-		// Catalog
-		var str = fs.readFileSync(__dirname + "/metadata/catalog.json");
+	} else {
+		var str  = fs.readFileSync(capabilities);
 		var json = JSON.parse(str);
-		json["HAPI"] = __HAPIVERSION;
-		json["status"] = { "code": 1200, "message": "OK"};
-		str = JSON.stringify(json, null, 4);
-		files.cache['catalog'] = {};
-		files.cache['catalog']['string'] = str;
-		files.cache['catalog']['json'] = json;
+		json["HAPI"]   = HAPIVERSION;
+		json["status"] = {"code": 1200,"message": "OK"};
+		str = JSON.stringify(json) + "\n";
+	}
+	files.cache['capabilities'] = {};
+	files.cache['capabilities']['string'] = str;
+	files.cache['capabilities']['json'] = json;
 
-		which(); // Execute callback.
+	// Catalog
+	var catalog = __dirname + "/metadata/" + CATALOG + ".json";
+	if (!fs.existsSync(catalog)) {
+		console.log(ds() + "Did not find " + catalog + ". Exiting.");
+		process.exit(1);
+	}
+
+	console.log(ds() + "Reading " + catalog.replace(__dirname,"."));
+	try {
+		var str = fs.readFileSync(catalog);
+	} catch (e) {
+		console.log(ds() + catalog + " is not readable. Exiting.");
+		process.exit(1);		
+	}
+
+	try {
+		var json = JSON.parse(str);
+	} catch (e) {
+		console.log(ds() + catalog + " is not JSON.parse-able. Try https://jsonlint.com/. Exiting.");
+		process.exit(1);
+	}
+
+	if (!json.data) {
+		console.log(ds() + catalog + " Does not have a 'data' object. Exiting.");
+		process.exit(1);		
+	}
+
+	// Command line program information
+	files.cache['data'] = {};
+	files.cache['data']['json'] = json.data;
+	files.cache['data']['string'] = JSON.stringify(json.data,null,4);
+	var formats = json.data.formats || "csv";
+	var test = json.data.test || "";
+
+	if (test !== "") {
+		try {
+			var child = require('child_process').execSync(test);
+			console.log(ds() + "Test of command line program passed.");
+
+		} catch (err) {
+			console.log(ds() + "Test of command line program failed. Exiting.");
+			console.log(err.stack);
+			process.exit(1);
+		}
+	}
+
+	files.cache['landing']['string'] = files.cache['landing']['string'].replace("__CONTACT__",json.data.contact || "")
+	
+	delete json.data;
+
+	json["HAPI"] = HAPIVERSION;
+	json["status"] = {"code": 1200, "message": "OK"};
+
+	files.cache['info'] = {};
+	var id;
+	for (var i = 0;i < json.catalog.length; i++) {
+		// TODO: Validate json.catalog[i].info against catalog schema
+		id = json.catalog[i].id
+		files.cache['info'][id] = {};
+		files.cache['info'][id]['string'] = JSON.stringify(json.catalog[i].info, null, 4);
+		files.cache['info'][id]['json'] = json.catalog[i].info;
+		files.cache['info'][id]['json']['HAPI'] = HAPIVERSION;
+		files.cache['info'][id]['json']['status'] = { "code": 1200, "message": "OK"};
+		if (!formats.includes("json")) {
+			// If data program does not produce JSON, see if
+			// any multi-dimensional arrays and warn.
+			for (var j = 0; j < json.catalog[i].info.parameters.length; j++) {
+				if (json.catalog[i].info.parameters[j].size) {
+					if (json.catalog[i].info.parameters[j].size.length > 1) {
+						console.log(ds() + "Warning: Parameter in catalog has size.length > 1 and data program does not produce JSON. Server cannot produce JSON from CSV for this parameter.")
+					}
+				}
+			}
+		}
+		delete json.catalog[i].info;
+	}
+
+	// TODO: Validate json against schema
+	str = JSON.stringify(json, null, 4);
+
+	files.cache['catalog'] = {};
+	files.cache['catalog']['string'] = str;
+	files.cache['catalog']['json'] = json;
+
+	which(); // Execute callback.
+}
+
+// Date string for logging.
+function ds() {return (new Date()).toISOString() + " ";};
+
+function csvTo(records,first,last,header,include) {
+
+	// Helper functions
+	function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
+	function append(str,arr,N) {for (var i=0;i<N;i++) {arr.push(str);};return arr;}
+
+	// TODO: Do this on first call only.
+	var size    = [];
+	var type    = "";
+	var types   = []; // Type associated with number in each column 
+	var name    = "";
+	var names   = []; // Name associated with number in each column
+	var po      = {}; // Parameter object
+	for (var i = 0;i < header.parameters.length; i++) {
+		size  = header.parameters[i]["size"] || [1];
+		name  = header.parameters[i]["name"];
+		names = append(name,names,prod(size));
+		type  = header.parameters[i]["type"];
+		types = append(type,types,prod(size));
+		po[header.parameters[i].name] = {};
+		po[header.parameters[i].name]["type"] = header.parameters[i].type;
+		po[header.parameters[i].name]["size"] = header.parameters[i].size || [1];
+		if (po[header.parameters[i].name]["size"].length > 1) {
+			console.log(ds() + "Warning. JSON for parameter " + name + " will be 1-D array instead of " + po[header.parameters[i].name]["size"].length + "-D")
+			po[header.parameters[i].name]["size"] = prod(po[header.parameters[i].name]["size"]);
+		}
+	}
+	
+	return csv2json(records,po,names,first,last,header,include);
+
+	function csv2json(records,po,names,first,last,header,include) {
+
+		// Only handles 1-D arrays, e.g., size = [N], N integer.
+
+		recordsarr  = records.split("\n");
+		if (recordsarr[recordsarr.length-1] === '') {
+			// Empty element due to trailing newline.
+			recordsarr.pop();
+		}
+		
+		var cols    = [];
+		var records = "";
+		var open    = "";
+		var close   = "";
+		var nw      = 0;
+		for (var i = 0;i < recordsarr.length;i++) {
+			cols    = recordsarr[i].split(",");
+			record  = "";
+			nw      = 0;
+			for (var j = 0;j < cols.length;j++) {
+				if (j == 0) {
+					record = "[";
+				}
+				open  = "";
+				close = "";
+				if (po[names[j]].size[0] > 1) {
+					if (open.length == 0 && nw == 0) {open = "["};
+					nw = nw + 1;
+				}
+				if (po[names[j]].size[0] > 1 && nw == po[names[j]].size[0]) {
+					close = "]";
+					open = "";
+					nw = 0;
+				}
+				if (types[j] === "integer") {
+					record = record + open + parseInt(cols[j])   + close + ",";
+				} else if (types[j] === "double") {
+					record = record + open + parseFloat(cols[j]) + close + ",";
+				} else {
+					record = record + open + '"' + cols[j] + '"' + close + ",";
+				}
+			}
+			if (i > 0) {
+				records = records + "\n" + record.slice(0,-1) + "],";
+			} else {
+				records = record.slice(0,-1) + "],";
+			}
+		}
+		open = "";close = "";
+		if (first == true) {
+			if (include) {
+				// Remove closing } and replace with new element.
+				open = JSON.stringify(header,null,4).replace(/}\s*$/,"") + ',\n"data":\n[\n';
+			} else {
+				open = '[\n';				
+			}
+		}
+		if (last == true) {
+			if (include) {
+				close = "\n]\n}\n";
+			} else {
+				close = "\n]\n";
+			}
+		}
+		return open + records.slice(0,-1) + close;
 	}
 }
 
 function info(req,res) {
 
 	// Read parameter metadata.
-	jsonstr = fs.readFileSync(__dirname + "/metadata/" + req.query.id + ".json");
-	json    = JSON.parse(jsonstr);
+	jsonstr = files('info','string',req.query.id);
+	json    = files('info','json',req.query.id);;
 
-	if (req.query.id !== "dataset0") { // Make dataset0 have more invalid metadata than given in dataset0.json.
-		json["HAPI"]   = __HAPIVERSION;
-		json["status"] = { "code": 1200, "message": "OK"};
-	}
-
-	// Create array of parameter names
+	// Create array of known parameter names
 	var knownparams = [];
 	for (var i = 0;i < json.parameters.length;i++) {
 		knownparams[i] = json.parameters[i].name;
@@ -277,18 +546,19 @@ function info(req,res) {
 		wantedparams = knownparams;
 	}
 
-	// Remove duplicate parameters from query
+	// Remove repeated parameters from query
 	var wantedparams = Array.from(new Set(wantedparams));
 
 	// Catches case where parameters= is given in query string.
-	// Assume it means same as if no parameters field was given (all parameters).
+	// Assume it means same as if no parameters field was given
+	// (which means all parameters wanted).
 	if (wantedparams.length == 0) {return json;}
 
 	// Determine if any parameters requested are invalid
 	validparams = []; iv = 0;
 	invalidparams = []; ii = 0;
 	for (var i = 0;i < wantedparams.length;i++) {
-		if (knownparams.indexOf(wantedparams[i]) > -1) {
+		if (knownparams.includes(wantedparams[i])) {
 			// TODO: Consider using objects if parameter lists are very long.
 			validparams[iv] = wantedparams[i];
 			iv++;
@@ -305,15 +575,30 @@ function info(req,res) {
 
 	// Delete parameters from JSON response that were not requested
 	for (var i = 1;i < knownparams.length;i++) {
-		if (!(wantedparams.indexOf(knownparams[i]) > -1)) {
+		if (!wantedparams.includes(knownparams[i])) {
 			delete json.parameters[i];
 		}
 	}
 	// Remove nulls placed when array element is deleted
-	json.parameters = json.parameters.filter(function(n){ return n != undefined }); 
+	json.parameters = json.parameters.filter(function(n){return n != undefined}); 
 
 	// Return JSON string
 	return json;
+}
+
+function idCheck(id) {
+	// Get list of datasets.
+	var catalog = files('catalog','json');
+	var datasets = catalog.catalog;
+	var found = false;
+	// Determine if requested id is in list
+	for (var i=0;i<datasets.length;i++) {
+		if (datasets[i]['id'] === id) {
+			return true;
+			break;
+		}
+	}
+	return false;
 }
 
 function timeCheck(header) {
@@ -322,7 +607,7 @@ function timeCheck(header) {
 	// TODO: If one of the times had Z and the other does not, should warn that all time
 	// stamps are interpreted as Z.
 
-	var times = [header["_startDateRequested"],header["_stopDateRequested"],
+	var times = [header["status"]["x_startDateRequested"],header["status"]["x_stopDateRequested"],
 				 header.startDate,header.stopDate];
 
 	for (var i = 0;i < times.length;i++) {
@@ -369,345 +654,6 @@ function timeCheck(header) {
 	return true;
 }
 
-function data(res,header,include) {
-	// Generate and send data.
-
-	// TODO: Demo of piping output from command line program through.
-
-	var format = header["format"];
-	var start  = header["_startDateRequested"].replace("Z","");
-	var stop   = header["_stopDateRequested"].replace("Z","");
-	var id     = header["_parentDataset"];
-
-	// Date YYYY-MM-DD or YYYY-DOY with no Z is considered invalid by moment.js
-	// see timeCheck().
-	if (start.length == 8 || start.length == 10) { // YYYY-MM-DD
-		start = start + "T00:00:00.000";
-	}
-	if (stop.length == 8 || stop.length == 10) { // YYYY-DOY
-		stop = stop + "T00:00:00.000";
-	}
-
-	var startsec = moment(start+"Z").valueOf()/1000;
-	var stopsec  = moment(stop+"Z").valueOf()/1000;
-
-	startsec = Math.floor(startsec);
-	stopsec  = Math.floor(stopsec);
-
-	var wanted  = {};  // Wanted parameters object
-	for (var i = 0;i < header.parameters.length; i++) {
-		wanted[header.parameters[i]["name"]] = true;
-	}
-
-	var records = ""; // Number of records (lines)
-	var record  = ""; // A record with comma-separated fields (columns)
-	var Nwrote  = 0;  // Number of records flushed
-
-	scalarstrs = ["P/P","P/F","F/P","F/F"];
-	scalarcats = [0,1,2];
-
-	for (var i = startsec; i < stopsec;i++) {
-		var record = "";
-		if (wanted['Time'] == true) {
-			record = (new Date(i*1000).toISOString()).slice(0,-1);
-		}
-		if (wanted['scalar'] == true) {
-			record = record + "," + Math.sin(Math.PI*i/600);
-		}
-		if (wanted['scalarint'] == true) {
-			record = record + "," + Math.round(1000*Math.sin(Math.PI*i/600));
-		}
-		if (wanted['scalarstr'] == true) {
-			record = record + "," + scalarstrs[(i-startsec) % scalarstrs.length];
-		}
-		if (wanted['scalarcats'] == true) {
-			record = record + "," + scalarcats[(i-startsec) % scalarcats.length];
-		}
-		if (wanted['scalariso'] == true) {
-			record = record + "," + (new Date((i+1)*1000).toISOString()).slice(0,-5) + "Z";
-		}
-		if (wanted['scalarmulti'] == true) {
-			record = record + "," + Math.sin(Math.PI*i/600);
-		}
-		if (wanted['vector'] == true) {
-			record = record 
-						+ "," + Math.sin(Math.PI*(i-startsec)/600) 
-						+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
-						+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
-		}
-		if (wanted['vectorint'] == true) {
-			record = record 
-						+ "," + Math.round(1000*Math.sin(Math.PI*i/600))
-						+ "," + Math.round(1000*Math.sin(Math.PI*i/600))
-						+ "," + Math.round(1000*Math.sin(Math.PI*i/600));
-		}
-		if (wanted['vectorstr'] == true) {
-			record = record 
-							+ "," + scalarstrs[(i-startsec) % scalarstrs.length]
-							+ "," + scalarstrs[(i-startsec+1) % scalarstrs.length]
-							+ "," + scalarstrs[(i-startsec+2) % scalarstrs.length];
-		}
-		if (wanted['vectorcats'] == true) {
-			record = record 
-						+ "," + scalarcats[(i-startsec)   % scalarcats.length]
-						+ "," + scalarcats[(i-startsec+1) % scalarcats.length]
-						+ "," + scalarcats[(i-startsec+2) % scalarcats.length];
-		}
-		if (wanted['vectoriso'] == true) {
-			record = record 
-						+ "," + (new Date((i+1)*1000).toISOString()).slice(0,-5)
-						+ "," + (new Date((i+2)*1000).toISOString()).slice(0,-5)
-						+ "," + (new Date((i+3)*1000).toISOString()).slice(0,-5);
-		}
-		if (wanted['vectormulti'] == true) {
-			record = record 
-						+ "," + Math.sin(Math.PI*(i-startsec)/600) 
-						+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
-						+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
-						+ "," + Math.sin(Math.PI*(i-startsec)/600) 
-						+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
-						+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
-		}
-		if (wanted['transform'] == true) {
-			for (var j = 0;j < 9;j++) {
-				record = record + "," + Math.sin((Math.PI/300)*(i-startsec)/(j+1));
-			}
-		}
-		if (wanted['transformmulti'] == true) {
-			for (var j = 0;j < 9;j++) {
-				record = record + "," + Math.sin((Math.PI/300)*(i-startsec)/(j+1));
-			}
-		}
-		if (wanted['spectra'] == true) {
-			record = record + "," + 0; // f = 0 bin.
-			for (var j = 1;j < 10;j++) {
-				record = record + "," + 1/j;
-			}
-		}
-		if (wanted['spectranobins'] == true) {
-			for (var j = 0;j < 10;j++) {
-				record = record + "," + j;
-			}
-		}
-		if (wanted['spectralarge'] == true) {
-			record = record + "," + 0; // f = 0 bin.
-			for (var j = 1;j < 100;j++) {
-				record = record + "," + 1/j;
-			}
-		}
-		if (wanted['spectramulti'] == true) {
-			record = record + "," + 0; // f = 0 bin.
-			for (var j = 1;j < 10;j++) {
-				record = record + "," + 1/j;
-			}
-			record = record + "," + 0; // f = 0 bin.
-			for (var j = 1;j < 10;j++) {
-				record = record + "," + 2/j;
-			}
-		}
-
-		if (id === "dataset0") {
-			record = record.replace(/,/g,", ");  // Make dataset0 use space after comma.
-		}
-
-		if (records.length > 0) {
-			records = records + "\n" + record;
-		} else {
-			records = record;
-		}
-
-		// Flush to output at end and every 100 records (lines)
-		var flush = (i == stopsec - 1) || (i > startsec && (i-startsec) % 100 === 0);
-		if (flush) {
-			if (format === "csv") {
-				if (id !== "dataset0") {
-					res.write(records + "\n"); // Correct way.					
-				} else {
-					// Make time non-monotonic.
-					records = records.split("\n");
-					l = records.length-1;
-					first = records[0];
-					last = records[l];
-					records[0] = last;
-					records[l] = first;
-					records = records.join("\n");
-					if ((i == stopsec - 1) && wanted['scalariso']) {
-	 					// Omit newline at end of file for dataset0 if scalariso requested
-						res.write(records);
-					} else {
-	 					// Add extra newline at end of file for dataset0 if scalariso not requested
-						res.write(records + "\n\n");
-					}
-				}
-			} else {
-				var xrecords = csvTo(records,Nwrote,(i == stopsec-1),(Nwrote == 0),header,include);
-				res.write(xrecords);
-			} 
-			records = "";
-			Nwrote  = (i-startsec);
-		}
-	}
-	res.end();
-}
-
-function csvTo(records,Nwrote,first,last,header,include) {
-
-	// Helper functions
-	function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
-	function append(str,arr,N) {for (var i=0;i<N;i++) {arr.push(str);};return arr;}
-
-	var size    = [];
-	var type    = "";
-	var types   = []; // Type associated with number in each column 
-	var name    = "";
-	var names   = []; // Name associated with number in each column
-	var po      = {}; // Parameter object
-	for (var i = 0;i < header.parameters.length; i++) {
-		size  = header.parameters[i]["size"] || [1];
-		name  = header.parameters[i]["name"];
-		names = append(name,names,prod(size));
-		type  = header.parameters[i]["type"];
-		types = append(type,types,prod(size));
-		po[header.parameters[i].name] = {};
-		po[header.parameters[i].name]["type"] = header.parameters[i].type;
-		po[header.parameters[i].name]["size"] = header.parameters[i].size || [1];
-	}
-
-	var format = header["format"];
-	if (format === "binary")  return csv2bin(records,types);
-	if (format === "json")    return csv2json(records,po,names,first,last,header,include);
-	if (format === "fcsv")    return csv2fcsv(records,Nwrote);
-	if (format === "fbinary") return csv2bin(records,types,Nwrote);
-
-	function csv2json(records,po,names,first,last,header,include) {
-
-		// Only handles 1-D arrays, e.g., size = [N], N integer.
-
-		recordsarr  = records.split("\n");
-		var cols    = [];
-		var records = "";
-		var open    = "";
-		var close   = "";
-		var nw      = 0;
-		for (var i = 0;i < recordsarr.length;i++) {
-			cols    = recordsarr[i].split(",");
-			record  = "";
-			nw      = 0;
-			for (var j = 0;j < cols.length;j++) {
-				if (j == 0) {
-					record = "[";
-				}
-				open  = "";
-				close = "";
-				if (po[names[j]].size[0] > 1) {
-					if (open.length == 0 && nw == 0) {open = "["};
-					nw = nw + 1;
-				}
-				if (po[names[j]].size[0] > 1 && nw == po[names[j]].size[0]) {
-					close = "]";
-					open = "";
-					nw = 0;
-				}
-				if (types[j] === "integer") {
-					record = record + open + parseInt(cols[j])   + close + ",";
-				} else if (types[j] === "double") {
-					record = record + open + parseFloat(cols[j]) + close + ",";
-				} else {
-					record = record + open + "'" + cols[j] + "'" + close + ",";
-				}
-			}
-			if (i > 0) {
-				records = records + "\n" + record.slice(0,-1) + "],";
-			} else {
-				records = record.slice(0,-1) + "],";
-			}
-		}
-		open = "";close = "";
-		if (first == true) {
-			if (include) {
-				// Remove closing } and replace with new element.
-				open = JSON.stringify(header).replace(/}\s*$/,"") + ',"data":\n[\n';
-			} else {
-				open = '[\n';				
-			}
-		}
-		if (last == true) {
-			if (include) {
-				close = "\n]\n}\n";
-			} else {
-				close = "\n]\n";
-			}
-		}
-		return open + records.slice(0,-1) + close;
-	}
-
-	function csv2bin(records,types,Nwrote) {
-
-		var fbin = false;
-		if (typeof(Nwrote) !== "undefined") {fbin = true;};
-
-		var recordsarr = records.split("\n");
-		var Nr = recordsarr.length; // Number of rows
-
-		var record1 = recordsarr[0].split(",");
-		var Nd      = record1.length - 1;	 // Number of data columns
-		
-		if (fbin) {
-			var Nt = 8; // Time is double
-		} else {
-			var Nt = record1[0].length + 1; // Number of time characters (+1 for null)			
-		}
-
-		Nb = 0;
-		for (var i = 1;i < types.length;i++) {
-			if (types[i] === 'double') {
-				Nb = Nb + 8;
-			}
-			if (types[i] === 'integer') {
-				Nb = Nb + 4;
-			}		
-		}
-
-		var recordsbuff = new Buffer.alloc(Nr*(Nt + Nb));
-		var pos = 0;
-		for (var i = 0; i < Nr; i++) {
-			var record = recordsarr[i].split(",");
-			if (fbin) {
-				record[0] = Nwrote + i; // Overwrite ISO time with seconds
-				recordsbuff.writeDoubleLE(record[0],pos);
-				pos = pos + Nt;
-			} else {
-				recordsbuff.write(record[0],pos);
-				pos = pos + Nt - 1;
-				recordsbuff.write("\0",pos);
-				pos = pos + 1;
-			}
-			for (var j = 1;j < Nd+1;j++) {
-				if (types[j] === 'double') {
-					recordsbuff.writeDoubleLE(record[j],pos);
-					pos = pos + 8;
-				}
-				if (types[j] === 'integer') {
-					recordsbuff.writeInt32LE(records[j],pos);	
-					pos = pos + 4;
-				}
-			}
-		}
-		return recordsbuff;
-	}
-
-	function csv2fcsv(records,Nwrote) {
-		var recordsarr = records.split("\n");
-		var Nr = recordsarr.length; // Number of rows
-		for (var i = 0; i < Nr; i++) {
-			var record = recordsarr[i].split(",");
-			record[0]     = Nwrote+i;
-			recordsarr[i] = record.join(",");
-		}
-		return recordsarr.join("\n") + "\n";
-	}
-}
-
 function cors(res) {
 	// CORS headers
 	res.header('Access-Control-Allow-Origin', '*');
@@ -715,6 +661,7 @@ function cors(res) {
 	res.header('Access-Control-Allow-Headers', 'Content-Type');
 }
 
+// HAPI Errors
 function error(req,res,code,message) {
 
 	var errs = {
@@ -736,7 +683,7 @@ function error(req,res,code,message) {
 	// Defaults
 	var json =
 			{
-				"HAPI" : __HAPIVERSION,
+				"HAPI" : HAPIVERSION,
 				"status": { "code": 1500, "message": "Internal server error"}
 			};
 	var httpcode = 500;
@@ -760,23 +707,33 @@ function error(req,res,code,message) {
 	res.status(httpcode).send(JSON.stringify(json, null, 4) + "\n");
 }
 
+// Uncaught errors in API request code.
+function errorHandler(err, req, res, next) {
+	var stack = err.stack.replace(new RegExp(__dirname + "/","g"),"").replace(/\n/g,"<br/>")
+	console.log(err);
+	error(req,res,"1500","Server error. Please post the following error message at https://github.com/hapi-server/server-nodejs/issues. <br/>" + req.originalUrl + "<br/> " + err + " " + stack);
+	var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+	var msg = ds() + "Request from " + addr + ": " + req.originalUrl;
+	var tmps = ds().split("T")[0]
+	fs.appendFileSync('server-error-' + tmps + ".log",msg + "\n" + err.stack)
+}
+
+// Errors in application
+function exceptions() {
+	process.on('uncaughtException', function(err) {
+		if (err.errno === 'EADDRINUSE') {
+			console.log(ds() + "Port " + argv.port + " already in use.");
+		} else {
+			console.log(err.stack);
+		}
+		var tmps = ds().split("T")[0]
+		fs.appendFileSync('server-error-' + tmps + ".log", err)
+		process.exit(1);
+	});
+}
+
 function logreq(req,extra) {
 	var extra = extra || "";
 	var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
 	console.log(ds() + "Request from " + addr + ": " + req.originalUrl + " " + extra);
-}
-
-function exceptions() {
-	// TODO: This should be passed res and then server should send 500 error.
-	// See how verifier-nodejs/verify.js does this.
-	process.on('uncaughtException', function(err) {
-		if (err.errno === 'EADDRINUSE') {
-			console.log(ds() + clc.red("Port " + argv.port + " already in use."));
-		} else {
-			console.log(err.stack);
-		}
-		var tmps = ds().split(" ")[0]
-		fs.appendFileSync('server-error-' + tmps + ".log", err)
-		process.exit(1);
-	});
 }
