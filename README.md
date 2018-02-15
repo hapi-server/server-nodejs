@@ -13,7 +13,7 @@ Software for a full-featured HAPI server, (TSDS)[http://tsds.org/], is available
 Install [nodejs](https://nodejs.org/en/download/) (tested with v7.10.0) and then
 
 ```bash
-git clone https://github.com/hapi-server/data-specification/nodejs-server
+git clone https://github.com/hapi-server/nodejs-server
 cd nodejs-server; npm install
 node server.js --port 8999
 ```
