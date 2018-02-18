@@ -1,0 +1,13 @@
+{
+    "data": {
+        "command": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri=http://autoplot.org/data/autoplot.cdf?BGSM -f hapi-data",
+        "contact": "rweigel@gmu.edu"
+    },
+	"catalog":
+		[
+			{
+                "id": "ACE",
+				"info": "java -cp autoplot.jar org.autoplot.AutoplotDataServer --uri='http://autoplot.org/data/autoplot.cdf?BGSM' -f hapi-info"
+            }
+        ]
+}

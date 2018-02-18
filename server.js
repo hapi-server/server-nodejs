@@ -213,32 +213,37 @@ app.get(PREFIX+'/hapi/data', function (req, res) {
 		}
 	}
 
-	// Call the CL command and send output.
-	var child = require('child_process').exec(com, {"encoding":"buffer"});
+	// var child = require('child_process').exec(com, {"encoding":"buffer"});
 	console.log(ds() + "Executing " + com);
-	console.log(com)
+	//console.log(com)
+
+	// Call the CL command and send output.	
 	coms = com.split(/\s+/);
 	coms0 = coms.shift();
-	var child = require('child_process').spawn(coms0,coms,{"encoding":"buffer"})
+	//console.log(coms);
+	var child = require('child_process')
+					.spawn(coms0,coms,{"encoding":"buffer"})
 
-	var wroteerror = false;  // If 1500 message already sent.
 	var wroteheader = false; // If header already sent.
 	var outstr = "";
 
-	child.stderr.on('data', function (err) {
-		if (!wroteerror && !wroteheader) {
+	// TODO: Write this to log file
+	// child.stderr.on('data', function (err) {
+		//console.log("Error message:" + err.toString());
+	//})
+	child.on('exit', function (code) {
+		if (code != 0 && !wroteheader) {
 			// If !wroteheader because if header sent, 
 			// then command line sent data before it gave
 			// an error signal.
-			wroteerror = true;
 			if (d.contact) {
 				error(req,res,1500,"Problem with the data server. Please send URL to " + d.contact + ".");
 			} else {
 				error(req,res,1500,"Problem with the data server.");
 			}
 		}
-		console.log(err);
 	})
+
 	child.stdout.on('data', function (buffer) {
 		if (!wroteheader && include && header["format"] !== "json") {
 			// If header not written, header requested, and format requested
@@ -288,7 +293,7 @@ files(function () {
 function files(which,format,id) {
 
 	// Call before server starts as files(cb) to read 
-	// and cache content from files.
+	// and memory cache content from files.
 
 	if (files.cache) {
 		// Content has been read from disk into object before server started.
@@ -382,7 +387,6 @@ function files(which,format,id) {
 		try {
 			var child = require('child_process').execSync(test);
 			console.log(ds() + "Test of command line program passed.");
-
 		} catch (err) {
 			console.log(ds() + "Test of command line program failed. Exiting.");
 			console.log(err.stack);
@@ -670,6 +674,7 @@ function cors(res) {
 // HAPI Errors
 function error(req,res,code,message) {
 
+	// TODO: Need to determine if headers and/or data were already sent.
 	var errs = {
 		"1400": {status: 400, "message": "HAPI error 1400: user input error"},
 		"1401": {status: 400, "message": "HAPI error 1401: unknown request field"},
@@ -708,6 +713,10 @@ function error(req,res,code,message) {
 
 	logreq(req,httpcode + "/" + json["status"]["code"]);
 
+	if (res.headersSent) {
+		return;
+	}
+
 	res.contentType("application/json");
 	res.statusMessage = httpmesg;
 	res.status(httpcode).send(JSON.stringify(json, null, 4) + "\n");
@@ -729,12 +738,14 @@ function exceptions() {
 	process.on('uncaughtException', function(err) {
 		if (err.errno === 'EADDRINUSE') {
 			console.log(ds() + "Port " + argv.port + " already in use.");
+			process.exit(1);
 		} else {
 			console.log(err.stack);
+			var tmps = ds().split("T")[0];
+			fs.appendFileSync('server-error-' + tmps + ".log", "\n" + ds() + " Uncaught Exception\n" + err.stack)
+			// TODO: This is not necessarily needed
+			process.exit(1);
 		}
-		var tmps = ds().split("T")[0]
-		fs.appendFileSync('server-error-' + tmps + ".log", err)
-		process.exit(1);
 	});
 }
 

@@ -72,8 +72,8 @@ nvm install 7
 Clone the server respository
 
 ```bash
-git clone https://github.com/hapi-server/data-specification/nodejs-server
-cd nodejs-server; npm install
+git clone https://github.com/hapi-server/server-nodejs
+cd server-nodejs; npm install
 node server.js
 ```
 
