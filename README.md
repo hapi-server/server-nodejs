@@ -2,7 +2,6 @@
 
 ## Contents
 
-<tr>
 1. [About](#About)
 2. [Usage](#Usage)
 3. [Installation](#Installation)
@@ -10,7 +9,6 @@
 5. [Examples](#Examples)
 6. [Tests](#Tests)
 7. [Contact](#Contact)
-</tr>
 
 ## 1. About
 
@@ -103,17 +101,17 @@ forever server.js
  
 The top-level structure of `CATALOG.json` file is
 
-```json
+```
 {
-    "data": {
-        "command": "Command line template",
-        "contact": "Email address if error in command line program"
-    },
-	"catalog": [Combined HAPI /catalog and /info object]
+	"data": {
+	    "command": "Command line template",
+	    "contact": "Email address if error in command line program"
+	},
+	"catalog": [See 4.1: Combined HAPI /catalog and /info object]
 	// or
-	"catalog": [HAPI /catalog response with file or command line references for info object]
+	"catalog": [See 4.2: HAPI /catalog response with file or command line references for info object]
 	// or
-	"catalog": "Command line command or file"
+	"catalog": "See 4.3: Command line command or file"
 }
 ```
 
