@@ -15,10 +15,11 @@
     "url": "https://github.com/hapi-server/nodejs-server.git"
   },
   "dependencies": {
+    "cli-color": "^1.2.0",
+    "command-exists": "^1.2.2",
+    "compression": "^1.6.2",
     "express": "^4.15.3",
     "moment": "^2.18.1",
-    "cli-color": "^1.2.0",
-    "compression": "^1.6.2",
     "yargs": "^8.0.1"
   },
   "scripts": {

@@ -1,0 +1,14 @@
+{
+    "HAPI": "1.1",
+    "catalog": [
+        {
+            "id": "10.CF3744000800",
+            "title": "Pool Temperature"
+        }
+    ],
+    "status": {
+        "code": 1200,
+        "message": "OK request successful"
+    },
+    "x-deployedAt": "2017-02-21T12:23:53.323Z"
+}

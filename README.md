@@ -1,30 +1,33 @@
-# Contents
+# HAPI Server Front-End
 
-1. [HAPI Server Front-End](#HAPI Server Front-End)
+## Contents
+
+<tr>
+1. [About](#About)
 2. [Usage](#Usage)
 3. [Installation](#Installation)
 4. [Metadata](#Metadata)
 5. [Examples](#Examples)
 6. [Tests](#Tests)
 7. [Contact](#Contact)
+</tr>
 
-# 1. HAPI Server Front-End
+## 1. About
 
 The intended use case for this server is for a data provider that has
 
-1. [HAPI](https://github.com/hapi-server/data-specification) metadata for a set of datasets (see examples in [`./metadata`](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/)) and
+1. [HAPI](https://github.com/hapi-server/data-specification) metadata, in one of a [variety of forms](#Metadata), for a set of datasets and
 2. a command line program that returns at least [HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) given inputs of a dataset, a list of one or more parameters in a dataset, start/stop times, and (optionally) an output format.
 
 This server handles
 
-1. dataset metadata validation,
-2. API input validation,
+1. HAPI metadata validation,
+2. request validation,
 3. error responses,
-4. logging,
-5. sending emails when an error occurs, and
-6. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (if needed)
+4. logging and alerts,
+5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed)
 
-# 2. Usage
+## 2. Usage
 
 `node server.js`
 
@@ -47,18 +50,20 @@ When a request is made for data, output from a command line program specified in
 For example, in [`./metadata/TestDataSimple.json`](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple.json), the command line syntax is given as
 
 ```bash
-python ./bin/TestDataSimple.py --dataset ${dataset} --parameters ${parameters} --start ${start} --stop ${stop} --format ${format}"`
+python ./bin/TestDataSimple.py --dataset ${dataset} --parameters \
+   ${parameters} --start ${start} --stop ${stop} --format ${format}"`
 ```
 
 and in [`./metadata/TestData.json`](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestData.json), it is
 
 ```bash
-node ./bin/TestData.js --dataset ${dataset} --parameters ${parameters} --start ${start} --stop ${stop} --format ${format}
+node ./bin/TestData.js --dataset ${dataset} --parameters \
+   ${parameters} --start ${start} --stop ${stop} --format ${format}
 ```
 
 When data is requested, this command line program is executed after variable substitution and the output is sent as the response.
 
-# 3. Installation
+## 3. Installation
 
 Install [nodejs](https://nodejs.org/en/download/) (tested with v7.10.0) 
 
@@ -74,10 +79,10 @@ Clone the server respository
 ```bash
 git clone https://github.com/hapi-server/server-nodejs
 cd server-nodejs; npm install
-node server.js
+node server.js --prefix TestDataSimple
 ```
 
-Then open [http://localhost:8999/TestDataSimple/hapi](http://localhost:8999/TestDataSimple/hapi) in a web browser.
+and then open [http://localhost:8999/TestDataSimple/hapi](http://localhost:8999/TestDataSimple/hapi) in a web browser.
 
 To expose this URL through Apache, add the following to the Apache configuration file
 
@@ -94,8 +99,8 @@ forever server.js
 # or forever server.js --port PORT --catalog CATALOG --prefix PREFIX
 ```
 
-# 4. Metadata
-
+## 4. Metadata
+ 
 The top-level structure of `CATALOG.json` file is
 
 ```json
@@ -108,25 +113,29 @@ The top-level structure of `CATALOG.json` file is
 	// or
 	"catalog": [HAPI /catalog response with file or command line references for info object]
 	// or
-	"catalog": "Command line program or file"
+	"catalog": "Command line command or file"
 }
 ```
+
+See also examples in [`./metadata`](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/).
 
 The command line template has placeholders for a dataset id (`${ID}`), start (`${start}`) and stop (`${stop}`) times, and optionally a output format (`${format}`). For example,
 
 ```bash
-python ./bin/TestDataSimple.py --dataset ${ID} --parameters ${parameters} --start ${start} --stop ${stop} --format ${format}"`
+python ./bin/TestDataSimple.py --dataset ${ID} --parameters \
+	${parameters} --start ${start} --stop ${stop} --format ${format}"`
 ```
 
 ```bash
-node ./bin/TestData.js -id ${dataset} -params ${parameters} -startDate ${start} -stopDate ${stop}
+node ./bin/TestData.js -id ${dataset} -params ${parameters} \
+	-startDate ${start} -stopDate ${stop}
 ```
 
-Each of the options for the catalog property are discussed in the following sections.
+Each of the options for the catalog property are described in the following sections.
 
-## 4.1 Combined HAPI `/catalog` and `/info` object
+### 4.1 Combined HAPI `/catalog` and `/info` object
 
-If `catalog` is an array, it should have the same format as a HAPI `/catalog` response (each object in the array has an `id` property and and optional `title` property) with the addition of an `info` property that is the HAPI response for that `id`, e.g., `/info?id=dataset1`. 
+If `catalog` is an array, it should have the same format as a HAPI `/catalog` response (each object in the array has an `id` property and and optional `title` property) **with the addition** of an `info` property that is the HAPI response for that `id`, e.g., `/info?id=dataset1`. 
 
 ```json
  [
@@ -143,21 +152,31 @@ If `catalog` is an array, it should have the same format as a HAPI `/catalog` re
  ]
 ```
 
-In the following, the above JSON structure is referred to as a fully resolved catalog.
+In the following subsections, this type of JSON structure is referred to as a **fully resolved catalog**.
 
-## 4.2 HAPI `/catalog` response with file or command line references for `info` object
+Examples of this type of catalog include
+
+* [TestDataSimple.json](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple.json)
+* [TestData.json](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestData.json)
+
+### 4.2 `/catalog` response with file or command line references for `info` object
+
+Examples of this type of catalog include
+
+* [TestDataSimple2](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple)
+* [TestDataSimple3](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple2)
 
 ```json
  [
 	{
 		"id": "dataset1",
 		"title": "a dataset",
-		"info": "file:///path/to/dataset1/file.json"
+		"info": "relativepath/to/dataset2/info_file.json"
 	},
 	{
 		"id": "dataset2",
 		"title": "another dataset",
-		"info": "file:///path/to/dataset2/file.json"
+		"info": "/absolutepath/to/dataset1/info_file.json"
 	}
  ]
 ```
@@ -180,7 +199,7 @@ Alternatively, the metadata for each dataset may be produced by execution of a c
  ]
 ```
 
-## 4.3 References to a Command Line Program or File
+### 4.3 References to a Command Line Program or File
 
 The in the following the file or command line output can contain either a fully resolved catalog in the form shown in section 4.1 or a catalog with references as given in section 4.2.
 
@@ -206,11 +225,11 @@ The command line command should return the response of an `/info` query.
 }
 ```
 
-# 5. Examples
+## 5. Examples
 
 Discuss using Autoplot on a pile of files.
 
-# 6. Tests
+## 6. Tests
 
 The following commands creates a local installation of the [HAPI verifier](https://github.com/hapi-server/verifier-nodejs) and tests the URL ```http://localhost:8999/hapi```.
 
@@ -222,6 +241,6 @@ npm install;
 node test.js http://localhost:8999/hapi"
 ```
 
-# 7. Contact
+## 7. Contact
 
 Bob Weigel <rweigel@gmu.edu>

@@ -39,6 +39,9 @@ exceptions(); // Catch common start-up exceptions
 
 app.use(compress()); // Compress responses using gzip
 
+// Serve static files in public
+app.use(express.static('public'))
+
 // Log all requests, then call next route handler
 app.get('*', function (req,res,next) {
 	logreq(req);
@@ -170,7 +173,7 @@ app.get(PREFIX+'/hapi/data', function (req, res) {
 
 	// timeCheck() returns integer error code if error or true if no error.
 	var timeOK = timeCheck(header)
-	if (!timeOK) {error(req,res,timeOK);return;};
+	if (timeOK !== true) {error(req,res,timeOK);return;};
 
 	header["format"] = "csv"; // Set default format
 	if (req.query["format"]) {
@@ -221,14 +224,16 @@ app.get(PREFIX+'/hapi/data', function (req, res) {
 	coms = com.split(/\s+/);
 	coms0 = coms.shift();
 	//console.log(coms);
+	//quote = require('shell-quote').quote;
+	//console.log(quote(coms))
 	var child = require('child_process')
 					.spawn(coms0,coms,{"encoding":"buffer"})
 
 	var wroteheader = false; // If header already sent.
 	var outstr = "";
-
+	//console.log(child)
 	// TODO: Write this to log file
-	// child.stderr.on('data', function (err) {
+	//child.stderr.on('data', function (err) {
 		//console.log("Error message:" + err.toString());
 	//})
 	child.on('exit', function (code) {
@@ -280,7 +285,9 @@ app.get('*', function(req, res){
 	res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
 });
 
-app.use(errorHandler); // Must always be after last app.get() statement.
+// Must always be after last app.get() statement. Any requests not matching
+// above trigger errorHandler() call.
+app.use(errorHandler); 
 
 // Read static JSON files and then start the server.
 files(function () {
@@ -311,20 +318,23 @@ function files(which,format,id) {
 	// Landing page html
 	var landing = __dirname+"/metadata/"+CATALOG+".htm";
 	if (!fs.existsSync(landing)) {
-		console.log(ds() + "Did not find " + landing.replace(__dirname,".") + ". Will use ./metadata/default.htm");
-		landing = __dirname+"/metadata/default.htm";
+		console.log(ds() + "Did not find " + landing.replace(__dirname,".") + ". Will use ./public/default.htm");
+		landing = __dirname+"/public/default.htm";
 	}
-	console.log(ds() + "Reading " + landing.replace(__dirname,"."));
-	files.cache['landing'] = {};
-	files.cache['landing']['string'] = 
-		fs
-			.readFileSync(landing,"utf8")
-			.toString()
-			.replace(/__CATALOG__/g, CATALOG)
-			.replace(/__VERSION__/g, HAPIVERSION);
-
+	if (!fs.existsSync(landing)) {
+		console.log(ds() + "Did not find " + landing.replace(__dirname,".") + ". No landing page will be served.");
+	} else {
+		console.log(ds() + "Reading " + landing.replace(__dirname,"."));
+		files.cache['landing'] = {};
+		files.cache['landing']['string'] = 
+			fs
+				.readFileSync(landing,"utf8")
+				.toString()
+				.replace(/__CATALOG__/g, CATALOG.replace(/.*\//,""))
+				.replace(/__VERSION__/g, HAPIVERSION);
+	}
 	// Capabilities 
-	var capabilities = __dirname + "/metadata/capabilities.json";
+	var capabilities = __dirname + "/conf/capabilities.json";
 	if (!fs.existsSync(capabilities)) {
 		json = {};
 		json["outputFormats"] = ["csv","binary","json"];
@@ -370,6 +380,52 @@ function files(which,format,id) {
 		process.exit(1);		
 	}
 
+	var info;
+	for (var i = 0;i < json.catalog.length; i++) {
+		if (typeof(json.catalog[i].info) === 'string') {
+
+			if (json.catalog[i].info.substring(0,4) === 'http') {
+			} else {
+				var commandExistsSync = require('command-exists').sync;
+				// Attempt to execute; if failure, assume it is a file.
+				console.log(ds() + "Trying " + json.catalog[i].info + " as command line command.");
+				if (commandExistsSync(json.catalog[i].info.split(" ")[0])) {
+					console.log(ds() + "Executing " + json.catalog[i].info);
+					try {
+						var info = require('child_process').execSync(json.catalog[i].info,{'stdio':['pipe','pipe','ignore']});
+					} catch (e) {
+						console.log(ds() + "Command failed: " + json.catalog[i].info + ". Exiting.");
+						process.exit(1);
+					}
+					try {
+						info = JSON.parse(info);						
+					} catch (e) {
+						console.log(ds() + json.catalog[i].info + " output is not JSON.parse-able. Try https://jsonlint.com/. Exiting.");
+						process.exit(1);
+					}					
+					json.catalog[i].info = info;
+				} else {
+					console.log(ds() + "It is not. Will attempt to read as JSON.");
+					// Read info files
+					try {
+						console.log(ds() + "Reading " + json.catalog[i].info);
+						info = fs.readFileSync(json.catalog[i].info,"utf8");
+						try {
+							info = JSON.parse(info);
+						} catch (e) {
+							console.log(ds() + json.catalog[i].info + " is not JSON.parse-able. Try https://jsonlint.com/. Exiting.");
+							process.exit(1);
+						}					
+						json.catalog[i].info = info;
+					} catch (err) {
+						console.log(ds() + "Could not read " + json.catalog[i].info + ". Exiting.");
+						process.exit(1);
+					}
+				}
+			}
+		}
+	}
+
 	try {
 		// TODO: Do JSON validation here
 	} catch (e) {
@@ -384,8 +440,13 @@ function files(which,format,id) {
 	var test = json.data.test || "";
 
 	if (test !== "") {
+		console.log(ds() + "Testing command line program.");
 		try {
-			var child = require('child_process').execSync(test);
+			//console.log(test)
+			coms = test.split(/\s+/);
+			coms0 = coms.shift();
+			var child = require('child_process')
+							.spawn(coms0,coms,{"encoding":"buffer"})
 			console.log(ds() + "Test of command line program passed.");
 		} catch (err) {
 			console.log(ds() + "Test of command line program failed. Exiting.");
@@ -622,15 +683,16 @@ function timeCheck(header) {
 
 	for (var i = 0;i < times.length;i++) {
 		// moment.js says YYYY-MM-DD and YYYY-DOY with no Z is
-		// "... not in a recognized RFC2822 or ISO format. moment construction falls back to js Date(), which is not reliable across all browsers and versions."		
+		// "... not in a recognized RFC2822 or ISO format. moment 
+		// construction falls back to js Date(), which is not reliable
+		// across all browsers and versions."		
 		// But HAPI says it is valid.
+		times[i] = times[i].replace(/Z$/,"");
 		if (times[i].length == 8 || times[i].length == 10) {
-			times[i] = times[i] + "T00:00:00.000Z";
+			times[i] = times[i] + "T00:00:00.000";
 		}
-		// Make times all times UTC
-		if (times[i].match(/Z$/) == null) {
-			times[i] = times[i] + "Z";
-		}
+		// Make all times UTC
+		times[i] = times[i] + "Z";
 	}
 
 	if (!moment(times[0], moment.ISO_8601).isValid()) {
@@ -640,10 +702,10 @@ function timeCheck(header) {
 		return 1403;
 	}
 	if (!moment(times[2], moment.ISO_8601).isValid()) {
-		return 1409;
+		return 1500; // Should have been caught by validator
 	}
 	if (!moment(times[3], moment.ISO_8601).isValid()) {
-		return 1409;
+		return 1500; // Should have been caught by validator
 	}
 
 	var startms = moment(times[0]).valueOf();
