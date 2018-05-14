@@ -25,7 +25,46 @@ This server handles
 4. logging and alerts,
 5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed)
 
-## 2. Usage
+## 2. Examples
+
+### Serve data from Python
+
+The following Python program generates data
+
+```python
+```
+
+The configuration file is
+
+```javascript
+
+```
+
+* http://tsds.org/server-nodejs/TestDataSimple/hapi
+* http://tsds.org/server-nodejs/TestDataSimple/hapi?capabilities
+* http://tsds.org/server-nodejs/TestDataSimple/hapi?info
+
+### Serve data from files in a directory
+
+Data are stored in a directory tree containing ASCII files at ...
+
+The configuration file is
+
+```javascript
+
+```
+
+Start the server
+
+`node --catalog TestDataDirectoryOfFiles`
+
+Live server of this dataset:
+
+* http://tsds.org/server-nodejs/TestDataDirectoryOfFiles/hapi
+* http://tsds.org/server-nodejs/TestDataDirectoryOfFiles/hapi?capabilities
+* http://tsds.org/server-nodejs/TestDataDirectoryOfFiles/hapi?info
+
+## 3. Usage
 
 `node server.js`
 
@@ -59,7 +98,7 @@ node ./bin/TestData.js --dataset ${dataset} --parameters \
 
 When data is requested, this command line program is executed after variable substitution and the output is sent as the response.
 
-## 3. Installation
+## 4. Installation
 
 Install [nodejs](https://nodejs.org/en/download/) (tested with v7.10.0) 
 
@@ -95,7 +134,7 @@ forever server.js
 # or forever server.js --port PORT --catalog CATALOG --prefix PREFIX
 ```
 
-## 4. Metadata
+## 5. Metadata
  
 The top-level structure of `CATALOG.json` file is
 
@@ -105,11 +144,11 @@ The top-level structure of `CATALOG.json` file is
 	    "command": "Command line template",
 	    "contact": "Email address if error in command line program"
 	},
-	"catalog": [See 4.1: Combined HAPI /catalog and /info object]
+	"catalog": [See 5.1: Combined HAPI /catalog and /info object]
 	// or
-	"catalog": [See 4.2: HAPI /catalog response with file or command line references for info object]
+	"catalog": [See 5.2: HAPI /catalog response with file or command line references for info object]
 	// or
-	"catalog": "See 4.3: Command line command or file"
+	"catalog": "See 5.3: Command line command or file"
 }
 ```
 
@@ -129,7 +168,7 @@ node ./bin/TestData.js -id ${dataset} -params ${parameters} \
 
 Each of the options for the catalog property are described in the following sections.
 
-### 4.1 Combined HAPI `/catalog` and `/info` object
+### 5.1 Combined HAPI `/catalog` and `/info` object
 
 If `catalog` is an array, it should have the same format as a HAPI `/catalog` response (each object in the array has an `id` property and and optional `title` property) **with the addition** of an `info` property that is the HAPI response for that `id`, e.g., `/info?id=dataset1`. 
 
@@ -155,7 +194,7 @@ Examples of this type of catalog include
 * [TestDataSimple.json](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple.json)
 * [TestData.json](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestData.json)
 
-### 4.2 `/catalog` response with file or command line references for `info` object
+### 5.2 `/catalog` response with file or command line references for `info` object
 
 Examples of this type of catalog include
 
@@ -195,9 +234,9 @@ Alternatively, the metadata for each dataset may be produced by execution of a c
  ]
 ```
 
-### 4.3 References to a Command Line Program or File
+### .53 References to a Command Line Program or File
 
-The in the following the file or command line output can contain either a fully resolved catalog in the form shown in section 4.1 or a catalog with references as given in section 4.2.
+The in the following the file or command line output can contain either a fully resolved catalog in the form shown in section 4.1 or a catalog with references as given in section 5.2.
 
 ```json
 {
@@ -220,10 +259,6 @@ The command line command should return the response of an `/info` query.
 	"catalog": "file:///"
 }
 ```
-
-## 5. Examples
-
-Discuss using Autoplot on a pile of files.
 
 ## 6. Tests
 
