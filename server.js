@@ -27,7 +27,7 @@ var argv    = require('yargs')
 var CATALOG = argv.catalog;
 
 if (argv.prefix) {
-	// Remove one or more leading or trailing /.
+	// Remove one or more leading or trailing / in PREFIX.
 	var PREFIX = argv.prefix.replace(/^\/+/, '').replace(/\/+$/, '');
 	PREFIX = "/" + PREFIX;
 } else {
@@ -77,7 +77,7 @@ app.get(PREFIX + '/hapi/capabilities', function (req, res) {
 })
 
 // /catalog
-app.get(PREFIX+'/hapi/catalog', function (req, res) {
+app.get(PREFIX + '/hapi/catalog', function (req, res) {
 
 	cors(res);
 	res.contentType("application/json");
@@ -92,7 +92,7 @@ app.get(PREFIX+'/hapi/catalog', function (req, res) {
 })
 
 // /info
-app.get(PREFIX+'/hapi/info', function (req, res) {
+app.get(PREFIX + '/hapi/info', function (req, res) {
 
 	cors(res);
 	res.contentType("application/json");
@@ -128,7 +128,7 @@ app.get(PREFIX+'/hapi/info', function (req, res) {
 })
 
 // /data
-app.get(PREFIX+'/hapi/data', function (req, res) {
+app.get(PREFIX + '/hapi/data', function (req, res) {
 
 	cors(res);
 
@@ -281,13 +281,12 @@ app.get(PREFIX+'/hapi/data', function (req, res) {
 })
 
 // Fall through
-app.get('*', function(req, res){
-	//logreq(req,"Error");
+app.get('*', function(req, res) {
 	res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
 });
 
-// Must always be after last app.get() statement. Any requests not matching
-// above trigger errorHandler() call.
+// The following must always be after last app.get() statement.
+// Any requests not matching above patters will trigger errorHandler() call.
 app.use(errorHandler); 
 
 // Read static JSON files and then start the server.
@@ -334,9 +333,11 @@ function files(which,format,id) {
 				.replace(/__CATALOG__/g, CATALOG.replace(/.*\//,""))
 				.replace(/__VERSION__/g, HAPIVERSION);
 	}
+
 	// Capabilities 
 	var capabilities = __dirname + "/conf/capabilities.json";
 	if (!fs.existsSync(capabilities)) {
+		// Create response in case that capabilities.json file was removed.
 		json = {};
 		json["outputFormats"] = ["csv","binary","json"];
 		console.log(ds() + "Did not find " + capabilities.replace(__dirname,"") + ". Using " + json["outputFormats"]);
@@ -357,7 +358,7 @@ function files(which,format,id) {
 	// Catalog
 	var catalog = __dirname + "/metadata/" + CATALOG + ".json";
 	if (!fs.existsSync(catalog)) {
-		console.log(ds() + "Did not find " + catalog + ". Exiting.");
+		console.log(ds() + clc.red("Did not find " + catalog + ". Exiting."));
 		process.exit(1);
 	}
 
@@ -365,19 +366,19 @@ function files(which,format,id) {
 	try {
 		var str = fs.readFileSync(catalog);
 	} catch (e) {
-		console.log(ds() + catalog + " is not readable. Exiting.");
+		console.log(ds() +  clc.red(catalog + " is not readable. Exiting."));
 		process.exit(1);		
 	}
 
 	try {
 		var json = JSON.parse(str);
 	} catch (e) {
-		console.log(ds() + catalog + " is not JSON.parse-able. Try https://jsonlint.com/. Exiting.");
+		console.log(ds() +  clc.red(catalog + " is not JSON.parse-able. Try https://jsonlint.com/. Exiting."));
 		process.exit(1);
 	}
 
 	if (!json.data) {
-		console.log(ds() + catalog + " Does not have a 'data' object. Exiting.");
+		console.log(ds() +  clc.red(catalog + " Does not have a 'data' object. Exiting."));
 		process.exit(1);		
 	}
 
@@ -386,7 +387,9 @@ function files(which,format,id) {
 		if (typeof(json.catalog[i].info) === 'string') {
 
 			if (json.catalog[i].info.substring(0,4) === 'http') {
+				// TODO: Fetch /info response from web server.
 			} else {
+				// TODO: Try to read as JSON first!
 				var commandExistsSync = require('command-exists').sync;
 				// Attempt to execute; if failure, assume it is a file.
 				console.log(ds() + "Trying " + json.catalog[i].info + " as command line command.");
@@ -395,13 +398,13 @@ function files(which,format,id) {
 					try {
 						var info = require('child_process').execSync(json.catalog[i].info,{'stdio':['pipe','pipe','ignore']});
 					} catch (e) {
-						console.log(ds() + "Command failed: " + json.catalog[i].info + ". Exiting.");
+						console.log(ds() +  clc.red("Command failed: " + json.catalog[i].info + ". Exiting."));
 						process.exit(1);
 					}
 					try {
 						info = JSON.parse(info);						
 					} catch (e) {
-						console.log(ds() + json.catalog[i].info + " output is not JSON.parse-able. Try https://jsonlint.com/. Exiting.");
+						console.log(ds() +  clc.red(json.catalog[i].info + " output is not JSON.parse-able. Try https://jsonlint.com/. Exiting."));
 						process.exit(1);
 					}					
 					json.catalog[i].info = info;
@@ -414,12 +417,12 @@ function files(which,format,id) {
 						try {
 							info = JSON.parse(info);
 						} catch (e) {
-							console.log(ds() + json.catalog[i].info + " is not JSON.parse-able. Try https://jsonlint.com/. Exiting.");
+							console.log(ds() +  clc.red(json.catalog[i].info + " is not JSON.parse-able. Try https://jsonlint.com/. Exiting."));
 							process.exit(1);
 						}					
 						json.catalog[i].info = info;
 					} catch (err) {
-						console.log(ds() + "Could not read " + json.catalog[i].info + ". Exiting.");
+						console.log(ds() +  clc.red("Could not read " + json.catalog[i].info + ". Exiting."));
 						process.exit(1);
 					}
 				}
@@ -428,7 +431,7 @@ function files(which,format,id) {
 	}
 
 	try {
-		// TODO: Do JSON validation here
+		// TODO: Do HAPI JSON validation here
 	} catch (e) {
 		// process.exit(1);
 	}
@@ -800,7 +803,7 @@ function errorHandler(err, req, res, next) {
 function exceptions() {
 	process.on('uncaughtException', function(err) {
 		if (err.errno === 'EADDRINUSE') {
-			console.log(ds() + "Port " + argv.port + " already in use.");
+			console.log(ds() + clc.red("Port " + argv.port + " already in use."));
 			process.exit(1);
 		} else {
 			console.log(err.stack);
