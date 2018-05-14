@@ -29,7 +29,7 @@ This server handles
 
 `node server.js`
 
-starts server on port 8999 and uses the catalog [`./metadata/TestDataSimple.json`](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple.json). 
+Starts HAPI server at [`http://localhost:8999/hapi`](http://localhost:8999/hapi) and serves datasets specified in the catalog [`./metadata/TestDataSimple.json`](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple.json). 
  
 All command line options:
 
@@ -37,9 +37,7 @@ All command line options:
 server.js --port PORT --catalog CATALOG --prefix PREFIX
 ```
 
-Serves data from `http://localhost:PORT/hapi` using datasets and command line program template specified in `metadata/CATALOG.json`. If `metadata/CATALOG.htm` is found, it is used as the landing page at `/hapi`.
-
-If `PREFIX` is given, serves data from `http://localhost:8999/PREFIX/hapi`. 
+Serves data from `http://localhost:PORT/PREFIX/hapi` using datasets and command line program template specified in `./metadata/CATALOG.json`. If `./metadata/CATALOG.{htm,html}` is found, it is used as the landing page.
 
 When requests for metadata are made, information in `CATALOG.json` is used to generate the response. See the [Metadata](#Metadata) section for details.
 
