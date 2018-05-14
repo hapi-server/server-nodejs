@@ -10,10 +10,11 @@ var os      = require("os");
 var express  = require('express'); // Client/server library
 var app      = express();
 var server   = require("http").createServer(app);
-var compress = require('compression'); // Express module
-var moment   = require('moment'); // Time library
+var compress = require('compression'); // Express compression module
+var moment   = require('moment'); // Time library http://moment.js
 
 var clc     = require('cli-color'); // Colorize command line output
+
 var argv    = require('yargs')
 				.default
 				({
@@ -33,7 +34,7 @@ if (argv.prefix) {
 	var PREFIX = "";
 }
 // If PREFIX = '', serves from http://localhost:PORT/hapi
-// Otherwise, s from http://localhost:PORT/PREFIX/hapi
+// Otherwise, serve from http://localhost:PORT/PREFIX/hapi
 
 exceptions(); // Catch common start-up exceptions
 
