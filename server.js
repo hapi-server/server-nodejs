@@ -4,16 +4,20 @@
 // Global variable
 var HAPIVERSION = "2.0"; // Spec version implemented
 
+var clc  = require('cli-color'); // Colorize command line output
+var sver = require('semver');
+if (!sver.gte(process.version,'6.0.0')) {
+	console.log(clc.red("node.js version >= 6 required. node.js -v returns " + process.version + ". See README for instructions on upgrading using nvm."));
+	process.exit(1);
+}
+
 var fs      = require('fs');
 var os      = require("os");
-
 var express  = require('express'); // Client/server library
 var app      = express();
 var server   = require("http").createServer(app);
 var compress = require('compression'); // Express compression module
 var moment   = require('moment'); // Time library http://moment.js
-
-var clc     = require('cli-color'); // Colorize command line output
 
 var argv    = require('yargs')
 				.default
@@ -103,6 +107,7 @@ app.get(PREFIX + '/hapi/info', function (req, res) {
 		return;
 	}
 
+	// Check if extra parameters given
 	for (var key in req.query) {
 		if (!["id","parameters"].includes(key)) {
 			error(req,res,1401,"'id' and 'parameters' are the only valid query parameters.");
@@ -132,8 +137,18 @@ app.get(PREFIX + '/hapi/data', function (req, res) {
 
 	cors(res);
 
+	// TODO: Duplicate code from /info
+	if (!req.query.id) {
+		error(req,res,1400,"A dataset id must be given.");
+		return;
+	}
+
+	// Check if id is valid
+	// TODO: Duplicate code from /info
+	if (!idCheck(req.query["id"])) {error(req,res,1406);return;}
+
 	// Check if query parameters are all valid
-	var allowed = ["id","parameters","time.min","time.max","format","include"];
+	var allowed = ["id","parameters","time.min","time.max","format","include","attach"];
 	for (var key in req.query) {
 		if (!allowed.includes(key)) {
 			error(req,res,1401,"The only allowed query parameters are " + allowed.join(", "));
@@ -141,10 +156,6 @@ app.get(PREFIX + '/hapi/data', function (req, res) {
 		}
 	}	
 
-	if (!req.query.id) {
-		error(req,res,1400,"A dataset id must be given.");
-		return;
-	}
 	if (!req.query["time.min"]) {
 		error(req,res,1402,"time.min is required");
 		return;
@@ -153,9 +164,6 @@ app.get(PREFIX + '/hapi/data', function (req, res) {
 		error(req,res,1403,"time.max is required");
 		return;
 	}
-
-	// Check if id is valid
-	if (!idCheck(req.query.id)) {error(req,res,1406);return;}
 
 	// Get subsetted /info response based on requested parameters.
 	var header = info(req,res);
@@ -199,6 +207,17 @@ app.get(PREFIX + '/hapi/data', function (req, res) {
 	if (header["format"] === "binary") {res.contentType("application/octet-stream")};
 	if (header["format"] === "json")   {res.contentType("application/json")};
 
+	var fname = "id-" + req.query["id"] + "_parameters-" + req.query["parameters"] + "_time.min-" + req.query["time.min"] + "_time.max-" + req.query["time.max"] + "." + header["format"];
+
+	if (req.query["attach"] === "true") {
+		// Allow non-standard "attach" query parameter for debugging.
+		// This will cause browser to display data instead of triggering
+		// a download dialog.
+		res.contentType("text");
+	} else {
+		res.setHeader("Content-Disposition", "attachment;filename=" + fname);
+	}
+
 	// Extract command line (CL) command and replace placeholders.
 	var d = files('data','json');
 	var com = d.command; 
@@ -231,26 +250,34 @@ app.get(PREFIX + '/hapi/data', function (req, res) {
 					.spawn(coms0,coms,{"encoding":"buffer"})
 
 	var wroteheader = false; // If header already sent.
+	var gotdata = false;
 	var outstr = "";
 	//console.log(child)
 	// TODO: Write this to log file
 	//child.stderr.on('data', function (err) {
 		//console.log("Error message:" + err.toString());
 	//})
+
+	function dataErrorMessage() {
+		wroteheader = true;
+		if (d.contact) {
+			error(req,res,1500,"Problem with the data server. Please send URL to " + d.contact + ".");
+		} else {
+			error(req,res,1500,"Problem with the data server.");
+		}
+	}
+
 	child.on('exit', function (code) {
 		if (code != 0 && !wroteheader) {
 			// If !wroteheader because if header sent, 
 			// then command line sent data before it gave
 			// an error signal.
-			if (d.contact) {
-				error(req,res,1500,"Problem with the data server. Please send URL to " + d.contact + ".");
-			} else {
-				error(req,res,1500,"Problem with the data server.");
-			}
+			dataErrorMessage();
 		}
 	})
 
 	child.stdout.on('data', function (buffer) {
+		gotdata = true;
 		if (!wroteheader && include && header["format"] !== "json") {
 			// If header not written, header requested, and format requested
 			// is not JSON, send header.
@@ -272,6 +299,12 @@ app.get(PREFIX + '/hapi/data', function (req, res) {
 		}
 	})
 	child.stdout.on('end', function() { 
+
+		if (!gotdata) {
+			dataErrorMessage();
+			return;
+		};
+
 		if (convert && header["format"] === "json") {
 			// Convert accumulated data and send it.
 			res.write(csvTo(outstr,true,true,header,include));
@@ -293,6 +326,9 @@ app.use(errorHandler);
 files(function () {
 	app.listen(argv.port, function () {
 		console.log(ds() + "Server running at http://localhost:" + argv.port + PREFIX + "/hapi");
+		console.log(ds() + "Server can be tested using");
+		console.log(ds() + "   git clone https://github.com/hapi-server/verifier-nodejs.git");
+		console.log(ds() + "   cd verifier-nodejs; npm install; node verify.js --url 'http://localhost:" + argv.port + PREFIX + "/hapi'");
 	});
 })
 
