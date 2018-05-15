@@ -12,6 +12,7 @@ import struct
 import argparse
 import datetime
 import dateutil.parser
+import re
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--id') # ignored
@@ -22,8 +23,8 @@ parser.add_argument('--format')
 
 v      = vars(parser.parse_args())
 epoch  = datetime.datetime(1970,1,1)
-start  = dateutil.parser.parse(v["start"])
-stop   = dateutil.parser.parse(v["stop"])
+start  = dateutil.parser.parse(re.sub("Z$","",v['start']))
+stop   = dateutil.parser.parse(re.sub("Z$","",v['stop']))
 format = v["format"]
 
 mo = int((start-epoch).total_seconds()/60.0)
