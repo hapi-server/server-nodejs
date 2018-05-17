@@ -10,7 +10,8 @@
 6. [Tests](#Tests)
 7. [Contact](#Contact)
 
-## 1. About <a name="About"></a>
+<a name="About"></a>
+## 1. About
 
 The intended use case for this server is for a data provider that has
 
@@ -25,7 +26,8 @@ This server handles
 4. logging and alerts, and
 5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed)
 
-## 2. Examples <a name="Examples"></a>
+<a name="Examples"></a>
+## 2. Examples
 
 ### 2.1 Serve data from Python
 
@@ -45,8 +47,9 @@ node --prefix TestDataSimple
 Sample requests for this example are shown on the [landing page](http://tsds.org/server-nodejs/TestDataSimple/hapi)
 
 <details> 
-  <summary>**Show code**</summary>
+  <summary>Show code</summary>
 [embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/v2/bin/TestDataSimple.py python)
+
 ```python
 # Usage:
 #  python TestDataSimple.py --start 1970-01-01 --stop 1970-01-01T00:10:00
@@ -92,8 +95,9 @@ for i in xrange(0,mf-mo):
 </details>
 
 <details> 
-  <summary>**Show configuration file**</summary>
+  <summary>Show configuration file</summary>
 [embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/v2/metadata/TestDataSimple.json javascript)
+
 ```javascript
 {
 	"data": {
@@ -157,8 +161,26 @@ node --catalog AutoplotTest --prefix AutoplotTest
 Sample requests for this example are shown on the [landing page](http://tsds.org/server-nodejs/AutoplotTest/hapi)
 
 <details> 
-  <summary>**Show configuration file**</summary>
+  <summary>Show configuration file</summary>
 [embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/v2/metadata/AutoplotTest.json javascript)
+
+```javascript
+{
+    "data": {
+        "command": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri=http://autoplot.org/data/autoplot.cdf?BGSM -f hapi-data",
+        "contact": "rweigel@gmu.edu"
+    },
+	"catalog":
+		[
+			{
+                "id": "ACE",
+				"info": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri='http://autoplot.org/data/autoplot.cdf?BGSM' -f hapi-info"
+            }
+        ]
+}
+```
+
+
 </details>
 
 ### 2.3 Serve data from files in a directory
@@ -178,9 +200,29 @@ Sample requests for this example are shown on the [landing page](http://tsds.org
 <details> 
   <summary>Show configuration file</summary>
 [embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/v2/metadata/OneWire/OneWire.json javascript)
+
+```javascript
+{
+	"data": {
+		"command": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri vap+dat:file:/Users/robertweigel/git/server-nodejs/metadata/OneWire/data/10.CF3744000800/$Y/10.CF3744000800.$Y$m$d.csv?time=field0&field1&timerange=2018-01-06/2018-01-07 -f hapi-data",
+		"formats": ["csv"],
+		"contact": "rweigel@gmu.edu",
+		"test": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri vap+dat:file:/Users/robertweigel/git/server-nodejs/metadata/OneWire/data/10.CF3744000800/$Y/10.CF3744000800.$Y$m$d.csv?time=field0&field1&timerange=2018-01-06/2018-01-07 -f hapi-data"
+	},
+	"catalog" :
+		[
+			{
+	            "id": "10.CF3744000800",
+    	        "title": "Pool Temperature",
+				"info": "metadata/OneWire/info/10.CF3744000800.json"
+			}
+		]
+}
+```
 </details>
 
-## 3. Usage <a name="Usage"></a>
+<a name="Usage"></a>
+## 3. Usage
 
 `node server.js`
 
@@ -207,7 +249,8 @@ python ./bin/TestDataSimple.py --dataset ${dataset} --parameters \
 
 When data is requested, this command line program is executed after variable substitution and the output is sent as the response.
 
-## 4. Installation <a name="Installation"></a>
+<a name="Installation"></a>
+## 4. Installation
 
 Install [nodejs](https://nodejs.org/en/download/) (tested with v7.10.0) 
 
@@ -250,7 +293,8 @@ forever server.js
 # or forever server.js --port PORT --catalog CATALOG --prefix PREFIX
 ```
 
-## 5. Metadata <a name="Metadata"></a>
+<a name="Metadata"></a>
+## 5. Metadata
  
 The top-level structure of `CATALOG.json` file is
 
@@ -366,7 +410,8 @@ The path to a fully resolved catalog can also be given
 "catalog": "file:///"
 ```
 
-## 6. Tests <a name="Tests"></a>
+<a name="Tests"></a>
+## 6. Tests
 
 The following commands creates a local installation of the [HAPI verifier](https://github.com/hapi-server/verifier-nodejs) and tests the URL ```http://localhost:8999/hapi```.
 
@@ -378,6 +423,7 @@ npm install;
 node test.js http://localhost:8999/hapi"
 ```
 
-## 7. Contact <a name="Contact"></a>
+<a name="Contact"></a>
+## 7. Contact
 
 Bob Weigel <rweigel@gmu.edu>
