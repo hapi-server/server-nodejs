@@ -10,7 +10,7 @@
 6. [Tests](#Tests)
 7. [Contact](#Contact)
 
-## 1. About
+## 1. About <a name="About"></a>
 
 The intended use case for this server is for a data provider that has
 
@@ -25,7 +25,7 @@ This server handles
 4. logging and alerts, and
 5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed)
 
-## 2. Examples
+## 2. Examples <a name="Examples"></a>
 
 ### 2.1 Serve data from Python
 
@@ -163,24 +163,24 @@ Sample requests for this example are shown on the [landing page](http://tsds.org
 
 ### 2.3 Serve data from files in a directory
 
-Data are stored in a directory tree containing ASCII files at ...
+Data are stored in [a directory tree containing ASCII files](https://github.com/hapi-server/server-nodejs/tree/v2/metadata/OneWire/data/10.CF3744000800/2018).
 
 In the previous example, metadata was available in the files in a format that Autoplot could interpret and translate to HAPI metadata, so the second step was not needed. In this example, the metadata is in a README file that must be hand-translated to HAPI metadata.
 
 To run this example locally, execute
 
 ```bash
-node --catalog DirectoryTest --prefix DirectoryTest
+node server.js --catalog OneWire/OneWire --prefix OneWire
 ```
 
-Sample requests for this example are shown on the [landing page](http://tsds.org/server-nodejs/DirectoryTest/hapi)
+Sample requests for this example are shown on the [landing page](http://tsds.org/server-nodejs/OneWire/hapi)
 
 <details> 
   <summary>Show configuration file</summary>
-[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/v2/metadata/DirectoryTest.json javascript)
+[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/v2/metadata/OneWire/OneWire.json javascript)
 </details>
 
-## 3. Usage
+## 3. Usage <a name="Usage"></a>
 
 `node server.js`
 
@@ -207,14 +207,16 @@ python ./bin/TestDataSimple.py --dataset ${dataset} --parameters \
 
 When data is requested, this command line program is executed after variable substitution and the output is sent as the response.
 
-## 4. Installation
+## 4. Installation <a name="Installation"></a>
 
 Install [nodejs](https://nodejs.org/en/download/) (tested with v7.10.0) 
 
 ```bash
 # Install Node Version Manager https://github.com/creationix/nvm
 curl https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
-# Install (if necessary) and use node.js version 7
+# Reload modified shell configuration (may not be needed)
+source ~/.bash_profile ~/.bashrc
+# Install and use node.js version 7
 nvm install 7
 ```
 
@@ -248,7 +250,7 @@ forever server.js
 # or forever server.js --port PORT --catalog CATALOG --prefix PREFIX
 ```
 
-## 5. Metadata
+## 5. Metadata <a name="Metadata"></a>
  
 The top-level structure of `CATALOG.json` file is
 
@@ -261,7 +263,8 @@ The top-level structure of `CATALOG.json` file is
 	"catalog": "See 5.3: Command line template or file",
 	"data": {
 	    "command": "Command line template",
-	    "contact": "Email address if error in command line program"
+	    "contact": "Email address if error in command line program",
+	    "test": "Server will not start if this command line call is given and fails (gives exit 1 signal)"
 	},
 
 }
@@ -363,7 +366,7 @@ The path to a fully resolved catalog can also be given
 "catalog": "file:///"
 ```
 
-## 6. Tests
+## 6. Tests <a name="Tests"></a>
 
 The following commands creates a local installation of the [HAPI verifier](https://github.com/hapi-server/verifier-nodejs) and tests the URL ```http://localhost:8999/hapi```.
 
@@ -375,6 +378,6 @@ npm install;
 node test.js http://localhost:8999/hapi"
 ```
 
-## 7. Contact
+## 7. Contact <a name="Contact"></a>
 
 Bob Weigel <rweigel@gmu.edu>
