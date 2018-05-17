@@ -4,48 +4,69 @@
 // Global variable
 var HAPIVERSION = "2.0"; // Spec version implemented
 
+// Date string for logging.
+function ds() {return (new Date()).toISOString() + " ";};
+
 var clc  = require('cli-color'); // Colorize command line output
 var sver = require('semver');
 if (!sver.gte(process.version,'6.0.0')) {
-	console.log(clc.red("node.js version >= 6 required. node.js -v returns " + process.version + ". See README for instructions on upgrading using nvm."));
+	console.log(clc.red("node.js version >= 6 required. node.js -v returns " + process.version + ". nvm."));
 	process.exit(1);
 }
 
-var fs      = require('fs');
-var os      = require("os");
+var fs       = require('fs');
+
 var express  = require('express'); // Client/server library
 var app      = express();
 var server   = require("http").createServer(app);
 var compress = require('compression'); // Express compression module
 var moment   = require('moment'); // Time library http://moment.js
 
-var argv    = require('yargs')
+var metadata = require('./metadata.js').metadata;
+ 
+// Test library
+var is = require(__dirname + '/node_modules/hapi-server-verifier/is.js');
+
+var timeregexes = require('./metadata.js').timeregexes(HAPIVERSION);
+
+var argv     = require('yargs')
 				.default
 				({
 					'port': 8999,
 					'catalog': "TestDataSimple",
-					'PREFIX': ''
+					'prefix': ''
 				})
 				.argv;
 
 var CATALOG = argv.catalog;
+var PREFIX  = argv.prefix;
 
-if (argv.prefix) {
-	// Remove one or more leading or trailing / in PREFIX.
-	var PREFIX = argv.prefix.replace(/^\/+/, '').replace(/\/+$/, '');
-	PREFIX = "/" + PREFIX;
-} else {
-	var PREFIX = "";
+var CATALOGS = CATALOG.split(",");
+var PREFIXES = PREFIX.split(",");
+
+if (CATALOGS.length != PREFIXES.length) {
+	console.log(ds() + clc.red("If multiple catalogs given, same number of prefixes must be given."));
+	process.exit(1);
 }
-// If PREFIX = '', serves from http://localhost:PORT/hapi
-// Otherwise, serve from http://localhost:PORT/PREFIX/hapi
+
+for (var i = 0;i < PREFIXES.length;i++) {
+	if (PREFIXES[i]) {
+		// Remove one or more leading or trailing / in PREFIX.
+		PREFIXES[i] = PREFIXES[i].replace(/^\/+/, '').replace(/\/+$/, '');
+		PREFIXES[i] = "/" + PREFIXES[i];
+	} else {
+		PREFIXES[i] = "";
+	}
+	// If PREFIX = '', serves from http://localhost:PORT/hapi
+	// Otherwise, serve from http://localhost:PORT/PREFIX/hapi
+}
 
 exceptions(); // Catch common start-up exceptions
 
 app.use(compress()); // Compress responses using gzip
 
-// Serve static files in public
-app.use(express.static('public'))
+// Serve static files in ./public
+app.use(express.static('public'));
 
 // Log all requests, then call next route handler
 app.get('*', function (req,res,next) {
@@ -53,179 +74,236 @@ app.get('*', function (req,res,next) {
 	next();
 })
 
-// Redirect http://localhost:PORT/ to http://localhost:PORT/hapi
-app.get(PREFIX || '/', function (req,res) {
-	res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
-})
+if (CATALOGS.length > 1) {
+	// TODO: Move file read to metadata.
+	html = fs
+			.readFileSync(__dirname + "/public/multiple.htm","utf8")
+			.toString()
+			.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
 
-// Serve landing web page
-app.get(PREFIX + '/hapi', function (req, res) {
-	cors(res); // Set CORS headers
-	res.contentType('text/html');
-	res.send(files("landing"));
-})
+	app.get('/', function (req,res) {res.send(html)})	
+}
 
-// /capabilities
-app.get(PREFIX + '/hapi/capabilities', function (req, res) {
+for (var i = 0;i < CATALOGS.length;i++) {
+	console.log(ds() + clc.green("Initializing http://localhost:" + argv.port + PREFIXES[i] + "/hapi"));
+	console.log(ds() + "Server can be tested using");
+	console.log(ds() + "   git clone https://github.com/hapi-server/verifier-nodejs.git");
+	console.log(ds() + "   cd verifier-nodejs; npm install; node verify.js --url 'http://localhost:" + argv.port + PREFIXES[i] + "/hapi'");
 
-	cors(res);
-	res.contentType("application/json");
+	// Initialize the API
+	apiInit(CATALOGS[i],PREFIXES[i],i == CATALOGS.length-1);
+	// Read static JSON files and then start the server.
+	metadata(CATALOGS[i],HAPIVERSION);
+}
 
-	// Send error if query parameters given
-	if (Object.keys(req.query).length > 0) {
-		error(req,res,1401, "This endpoint takes no query string.");
-		return;
-	}
+// TODO: Can server start before apiInit() and metadata() finished?
+// If so, prevent it.
+app.listen(argv.port, function () {
+	console.log(ds() + clc.blue("Listening on port " + argv.port))
+});
 
-	res.send(files("capabilities"));
-})
+////////////////////////////////////////////////////////////
 
-// /catalog
-app.get(PREFIX + '/hapi/catalog', function (req, res) {
+function apiInit(catalog,PREFIX,last) {
 
-	cors(res);
-	res.contentType("application/json");
+	// Redirect http://localhost:PORT/ to http://localhost:PORT/hapi
+	app.get(PREFIX || '/', function (req,res) {
+		res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
+	})
 
-	// Send error if query parameters given
-	if (Object.keys(req.query).length > 0) {
-		error(req,res,1401,"This endpoint takes no query string.");
-		return;
-	}
+	// Serve landing web page
+	app.get(PREFIX + '/hapi', function (req, res) {
+		cors(res); // Set CORS headers
+		res.contentType('text/html');
+		res.send(metadata(catalog,"landing"));
+	})
 
-	res.send(files("catalog"));
-})
+	// /capabilities
+	app.get(PREFIX + '/hapi/capabilities', function (req, res) {
 
-// /info
-app.get(PREFIX + '/hapi/info', function (req, res) {
+		cors(res);
+		res.contentType("application/json");
 
-	cors(res);
-	res.contentType("application/json");
-
-	// Check for required id parameter
-	if (!req.query.id) {
-		error(req,res,1400,"A dataset id must be given.");
-		return;
-	}
-
-	// Check if extra parameters given
-	for (var key in req.query) {
-		if (!["id","parameters"].includes(key)) {
-			error(req,res,1401,"'id' and 'parameters' are the only valid query parameters.");
+		// Send error if query parameters given
+		if (Object.keys(req.query).length > 0) {
+			error(req,res,1401, "This endpoint takes no query string.");
 			return;
 		}
-	}	
 
-	// Check if id is valid
-	if (!idCheck(req.query.id)) {error(req,res,1406);return;}
+		res.send(metadata(catalog,"capabilities"));
+	})
 
-	// Get subsetted info response based on requested parameters.
-	// info() returns integer error code if error.
-	// TODO: Reconsider this interface to info() - 
-	// infoCheck() is more consistent with other code.
-	var header = info(req,res); 
-	if (typeof(header) === "number") {
-		error(req,res,header,"At least one parameter not found in dataset.");
-		return;
-	} else {
-		res.send(header);
-		return;
-	}
-})
+	// /catalog
+	app.get(PREFIX + '/hapi/catalog', function (req, res) {
 
-// /data
-app.get(PREFIX + '/hapi/data', function (req, res) {
+		cors(res);
+		res.contentType("application/json");
 
-	cors(res);
-
-	// TODO: Duplicate code from /info
-	if (!req.query.id) {
-		error(req,res,1400,"A dataset id must be given.");
-		return;
-	}
-
-	// Check if id is valid
-	// TODO: Duplicate code from /info
-	if (!idCheck(req.query["id"])) {error(req,res,1406);return;}
-
-	// Check if query parameters are all valid
-	var allowed = ["id","parameters","time.min","time.max","format","include","attach"];
-	for (var key in req.query) {
-		if (!allowed.includes(key)) {
-			error(req,res,1401,"The only allowed query parameters are " + allowed.join(", "));
+		// Send error if query parameters given
+		if (Object.keys(req.query).length > 0) {
+			error(req,res,1401,"This endpoint takes no query string.");
 			return;
 		}
-	}	
 
-	if (!req.query["time.min"]) {
-		error(req,res,1402,"time.min is required");
-		return;
-	}
-	if (!req.query["time.max"]) {
-		error(req,res,1403,"time.max is required");
-		return;
-	}
+		res.send(metadata(catalog,"catalog"));
+	})
 
-	// Get subsetted /info response based on requested parameters.
-	var header = info(req,res);
-	if (typeof(header) === "number") {
-		// One or more of the requested parameters are invalid.
-		error(req,res,header,"At least one parameter not found in dataset.");
-		return;
-	};
+	// /info
+	app.get(PREFIX + '/hapi/info', function (req, res) {
 
-	// Add non-standard elements to header used later in code.
-	var proto = req.connection.encrypted ? 'https' : 'http'; // TODO: Not tested under https.	
-	header["status"]["x_request"] = proto + "://" + req.headers.host + req.originalUrl;
-	header["status"]["x_startDateRequested"] = req.query["time.min"];
-	header["status"]["x_stopDateRequested"]  = req.query["time.max"];
-	header["status"]["x_parentDataset"]      = req.query["id"];
+		cors(res);
+		res.contentType("application/json");
 
-	// timeCheck() returns integer error code if error or true if no error.
-	var timeOK = timeCheck(header)
-	if (timeOK !== true) {error(req,res,timeOK);return;};
-
-	header["format"] = "csv"; // Set default format
-	if (req.query["format"]) {
-		if (!["csv","json","binary"].includes(req.query["format"])) {
-			error(req,res,1409,"Allowed values of 'format' are csv, json, and binary.");
+		// Check for required id parameter
+		if (!req.query.id) {
+			error(req,res,1400,"A dataset id must be given.");
 			return;
 		}
-		// Use requested format.
-		header["format"] = req.query["format"];
-	}
-	
-	if (req.query["include"]) {
-		if (req.query["include"] !== "header") {
-			error(req,res,1410,"Allowed value of 'include' is 'header'."); // Unknown include value
+
+		// Check if extra parameters given
+		for (var key in req.query) {
+			if (!["id","parameters"].includes(key)) {
+				error(req,res,1401,"'id' and 'parameters' are the only valid query parameters.");
+				return;
+			}
+		}	
+
+		// Check if id is valid
+		if (!idCheck(catalog,req.query.id)) {error(req,res,1406);return;}
+
+		// Get subsetted info response based on requested parameters.
+		// info() returns integer error code if error.
+		// TODO: Reconsider this interface to info() - 
+		// infoCheck() is more consistent with other code.
+		var header = info(catalog,req,res); 
+		if (typeof(header) === "number") {
+			error(req,res,header,"At least one parameter not found in dataset.");
+			return;
+		} else {
+			res.send(header);
 			return;
 		}
+	})
+
+	// /data
+	app.get(PREFIX + '/hapi/data', function (req, res) {
+
+		cors(res);
+
+		// TODO: Duplicate code from /info
+		if (!req.query.id) {
+			error(req,res,1400,"A dataset id must be given.");
+			return;
+		}
+
+		// Check if id is valid
+		// TODO: Duplicate code from /info
+		if (!idCheck(catalog,req.query["id"])) {error(req,res,1406);return;}
+
+		// Check if query parameters are all valid
+		var allowed = ["id","parameters","time.min","time.max","format","include","attach"];
+		for (var key in req.query) {
+			if (!allowed.includes(key)) {
+				error(req,res,1401,"The only allowed query parameters are " + allowed.join(", "));
+				return;
+			}
+		}	
+
+		if (!req.query["time.min"]) {
+			error(req,res,1402,"time.min is required");
+			return;
+		}
+		if (!req.query["time.max"]) {
+			error(req,res,1403,"time.max is required");
+			return;
+		}
+
+		// Get subsetted /info response based on requested parameters.
+		var header = info(catalog,req,res);
+		if (typeof(header) === "number") {
+			// One or more of the requested parameters are invalid.
+			error(req,res,header,"At least one parameter not found in dataset.");
+			return;
+		};
+
+		// Add non-standard elements to header used later in code.
+		var proto = req.connection.encrypted ? 'https' : 'http'; // TODO: Not tested under https.	
+		header["status"]["x_request"] = proto + "://" + req.headers.host + req.originalUrl;
+		header["status"]["x_startDateRequested"] = req.query["time.min"];
+		header["status"]["x_stopDateRequested"]  = req.query["time.max"];
+		header["status"]["x_parentDataset"]      = req.query["id"];
+
+		// timeCheck() returns integer error code if error or true if no error.
+		var timeOK = timeCheck(header)
+		if (timeOK !== true) {error(req,res,timeOK);return;};
+
+		header["format"] = "csv"; // Set default format
+		if (req.query["format"]) {
+			if (!["csv","json","binary"].includes(req.query["format"])) {
+				error(req,res,1409,"Allowed values of 'format' are csv, json, and binary.");
+				return;
+			}
+			// Use requested format.
+			header["format"] = req.query["format"];
+		}
+		
+		if (req.query["include"]) {
+			if (req.query["include"] !== "header") {
+				error(req,res,1410,"Allowed value of 'include' is 'header'."); // Unknown include value
+				return;
+			}
+		}
+		// If include was given, set include = true
+		var include = req.query["include"] === "header";
+
+		if (header["format"] === "csv")    {res.contentType("text/csv")};
+		if (header["format"] === "binary") {res.contentType("application/octet-stream")};
+		if (header["format"] === "json")   {res.contentType("application/json")};
+
+		var fname = "id-" + req.query["id"] + "_parameters-" + req.query["parameters"] + "_time.min-" + req.query["time.min"] + "_time.max-" + req.query["time.max"] + "." + header["format"];
+
+		if (req.query["attach"] === "false") {
+			// Allow non-standard "attach" query parameter for debugging.
+			// This will cause browser to display data instead of triggering
+			// a download dialog.
+			res.contentType("text");
+		} else {
+			res.setHeader("Content-Disposition", "attachment;filename=" + fname);
+		}
+
+		// Send the data
+		data(req,res,catalog,header,include);
+	})
+
+	// The following must always be after last app.get() statement.
+	// Any requests not matching above patters will trigger errorHandler() call.
+	if (last) {
+		// Fall through
+		app.get('*', function(req, res) {
+			res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
+		});
+
+		app.use(errorHandler);
 	}
-	// If include was given, set include = true
-	var include = req.query["include"] === "header";
+}
 
-	if (header["format"] === "csv")    {res.contentType("text/csv")};
-	if (header["format"] === "binary") {res.contentType("application/octet-stream")};
-	if (header["format"] === "json")   {res.contentType("application/json")};
+function cors(res) {
+	// CORS headers
+	res.header('Access-Control-Allow-Origin', '*');
+	res.header('Access-Control-Allow-Methods', 'GET');
+	res.header('Access-Control-Allow-Headers', 'Content-Type');
+}
 
-	var fname = "id-" + req.query["id"] + "_parameters-" + req.query["parameters"] + "_time.min-" + req.query["time.min"] + "_time.max-" + req.query["time.max"] + "." + header["format"];
-
-	if (req.query["attach"] === "true") {
-		// Allow non-standard "attach" query parameter for debugging.
-		// This will cause browser to display data instead of triggering
-		// a download dialog.
-		res.contentType("text");
-	} else {
-		res.setHeader("Content-Disposition", "attachment;filename=" + fname);
-	}
-
+function data(req,res,catalog,header,include) {
 	// Extract command line (CL) command and replace placeholders.
-	var d = files('data','json');
+	var d = metadata(catalog,'data','json');
 	var com = d.command; 
 	com = com.replace("${id}",req.query["id"]);
 	com = com.replace("${start}",req.query["time.min"]);
 	com = com.replace("${stop}",req.query["time.max"]);
 	com = com.replace("${parameters}",req.query["parameters"]);
 	com = com.replace("${format}",header["format"]);
+	com = com.replace("${SERVER_ROOT}",__dirname);
 
 	// See if CL program supports requested format
 	var formats = d.formats;
@@ -241,8 +319,8 @@ app.get(PREFIX + '/hapi/data', function (req, res) {
 	//console.log(com)
 
 	// Call the CL command and send output.	
-	coms = com.split(/\s+/);
-	coms0 = coms.shift();
+	var coms = com.split(/\s+/);
+	var coms0 = coms.shift();
 	//console.log(coms);
 	//quote = require('shell-quote').quote;
 	//console.log(quote(coms))
@@ -254,9 +332,9 @@ app.get(PREFIX + '/hapi/data', function (req, res) {
 	var outstr = "";
 	//console.log(child)
 	// TODO: Write this to log file
-	//child.stderr.on('data', function (err) {
-		//console.log("Error message:" + err.toString());
-	//})
+	child.stderr.on('data', function (err) {
+		console.log("Error message:" + err.toString());
+	})
 
 	function dataErrorMessage() {
 		wroteheader = true;
@@ -298,6 +376,7 @@ app.get(PREFIX + '/hapi/data', function (req, res) {
 
 		}
 	})
+
 	child.stdout.on('end', function() { 
 
 		if (!gotdata) {
@@ -311,233 +390,7 @@ app.get(PREFIX + '/hapi/data', function (req, res) {
 		}
 		res.end();
 	})
-})
-
-// Fall through
-app.get('*', function(req, res) {
-	res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
-});
-
-// The following must always be after last app.get() statement.
-// Any requests not matching above patters will trigger errorHandler() call.
-app.use(errorHandler); 
-
-// Read static JSON files and then start the server.
-files(function () {
-	app.listen(argv.port, function () {
-		console.log(ds() + "Server running at http://localhost:" + argv.port + PREFIX + "/hapi");
-		console.log(ds() + "Server can be tested using");
-		console.log(ds() + "   git clone https://github.com/hapi-server/verifier-nodejs.git");
-		console.log(ds() + "   cd verifier-nodejs; npm install; node verify.js --url 'http://localhost:" + argv.port + PREFIX + "/hapi'");
-	});
-})
-
-// Return content of static JSON files
-function files(which,format,id) {
-
-	// Call before server starts as files(cb) to read 
-	// and memory cache content from files.
-
-	if (files.cache) {
-		// Content has been read from disk into object before server started.
-		// Return it.
-		if (id) {
-			return files.cache[which][id][format || "string"];
-		} else {
-			return files.cache[which][format || "string"];
-		}
-	} 
-
-	// Read and cache content from disk.
-	files.cache = {};
-
-	// Landing page html
-	var landing = __dirname+"/metadata/"+CATALOG+".htm";
-	if (!fs.existsSync(landing)) {
-		console.log(ds() + "Did not find " + landing.replace(__dirname,".") + ". Will use ./public/default.htm");
-		landing = __dirname+"/public/default.htm";
-	}
-	if (!fs.existsSync(landing)) {
-		console.log(ds() + "Did not find " + landing.replace(__dirname,".") + ". No landing page will be served.");
-	} else {
-		console.log(ds() + "Reading " + landing.replace(__dirname,"."));
-		files.cache['landing'] = {};
-		files.cache['landing']['string'] = 
-			fs
-				.readFileSync(landing,"utf8")
-				.toString()
-				.replace(/__CATALOG__/g, CATALOG.replace(/.*\//,""))
-				.replace(/__VERSION__/g, HAPIVERSION);
-	}
-
-	// Capabilities 
-	var capabilities = __dirname + "/conf/capabilities.json";
-	if (!fs.existsSync(capabilities)) {
-		// Create response in case that capabilities.json file was removed.
-		json = {};
-		json["outputFormats"] = ["csv","binary","json"];
-		console.log(ds() + "Did not find " + capabilities.replace(__dirname,"") + ". Using " + json["outputFormats"]);
-		json["HAPI"]   = HAPIVERSION;
-		json["status"] = {"code": 1200,"message": "OK"};
-		str = JSON.stringify(json) + "\n";
-	} else {
-		var str  = fs.readFileSync(capabilities);
-		var json = JSON.parse(str);
-		json["HAPI"]   = HAPIVERSION;
-		json["status"] = {"code": 1200,"message": "OK"};
-		str = JSON.stringify(json) + "\n";
-	}
-	files.cache['capabilities'] = {};
-	files.cache['capabilities']['string'] = str;
-	files.cache['capabilities']['json'] = json;
-
-	// Catalog
-	var catalog = __dirname + "/metadata/" + CATALOG + ".json";
-	if (!fs.existsSync(catalog)) {
-		console.log(ds() + clc.red("Did not find " + catalog + ". Exiting."));
-		process.exit(1);
-	}
-
-	console.log(ds() + "Reading " + catalog.replace(__dirname,"."));
-	try {
-		var str = fs.readFileSync(catalog);
-	} catch (e) {
-		console.log(ds() +  clc.red(catalog + " is not readable. Exiting."));
-		process.exit(1);		
-	}
-
-	try {
-		var json = JSON.parse(str);
-	} catch (e) {
-		console.log(ds() +  clc.red(catalog + " is not JSON.parse-able. Try https://jsonlint.com/. Exiting."));
-		process.exit(1);
-	}
-
-	if (!json.data) {
-		console.log(ds() +  clc.red(catalog + " Does not have a 'data' object. Exiting."));
-		process.exit(1);		
-	}
-
-	var info;
-	for (var i = 0;i < json.catalog.length; i++) {
-		if (typeof(json.catalog[i].info) === 'string') {
-
-			if (json.catalog[i].info.substring(0,4) === 'http') {
-				// TODO: Fetch /info response from web server.
-			} else {
-				// TODO: Try to read as JSON first!
-				var commandExistsSync = require('command-exists').sync;
-				// Attempt to execute; if failure, assume it is a file.
-				console.log(ds() + "Trying " + json.catalog[i].info + " as command line command.");
-				if (commandExistsSync(json.catalog[i].info.split(" ")[0])) {
-					console.log(ds() + "Executing " + json.catalog[i].info);
-					try {
-						var info = require('child_process').execSync(json.catalog[i].info,{'stdio':['pipe','pipe','ignore']});
-					} catch (e) {
-						console.log(ds() +  clc.red("Command failed: " + json.catalog[i].info + ". Exiting."));
-						process.exit(1);
-					}
-					try {
-						info = JSON.parse(info);						
-					} catch (e) {
-						console.log(ds() +  clc.red(json.catalog[i].info + " output is not JSON.parse-able. Try https://jsonlint.com/. Exiting."));
-						process.exit(1);
-					}					
-					json.catalog[i].info = info;
-				} else {
-					console.log(ds() + "It is not. Will attempt to read as JSON.");
-					// Read info files
-					try {
-						console.log(ds() + "Reading " + json.catalog[i].info);
-						info = fs.readFileSync(json.catalog[i].info,"utf8");
-						try {
-							info = JSON.parse(info);
-						} catch (e) {
-							console.log(ds() +  clc.red(json.catalog[i].info + " is not JSON.parse-able. Try https://jsonlint.com/. Exiting."));
-							process.exit(1);
-						}					
-						json.catalog[i].info = info;
-					} catch (err) {
-						console.log(ds() +  clc.red("Could not read " + json.catalog[i].info + ". Exiting."));
-						process.exit(1);
-					}
-				}
-			}
-		}
-	}
-
-	try {
-		// TODO: Do HAPI JSON validation here
-	} catch (e) {
-		// process.exit(1);
-	}
-
-	// Command line program information
-	files.cache['data'] = {};
-	files.cache['data']['json'] = json.data;
-	files.cache['data']['string'] = JSON.stringify(json.data,null,4);
-	var formats = json.data.formats || "csv";
-	var test = json.data.test || "";
-
-	if (test !== "") {
-		console.log(ds() + "Testing command line program.");
-		try {
-			//console.log(test)
-			coms = test.split(/\s+/);
-			coms0 = coms.shift();
-			var child = require('child_process')
-							.spawn(coms0,coms,{"encoding":"buffer"})
-			console.log(ds() + "Test of command line program passed.");
-		} catch (err) {
-			console.log(ds() + "Test of command line program failed. Exiting.");
-			console.log(err.stack);
-			process.exit(1);
-		}
-	}
-
-	files.cache['landing']['string'] = files.cache['landing']['string'].replace("__CONTACT__",json.data.contact || "")
-	
-	delete json.data;
-
-	json["HAPI"] = HAPIVERSION;
-	json["status"] = {"code": 1200, "message": "OK"};
-
-	files.cache['info'] = {};
-	var id;
-	for (var i = 0;i < json.catalog.length; i++) {
-		// TODO: Validate json.catalog[i].info against catalog schema
-		id = json.catalog[i].id
-		files.cache['info'][id] = {};
-		files.cache['info'][id]['string'] = JSON.stringify(json.catalog[i].info, null, 4);
-		files.cache['info'][id]['json'] = json.catalog[i].info;
-		files.cache['info'][id]['json']['HAPI'] = HAPIVERSION;
-		files.cache['info'][id]['json']['status'] = { "code": 1200, "message": "OK"};
-		if (!formats.includes("json")) {
-			// If data program does not produce JSON, see if
-			// any multi-dimensional arrays and warn.
-			for (var j = 0; j < json.catalog[i].info.parameters.length; j++) {
-				if (json.catalog[i].info.parameters[j].size) {
-					if (json.catalog[i].info.parameters[j].size.length > 1) {
-						console.log(ds() + "Warning: Parameter in catalog has size.length > 1 and data program does not produce JSON. Server cannot produce JSON from CSV for this parameter.")
-					}
-				}
-			}
-		}
-		delete json.catalog[i].info;
-	}
-
-	// TODO: Validate json against schema
-	str = JSON.stringify(json, null, 4);
-
-	files.cache['catalog'] = {};
-	files.cache['catalog']['string'] = str;
-	files.cache['catalog']['json'] = json;
-
-	which(); // Execute callback.
 }
-
-// Date string for logging.
-function ds() {return (new Date()).toISOString() + " ";};
 
 function csvTo(records,first,last,header,include) {
 
@@ -637,11 +490,11 @@ function csvTo(records,first,last,header,include) {
 	}
 }
 
-function info(req,res) {
+function info(catalog,req,res) {
 
 	// Read parameter metadata.
-	jsonstr = files('info','string',req.query.id);
-	json    = files('info','json',req.query.id);;
+	// Make deep copy of output of files (because json will be modified)
+	var json = JSON.parse(JSON.stringify(metadata(catalog,'info','json',req.query.id)));
 
 	// Create array of known parameter names
 	var knownparams = [];
@@ -650,6 +503,7 @@ function info(req,res) {
 	}
 
 	// Create arrray from comma-separated parameters in query
+	var wantedparams = [];
 	if (req.query.parameters) {
 		wantedparams = req.query.parameters.split(",");
 	} else {
@@ -681,6 +535,8 @@ function info(req,res) {
 
 	// Invalid parameter found
 	if (validparams.length != wantedparams.length) {
+		//console.log(validparams);
+		//console.log(wantedparams);
 		return 1401;
 	}
 
@@ -697,9 +553,9 @@ function info(req,res) {
 	return json;
 }
 
-function idCheck(id) {
+function idCheck(catalog,id) {
 	// Get list of datasets.
-	var catalog = files('catalog','json');
+	var catalog = metadata(catalog,'catalog','json');
 	var datasets = catalog.catalog;
 	var found = false;
 	// Determine if requested id is in list
@@ -715,8 +571,8 @@ function idCheck(id) {
 function timeCheck(header) {
 
 	// TODO: Handle less than milliseconds resolution.
-	// TODO: If one of the times had Z and the other does not, should warn that all time
-	// stamps are interpreted as Z.
+	// TODO: If one of the times had Z and the other does not, 
+	// should warn that all time stamps are interpreted as Z.
 
 	var times = [header["status"]["x_startDateRequested"],header["status"]["x_stopDateRequested"],
 				 header.startDate,header.stopDate];
@@ -731,46 +587,68 @@ function timeCheck(header) {
 		if (times[i].length == 8 || times[i].length == 10) {
 			times[i] = times[i] + "T00:00:00.000";
 		}
+		// YYYY or YYYYZ is not valid ISO according to moment.js
+		if (times[i].length == 4) {
+			times[i] = times[i] + "-01-01T00:00:00.000";
+		}
 		// Make all times UTC
 		times[i] = times[i] + "Z";
+		times[i] = times[i].replace(/\.Z/,".0Z"); // moment.js says .Z is invalid.
 	}
 
-	if (!moment(times[0], moment.ISO_8601).isValid()) {
+	var r = is.HAPITime(times[0],timeregexes);
+	if (r.error) {
 		return 1402;
 	}
-	if (!moment(times[1], moment.ISO_8601).isValid()) {
+	var r = is.HAPITime(times[1],timeregexes);
+	if (r.error) {
 		return 1403;
 	}
-	if (!moment(times[2], moment.ISO_8601).isValid()) {
-		return 1500; // Should have been caught by validator
-	}
-	if (!moment(times[3], moment.ISO_8601).isValid()) {
-		return 1500; // Should have been caught by validator
+
+	function leapshift(time) {
+		var shift = 0;
+		if (time.match(/^[0-9]{4}-[0-9]{3}/)) {
+			if (time.match(/23:59:60/)) {
+				time = time.replace(/:60/,":59");
+				shift = 1000;
+			}
+		}
+		if (time.match(/^[0-9]{4}-[0-9]{2}-/)) {
+			if (time.match(/23:59:60/)) {
+				time = time.replace(/:60/,":59");
+				shift = 1000;
+			}
+		}
+		return {'time':time,'shift':shift};
 	}
 
-	var startms = moment(times[0]).valueOf();
-	var startmsMin = moment(times[2]).valueOf();
-	var stopms  = moment(times[1]).valueOf();
-	var stopmsMax  = moment(times[3]).valueOf();
+	var timesms = [];
+	for (var i = 0;i < 4;i++) {
+		var shift = 0;
+		if (!moment(times[0], moment.ISO_8601).isValid()) {
+			// Change 60th second to 59.
+			var obj = leapshift(times[0]);
+			if (obj.shift > 0) { // Error was due to leap second.
+				times[0] = obj.time;
+				shift = obj.shift;
+			} else {
+				return 1500; // Unexpected error.
+			}
+		}
+		timesms[i] = moment(times[i]).valueOf() + shift;
+	}
 
-	if (stopms <= startms) {
+	if (timesms[1] <= timesms[0]) { // Stop requested <= start requested
 		return 1404;
 	}
-	if (startms < startmsMin) {
+	if (timesms[0] < timesms[2]) { // Start requested < start available
 		return 1405;
 	} 
-	if (stopms > stopmsMax) {
+	if (timesms[1] > timesms[3]) { // Stop requested > stop available
 		return 1405;
 	}
 
 	return true;
-}
-
-function cors(res) {
-	// CORS headers
-	res.header('Access-Control-Allow-Origin', '*');
-	res.header('Access-Control-Allow-Methods', 'GET');
-	res.header('Access-Control-Allow-Headers', 'Content-Type');
 }
 
 // HAPI Errors

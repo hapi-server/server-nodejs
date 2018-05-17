@@ -22,7 +22,8 @@
     "express": "^4.15.3",
     "semver": "^5.5.0",
     "moment": "^2.18.1",
-    "yargs": "^8.0.1"
+    "yargs": "^8.0.1",
+    "verifier-nodejs":"https://github.com/hapi-server/verifier-nodejs"
   },
   "scripts": {
     "start": "node server.js --port 8999"
