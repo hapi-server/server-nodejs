@@ -202,8 +202,8 @@ function metadata(catalog,which,format,id) {
 	
 	delete json.data;
 
-	json["HAPI"] = HAPIVERSION;
 	json["status"] = {"code": 1200, "message": "OK"};
+	json["HAPI"] = HAPIVERSION;
 
 	metadata.cache[catalog]['info'] = {};
 	var id;
@@ -222,8 +222,8 @@ function metadata(catalog,which,format,id) {
 		metadata.cache[catalog]['info'][id] = {};
 		metadata.cache[catalog]['info'][id]['string'] = JSON.stringify(json.catalog[i].info, null, 4);
 		metadata.cache[catalog]['info'][id]['json'] = json.catalog[i].info;
-		metadata.cache[catalog]['info'][id]['json']['HAPI'] = json.catalog[i].info.status;
-		metadata.cache[catalog]['info'][id]['json']['status'] = json.catalog[i].info.HAPI;
+		metadata.cache[catalog]['info'][id]['json']['HAPI'] = json.catalog[i].info.HAPI;
+		metadata.cache[catalog]['info'][id]['json']['status'] = json.catalog[i].info.status;
 		if (!formats.includes("json")) {
 			// If data program does not produce JSON, see if
 			// any multi-dimensional arrays and warn.
