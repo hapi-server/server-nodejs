@@ -45,7 +45,7 @@ To run this example locally, execute
 node server.js --prefix TestDataSimple
 `
 
-Sample requests for this example are shown on the [landing page](http://tsds.org/server-nodejs/TestDataSimple/hapi)
+Sample requests for this example are shown on the [landing page](http://mag.gmu.edu/server-nodejs/TestDataSimple/hapi)
 
 <details> 
   <summary>Show Python code</summary>
@@ -159,7 +159,7 @@ To run this example locally, execute
 node server.js --catalog AutoplotTest --prefix AutoplotTest
 ```
 
-Sample requests for this example are shown on the [landing page](http://tsds.org/server-nodejs/AutoplotTest/hapi)
+Sample requests for this example are shown on the [landing page](http://mag.gmu.edu/server-nodejs/AutoplotTest/hapi)
 
 <details> 
   <summary>Show configuration file</summary>
@@ -184,7 +184,7 @@ Sample requests for this example are shown on the [landing page](http://tsds.org
 
 ### 2.3 Serve data from files in a directory
 
-Data are stored in [a directory tree containing ASCII files](https://github.com/hapi-server/server-nodejs/tree/master/metadata/OneWire/data/10.CF3744000800/2018).
+Data are stored in [a directory tree containing ASCII files](https://github.com/hapi-server/server-nodejs/tree/master/public/data/OneWire/data/10.CF3744000800/2018).
 
 In the previous example, metadata was available in the files in a format that Autoplot could interpret and translate to HAPI metadata, so the second step was not needed. In this example, the metadata is in a README file that must be hand-translated to HAPI metadata.
 
@@ -194,19 +194,19 @@ To run this example locally, execute
 node server.js --catalog OneWire/OneWire --prefix OneWire
 ```
 
-Sample requests for this example are shown on the [landing page](http://tsds.org/server-nodejs/OneWire/hapi)
+Sample requests for this example are shown on the [landing page](http://mag.gmu.edu/server-nodejs/OneWire/hapi)
 
 <details> 
   <summary>Show configuration file</summary>
-[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/OneWire/OneWire.json javascript)
+[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/OneWire.json javascript)
 
 ```javascript
 {
 	"data": {
-		"command": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri vap+dat:file:/Users/robertweigel/git/server-nodejs/metadata/OneWire/data/10.CF3744000800/$Y/10.CF3744000800.$Y$m$d.csv?time=field0&field1&timerange=2018-01-06/2018-01-07 -f hapi-data",
+		"command": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri vap+dat:file:/Users/robertweigel/git/server-nodejs/public/data/OneWire/data/10.CF3744000800/$Y/10.CF3744000800.$Y$m$d.csv?time=field0&field1&timerange=2018-01-06/2018-01-07 -f hapi-data",
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
-		"test": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri vap+dat:file:/Users/robertweigel/git/server-nodejs/metadata/OneWire/data/10.CF3744000800/$Y/10.CF3744000800.$Y$m$d.csv?time=field0&field1&timerange=2018-01-06/2018-01-07 -f hapi-data"
+		"test": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri vap+dat:file:/Users/robertweigel/git/server-nodejs/public/data/OneWire/data/10.CF3744000800/$Y/10.CF3744000800.$Y$m$d.csv?time=field0&field1&timerange=2018-01-06/2018-01-07 -f hapi-data"
 	},
 	"catalog" :
 		[
