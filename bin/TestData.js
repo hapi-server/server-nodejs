@@ -39,7 +39,7 @@ scalarcats = [0,1,2];
 for (var i = startsec; i < stopsec; i++) {
 	var record = "";
 	if (parameters.includes('Time')) {
-		record = (new Date(i*1000).toISOString()).slice(0,-1);
+		record = (new Date(i*1000).toISOString());
 	}
 	if (parameters.includes('scalar')) {
 		record = record + "," + Math.sin(Math.PI*i/600);
@@ -85,9 +85,9 @@ for (var i = startsec; i < stopsec; i++) {
 	}
 	if (parameters.includes('vectoriso')) {
 		record = record 
-					+ "," + (new Date((i+1)*1000).toISOString()).slice(0,-5)
-					+ "," + (new Date((i+2)*1000).toISOString()).slice(0,-5)
-					+ "," + (new Date((i+3)*1000).toISOString()).slice(0,-5);
+					+ "," + (new Date((i+1)*1000).toISOString()).slice(0,-5) + "Z"
+					+ "," + (new Date((i+2)*1000).toISOString()).slice(0,-5) + "Z"
+					+ "," + (new Date((i+3)*1000).toISOString()).slice(0,-5) + "Z"	;
 	}
 	if (parameters.includes('vectormulti')) {
 		record = record 

@@ -35,6 +35,7 @@ function metadata(catalog,which,format,id) {
 		}
 	} else {
 		var HAPIVERSION = which;
+		var FORCE = format;
 		if (!metadata.cache) {
 			metadata.cache = {};
 		}
@@ -89,7 +90,10 @@ function metadata(catalog,which,format,id) {
 	var v = is.HAPIJSON(str,schema,'capabilities');
 	if (v.error) {
 		console.log(ds() + clc.red("Invalid HAPI: "+capabilities));
-		process.exit(1);
+		console.log(v.got);
+		if (!FORCE) { 
+			process.exit(1);
+		}
 	}
 	
 	// Catalog
@@ -167,12 +171,6 @@ function metadata(catalog,which,format,id) {
 		}
 	}
 
-	try {
-		// TODO: Do HAPI JSON validation here
-	} catch (e) {
-		// process.exit(1);
-	}
-
 	// Command line program information
 	metadata.cache[catalog]['data'] = {};
 	metadata.cache[catalog]['data']['json'] = json.data;
@@ -180,15 +178,29 @@ function metadata(catalog,which,format,id) {
 	var formats = json.data.formats || "csv";
 	var test = json.data.test || "";
 
+
+	function testError() {
+	}
+
 	if (test !== "") {
 		console.log(ds() + "Testing command line program.");
 		test = test.replace("${SERVER_ROOT}",__dirname);
 		try {
 			coms = test.split(/\s+/);
 			coms0 = coms.shift();
-			var child = require('child_process')
-							.spawn(coms0,coms,{"encoding":"buffer"})
-			console.log(ds() + "Test of command line program passed.");
+			var out = require('child_process')
+						.spawnSync(coms0,coms,{"encoding":"buffer"});
+			if (out.status != 0) {
+				console.log(ds() + "Test of command line program failed. Exiting.");
+				console.log(ds() + "  Command:");
+				console.log(ds() + "  " + test);
+				process.exit(1);
+			} else {
+				console.log(ds() + "Test of command was successful.");
+			}
+			if (out.stderr.toString() !== "") {
+				console.log(ds() + "Test program emitted to stderr: \n" + out.stderr.toString());
+			}
 		} catch (err) {
 			console.log(ds() + "Test of command line program failed. Exiting.");
 			console.log(ds() + "  Command:");
@@ -213,9 +225,11 @@ function metadata(catalog,which,format,id) {
 		json.catalog[i].info.HAPI = HAPIVERSION;
 		var v = is.HAPIJSON(json.catalog[i].info,schema,'info');
 		if (v.error) {
-			console.log(ds() + "Invalid HAPI info node.");
+			console.log(ds() + "Invalid HAPI " + HAPIVERSION + " info node.");
 			console.log(v.got)
-			process.exit(1);
+			if (!FORCE) {
+				process.exit(1);
+			}
 		}
 
 		id = json.catalog[i].id
@@ -230,7 +244,7 @@ function metadata(catalog,which,format,id) {
 			for (var j = 0; j < json.catalog[i].info.parameters.length; j++) {
 				if (json.catalog[i].info.parameters[j].size) {
 					if (json.catalog[i].info.parameters[j].size.length > 1) {
-						console.log(ds() + "Warning: Parameter in catalog has size.length > 1 and data program does not produce JSON. Server cannot produce JSON from CSV for this parameter.")
+						console.log(ds() + "Warning: " + id + "/" + json.catalog[i].info.parameters[j].name + " has size.length > 1 and data program does not produce JSON. Server cannot produce JSON from CSV for this parameter.")
 					}
 				}
 			}

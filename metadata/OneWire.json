@@ -10,7 +10,7 @@
 			{
 				"id": "10.CF3744000800",
 				"title": "Pool Temperature",
-				"info": "metadata/OneWire/info/10.CF3744000800.json"
+				"info": "public/data/OneWire/info/10.CF3744000800.json"
 			}
 		]
 }
