@@ -23,15 +23,16 @@ This server handles
 1. HAPI metadata validation,
 2. request validation,
 3. error responses,
-4. logging and alerts, and
-5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed)
+4. caching,
+5. logging and alerts, and
+6. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed)
 
 <a name="Examples"></a>
 ## 2. Examples
 
 ### 2.1 Serve data from Python
 
-In this example, a Python script returns data. The Python calling syntax is
+In this example, a Python script returns CSV data. The Python calling syntax is
 
 ```
 TestDataSimple.py --parameters PARAMETERS --start START --stop STOP
@@ -41,14 +42,14 @@ TestDataSimple.py --parameters PARAMETERS --start START --stop STOP
 To run this example locally, execute
 
 `
-node --prefix TestDataSimple
+node server.js --prefix TestDataSimple
 `
 
 Sample requests for this example are shown on the [landing page](http://tsds.org/server-nodejs/TestDataSimple/hapi)
 
 <details> 
-  <summary>Show code</summary>
-[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/v2/bin/TestDataSimple.py python)
+  <summary>Show Python code</summary>
+[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/TestDataSimple.py python)
 ```python
 # Usage:
 #  python TestDataSimple.py --start 1970-01-01 --stop 1970-01-01T00:10:00
@@ -95,8 +96,8 @@ for i in xrange(0,mf-mo):
 </details>
 
 <details> 
-  <summary>Show configuration file</summary>
-[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/v2/metadata/TestDataSimple.json javascript)
+  <summary>Show server configuration file</summary>
+[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/TestDataSimple.json javascript)
 
 ```javascript
 {
@@ -155,14 +156,14 @@ The second step is not required in this example because the dataset has metadata
 To run this example locally, execute
 
 ```bash
-node --catalog AutoplotTest --prefix AutoplotTest
+node server.js --catalog AutoplotTest --prefix AutoplotTest
 ```
 
 Sample requests for this example are shown on the [landing page](http://tsds.org/server-nodejs/AutoplotTest/hapi)
 
 <details> 
   <summary>Show configuration file</summary>
-[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/v2/metadata/AutoplotTest.json javascript)
+[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/AutoplotTest.json javascript)
 
 ```javascript
 {
@@ -183,7 +184,7 @@ Sample requests for this example are shown on the [landing page](http://tsds.org
 
 ### 2.3 Serve data from files in a directory
 
-Data are stored in [a directory tree containing ASCII files](https://github.com/hapi-server/server-nodejs/tree/v2/metadata/OneWire/data/10.CF3744000800/2018).
+Data are stored in [a directory tree containing ASCII files](https://github.com/hapi-server/server-nodejs/tree/master/metadata/OneWire/data/10.CF3744000800/2018).
 
 In the previous example, metadata was available in the files in a format that Autoplot could interpret and translate to HAPI metadata, so the second step was not needed. In this example, the metadata is in a README file that must be hand-translated to HAPI metadata.
 
@@ -197,7 +198,7 @@ Sample requests for this example are shown on the [landing page](http://tsds.org
 
 <details> 
   <summary>Show configuration file</summary>
-[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/v2/metadata/OneWire/OneWire.json javascript)
+[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/OneWire/OneWire.json javascript)
 
 ```javascript
 {
@@ -224,7 +225,7 @@ Sample requests for this example are shown on the [landing page](http://tsds.org
 
 `node server.js`
 
-Starts HAPI server at [`http://localhost:8999/hapi`](http://localhost:8999/hapi) and serves datasets specified in the catalog [`./metadata/TestDataSimple.json`](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple.json). 
+Starts HAPI server at [`http://localhost:8999/hapi`](http://localhost:8999/hapi) and serves datasets specified in the catalog [`./metadata/TestDataSimple.json`](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestDataSimple.json). 
  
 All command line options:
 
@@ -251,7 +252,7 @@ http://localhost:8999/TestData/hapi
 http://localhost:8999/OneWire/hapi
 ```
 
-For example, in [`./metadata/TestDataSimple.json`](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple.json), the command line syntax is given as
+For example, in [`./metadata/TestDataSimple.json`](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestDataSimple.json), the command line syntax is given as
 
 ```bash
 python ./bin/TestDataSimple.py --dataset ${dataset} --parameters \
@@ -290,8 +291,8 @@ Open [http://localhost:8999/TestDataSimple/hapi](http://localhost:8999/TestDataS
 To expose this URL through Apache, add the following to the Apache configuration file
 
 ```
-ProxyPass /TestDataSimple/hapi http://server:8999/TestDataSimple/hapi retry=1
-ProxyPassReverse /TestDataSimple/hapi http://server:8999/TestDataSimple/hapi
+ProxyPass /TestDataSimple/hapi http://localhost:8999/TestDataSimple/hapi retry=1
+ProxyPassReverse /TestDataSimple/hapi http://localhost:8999/TestDataSimple/hapi
 ```
 
 In production, it is recommended that [forever](https://github.com/foreverjs/forever) is used to automatically restart the application after an uncaught execption causes the application to abort (this should rarely happen).
@@ -325,7 +326,7 @@ The top-level structure of `CATALOG.json` file is
 }
 ```
 
-See also examples in [`./metadata`](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/).
+See also examples in [`./metadata`](https://github.com/hapi-server/server-nodejs/blob/master/metadata/).
 
 Each of the options for the catalog property are described in the following sections.
 
@@ -360,15 +361,15 @@ In the following subsections, this type of JSON structure is referred to as a **
 
 Examples of this type of catalog include
 
-* [TestDataSimple.json](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple.json)
-* [TestData.json](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestData.json)
+* [TestDataSimple.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestDataSimple.json)
+* [TestData.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestData.json)
 
 ### 5.2 `/catalog` response with file or command template for `info` object
 
 Examples of this type of catalog include
 
-* [TestDataSimple2](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple)
-* [TestDataSimple3](https://github.com/hapi-server/server-nodejs/blob/v2/metadata/TestDataSimple2)
+* [TestDataSimple2](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestDataSimple2.json)
+* [TestDataSimple3](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestDataSimple3.json)
 
 ```json
 "catalog": 

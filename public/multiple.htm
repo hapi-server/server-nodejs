@@ -5,14 +5,30 @@
 		<title>HAPI Server</title>
 		<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 		<link rel="icon" href="/favicon.ico" type="image/x-icon">
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 	</head>
 	<script>
-  		document.addEventListener("DOMContentLoaded", function(event) {
+  		$(document).ready(function(){
 			var catalogs = __CATALOG_LIST__;
-			document.getElementById('catalogs').innerHTML = JSON.stringify(catalogs);
+			for (var i = 0;i < catalogs.length;i++) {
+				var url = catalogs[i] + "/hapi";
+				var link = $("<a>")
+							.attr("href", url)
+							.attr("title", url)
+							.text(url)
+				$("#catalogs ul").append("<li>");
+				$($("#catalogs ul li")[i]).append(link);
+			}
     	});
 	</script>
 	<body>
-		<div id="catalogs"></div>
+		<div>
+			This server serves the following HAPI datasets.
+		</div>
+		<div id="catalogs">
+			<ul>
+				
+			</ul>
+		</div>
 	</body>
 <html>

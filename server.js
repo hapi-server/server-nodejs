@@ -34,10 +34,12 @@ var argv     = require('yargs')
 				({
 					'port': 8999,
 					'catalog': "TestDataSimple",
-					'prefix': ''
+					'prefix': '',
+					'force': "false"
 				})
 				.argv;
 
+var FORCE   = argv.force === "true"; // Start server if metadata invalid
 var CATALOG = argv.catalog;
 var PREFIX  = argv.prefix;
 
@@ -92,13 +94,19 @@ for (var i = 0;i < CATALOGS.length;i++) {
 
 	// Initialize the API
 	apiInit(CATALOGS[i],PREFIXES[i],i == CATALOGS.length-1);
-	// Read static JSON files and then start the server.
-	metadata(CATALOGS[i],HAPIVERSION);
+	// Read static JSON files
+	metadata(CATALOGS[i],HAPIVERSION,FORCE);
 }
 
 // TODO: Can server start before apiInit() and metadata() finished?
 // If so, prevent it.
 app.listen(argv.port, function () {
+	if (CATALOGS.length > 1) {
+		console.log(ds() + "Dataset list at http://localhost:" + argv.port);
+		for (var i = 0;i < CATALOGS.length;i++) {
+			console.log(ds() + "  http://localhost:" + argv.port + PREFIXES[i] + "/hapi");
+		}
+	}
 	console.log(ds() + clc.blue("Listening on port " + argv.port))
 });
 
@@ -301,7 +309,8 @@ function data(req,res,catalog,header,include) {
 	com = com.replace("${id}",req.query["id"]);
 	com = com.replace("${start}",req.query["time.min"]);
 	com = com.replace("${stop}",req.query["time.max"]);
-	com = com.replace("${parameters}",req.query["parameters"]);
+	var comma = req.query["parameters"] == 0 ? "" : ",";
+	com = com.replace("${parameters}","Time" + comma + req.query["parameters"]);
 	com = com.replace("${format}",header["format"]);
 	com = com.replace("${SERVER_ROOT}",__dirname);
 
@@ -493,8 +502,8 @@ function csvTo(records,first,last,header,include) {
 function info(catalog,req,res) {
 
 	// Read parameter metadata.
-	// Make deep copy of output of files (because json will be modified)
-	var json = JSON.parse(JSON.stringify(metadata(catalog,'info','json',req.query.id)));
+	// Parse string metadata because (json will be modified).
+	var json = JSON.parse(metadata(catalog,'info','string',req.query.id));
 
 	// Create array of known parameter names
 	var knownparams = [];
@@ -507,7 +516,7 @@ function info(catalog,req,res) {
 	if (req.query.parameters) {
 		wantedparams = req.query.parameters.split(",");
 	} else {
-		// If parameters field not in query string, defualt is all.
+		// If parameters field not in query string, default is all.
 		wantedparams = knownparams;
 	}
 
