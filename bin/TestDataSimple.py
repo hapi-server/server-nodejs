@@ -23,6 +23,7 @@ parser.add_argument('--format')
 
 v      = vars(parser.parse_args())
 epoch  = datetime.datetime(1970,1,1)
+params = v['parameters']
 start  = dateutil.parser.parse(re.sub("Z$","",v['start']))
 stop   = dateutil.parser.parse(re.sub("Z$","",v['stop']))
 format = v["format"]
@@ -32,10 +33,15 @@ mf = int((stop-epoch).total_seconds()/60.0)
 
 dt = (stop-epoch).total_seconds()-(start-epoch).total_seconds()
 if dt < 60: mf=mo+1 # To output 1 record if stop < start + 60 sec
+
 for i in xrange(0,mf-mo):
-       d1 = start + datetime.timedelta(minutes=i)
-       if format == 'binary':
-           sys.stdout.write("%sZ" % d1.isoformat())
-           sys.stdout.write(struct.pack('>d',mo+i))
-       else:
-           print "%sZ,%d" % (d1.isoformat(),mo+i)
+	d1 = start + datetime.timedelta(minutes=i)
+	if format == 'binary':
+		sys.stdout.write("%sZ" % d1.isoformat())
+		if params == 'scalar':
+			sys.stdout.write(struct.pack('>d',mo+i))
+	else:
+		if params == 'scalar':
+			print "%sZ,%d" % (d1.isoformat(),mo+i)
+		else:
+			print "%sZ" % (d1.isoformat())
