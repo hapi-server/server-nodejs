@@ -10,7 +10,7 @@ function ds() {return (new Date()).toISOString() + " ";};
 var clc  = require('cli-color'); // Colorize command line output
 var sver = require('semver');
 if (!sver.gte(process.version,'6.0.0')) {
-	console.log(clc.red("node.js version >= 6 required. node.js -v returns " + process.version + ". nvm."));
+	console.log(clc.red("node.js version >= 6 required. node.js -v returns " + process.version + ". Consider installing https://github.com/creationix/nvm."));
 	process.exit(1);
 }
 
@@ -37,6 +37,9 @@ var argv     = require('yargs')
 					'prefix': '',
 					'force': "false"
 				})
+				.usage('Usage: $0 --port [num] --catalog [str] --prefix [str] --force [bool]')
+				.help('h')
+				.help('help')
 				.argv;
 
 var FORCE   = argv.force === "true"; // Start server if metadata invalid
@@ -302,15 +305,37 @@ function cors(res) {
 	res.header('Access-Control-Allow-Headers', 'Content-Type');
 }
 
+
+
+function normalizeTime(timestr) {
+	if (/^[0-9]{4}Z$/.test(timestr)) {
+		timestr = timestr.slice(0,-1) + "-01-01T00:00:00.000Z";
+	}
+	if (/^[0-9]{4}-[0-9]{2}Z$/.test(timestr)) {
+		timestr = timestr.slice(0,-1) + "-01T00:00:00.000Z";
+	}
+	if (/^[0-9]{4}-[0-9]{3}Z$/.test(timestr)) {
+		timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
+	}
+	if (/^[0-9]{4}-[0-9]{2}-[0-9]{2}Z$/.test(timestr)) {
+		timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
+	}
+	timestr = moment(timestr).toISOString();
+	return timestr;
+}
 function data(req,res,catalog,header,include) {
+
+	//console.log(header.parameters)
+	var start = normalizeTime(req.query["time.min"]);
+	var stop = normalizeTime(req.query["time.max"]);
 	// Extract command line (CL) command and replace placeholders.
 	var d = metadata(catalog,'data','json');
 	var com = d.command; 
 	com = com.replace("${id}",req.query["id"]);
-	com = com.replace("${start}",req.query["time.min"]);
-	com = com.replace("${stop}",req.query["time.max"]);
+	com = com.replace("${start}",start);
+	com = com.replace("${stop}",stop);
 	var comma = req.query["parameters"] == 0 ? "" : ",";
-	com = com.replace("${parameters}","Time" + comma + req.query["parameters"]);
+	com = com.replace("${parameters}",req.query["parameters"]);
 	com = com.replace("${format}",header["format"]);
 	com = com.replace("${SERVER_ROOT}",__dirname);
 
