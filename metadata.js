@@ -123,48 +123,60 @@ function metadata(catalog,which,format,id) {
 		process.exit(1);		
 	}
 
-	var info;
-	for (var i = 0;i < json.catalog.length; i++) {
-		if (typeof(json.catalog[i].info) === 'string') {
+	if (typeof(json.catalog) === 'string') {
+		console.log(ds() + "Reading " + json.catalog);
+		var str = fs.readFileSync(json.catalog);
+		try {
+			var info = JSON.parse(str);
+		} catch (e) {
+			console.log(ds() +  clc.red(json.catalog + " is not JSON.parse-able. Try https://jsonlint.com/. Exiting."));
+			process.exit(1);
+		}
+		json.catalog = info.catalog;
+	} else {
+		var info;
+		for (var i = 0;i < json.catalog.length; i++) {
+			if (typeof(json.catalog[i].info) === 'string') {
 
-			if (json.catalog[i].info.substring(0,4) === 'http') {
-				// TODO: Fetch /info response from web server.
-			} else {
-				// TODO: Try to read as JSON first!
-				var commandExistsSync = require('command-exists').sync;
-				// Attempt to execute; if failure, assume it is a file.
-				console.log(ds() + "Trying " + json.catalog[i].info + " as command line command.");
-				if (commandExistsSync(json.catalog[i].info.split(" ")[0])) {
-					console.log(ds() + "Executing " + json.catalog[i].info);
-					try {
-						var info = require('child_process').execSync(json.catalog[i].info,{'stdio':['pipe','pipe','ignore']});
-					} catch (e) {
-						console.log(ds() +  clc.red("Command failed: " + json.catalog[i].info + ". Exiting."));
-						process.exit(1);
-					}
-					try {
-						info = JSON.parse(info);						
-					} catch (e) {
-						console.log(ds() +  clc.red(json.catalog[i].info + " output is not JSON.parse-able. Try https://jsonlint.com/. Exiting."));
-						process.exit(1);
-					}					
-					json.catalog[i].info = info;
+				if (json.catalog[i].info.substring(0,4) === 'http') {
+					// TODO: Fetch /info response from web server.
 				} else {
-					console.log(ds() + "It is not. Will attempt to read as JSON.");
-					// Read info files
-					try {
-						console.log(ds() + "Reading " + json.catalog[i].info);
-						info = fs.readFileSync(json.catalog[i].info,"utf8");
+					// TODO: Try to read as JSON first!
+					var commandExistsSync = require('command-exists').sync;
+					// Attempt to execute; if failure, assume it is a file.
+					console.log(ds() + "Trying " + json.catalog[i].info + " as command line command.");
+					if (commandExistsSync(json.catalog[i].info.split(" ")[0])) {
+						console.log(ds() + "Executing " + json.catalog[i].info);
 						try {
-							info = JSON.parse(info);
+							var info = require('child_process').execSync(json.catalog[i].info,{'stdio':['pipe','pipe','ignore']});
 						} catch (e) {
-							console.log(ds() +  clc.red(json.catalog[i].info + " is not JSON.parse-able. Try https://jsonlint.com/. Exiting."));
+							console.log(ds() +  clc.red("Command failed: " + json.catalog[i].info + ". Exiting."));
+							process.exit(1);
+						}
+						try {
+							info = JSON.parse(info);						
+						} catch (e) {
+							console.log(ds() +  clc.red(json.catalog[i].info + " output is not JSON.parse-able. Try https://jsonlint.com/. Exiting."));
 							process.exit(1);
 						}					
 						json.catalog[i].info = info;
-					} catch (err) {
-						console.log(ds() +  clc.red("Could not read " + json.catalog[i].info + ". Exiting."));
-						process.exit(1);
+					} else {
+						console.log(ds() + "It is not. Will attempt to read as JSON.");
+						// Read info files
+						try {
+							console.log(ds() + "Reading " + json.catalog[i].info);
+							info = fs.readFileSync(json.catalog[i].info,"utf8");
+							try {
+								info = JSON.parse(info);
+							} catch (e) {
+								console.log(ds() +  clc.red(json.catalog[i].info + " is not JSON.parse-able. Try https://jsonlint.com/. Exiting."));
+								process.exit(1);
+							}					
+							json.catalog[i].info = info;
+						} catch (err) {
+							console.log(ds() +  clc.red("Could not read " + json.catalog[i].info + ". Exiting."));
+							process.exit(1);
+						}
 					}
 				}
 			}
@@ -221,12 +233,13 @@ function metadata(catalog,which,format,id) {
 	var id;
 	for (var i = 0;i < json.catalog.length; i++) {
 
-		json.catalog[i].info.status = { "code": 1200, "message": "OK"};
+		json.catalog[i].info.status = {"code": 1200, "message": "OK"};
 		json.catalog[i].info.HAPI = HAPIVERSION;
 		var v = is.HAPIJSON(json.catalog[i].info,schema,'info');
 		if (v.error) {
 			console.log(ds() + "Invalid HAPI " + HAPIVERSION + " info node.");
 			console.log(v.got)
+			console.log(ds() + "Exiting. Use --force command line option to ignore error.");
 			if (!FORCE) {
 				process.exit(1);
 			}
