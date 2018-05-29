@@ -7,7 +7,7 @@
     [
      {
         "id": "ACE",
-        "info": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri='http://autoplot.org/data/autoplot.cdf?BGSM' -f hapi-info"
+        "info": "java -Djava.awt.headless=true -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri='http://autoplot.org/data/autoplot.cdf?BGSM' -f hapi-info"
     }
 ]
 }
