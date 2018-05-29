@@ -20,10 +20,12 @@
     "command-exists": "^1.2.2",
     "compression": "^1.6.2",
     "express": "^4.15.3",
-    "semver": "^5.5.0",
     "moment": "^2.18.1",
-    "yargs": "^8.0.1",
-    "verifier-nodejs":"https://github.com/hapi-server/verifier-nodejs"
+    "request": "^2.87.0",
+    "semver": "^5.5.0",
+    "sync-request": "^6.0.0",
+    "verifier-nodejs": "https://github.com/hapi-server/verifier-nodejs",
+    "yargs": "^8.0.1"
   },
   "scripts": {
     "start": "node server.js --port 8999"
