@@ -23,9 +23,8 @@ This server handles
 1. HAPI metadata validation,
 2. request validation,
 3. error responses,
-4. caching,
-5. logging and alerts, and
-6. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed)
+4. logging and alerts, and
+5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed)
 
 <a name="Examples"></a>
 ## 2. Examples
@@ -151,7 +150,7 @@ Serving data requires at most two steps:
 1. Genering an Autoplot URI for each parameter; and (in some cases)
 2. Writing (by hand) metadata for each parameter.
 
-The second step is not required in this example because the dataset has metadata that is in a format that Autoplot can translate to HAPI metadata. The following example shows the configuration needed when step 2. is required.
+The second step is not required in this example because the dataset has metadata that is in a format that Autoplot can translate to HAPI metadata. The following example shows the configuration needed when step 2. is not required.
 
 To run this example locally, execute
 
@@ -191,7 +190,7 @@ In the previous example, metadata was available in the files in a format that Au
 To run this example locally, execute
 
 ```bash
-node server.js --catalog OneWire/OneWire --prefix OneWire
+node server.js --catalog OneWire --prefix OneWire
 ```
 
 Sample requests for this example are shown on the [landing page](http://mag.gmu.edu/server-nodejs/OneWire/hapi)
@@ -242,7 +241,7 @@ When a request is made for data, output from a command line program specified in
 The server can serve multiple datasets by giving a comma-separated list for `CATALOG` and `PREFIX`. For example
 
 ```bash
-node server.js --catalog TestDataSimple,OneWire/OneWire --prefix TestData,OneWire
+node server.js --catalog TestDataSimple,OneWire --prefix TestData,OneWire
 ```
 
 will serve the two datasets at
