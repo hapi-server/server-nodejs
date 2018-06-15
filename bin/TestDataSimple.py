@@ -38,9 +38,10 @@ for i in xrange(0,mf-mo):
 	d1 = start + datetime.timedelta(minutes=i)
 	if format == 'binary':
 		sys.stdout.write("%sZ" % d1.isoformat())
-		if params == 'scalar':
+		if params == 'scalar' or params == 'Time,scalar':
 			sys.stdout.write(struct.pack('>d',mo+i))
 	else:
+		#if params == 'scalar' or params == 'Time,scalar':
 		if params == 'scalar':
 			print "%sZ,%d" % (d1.isoformat(),mo+i)
 		else:
