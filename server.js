@@ -49,9 +49,11 @@ var PREFIX  = argv.prefix;
 var CATALOGS = CATALOG.split(",");
 var PREFIXES = PREFIX.split(",");
 
-if (CATALOGS.length != PREFIXES.length) {
+if (PREFIX !== '' && CATALOGS.length != PREFIXES.length) {
 	console.log(ds() + clc.red("If multiple catalogs given, same number of prefixes must be given."));
 	process.exit(1);
+} else {
+	PREFIXES = CATALOGS;
 }
 
 for (var i = 0;i < PREFIXES.length;i++) {
@@ -305,8 +307,6 @@ function cors(res) {
 	res.header('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-
-
 function normalizeTime(timestr) {
 	if (/^[0-9]{4}Z$/.test(timestr)) {
 		timestr = timestr.slice(0,-1) + "-01-01T00:00:00.000Z";
@@ -323,6 +323,7 @@ function normalizeTime(timestr) {
 	timestr = moment(timestr).toISOString();
 	return timestr;
 }
+
 function data(req,res,catalog,header,include) {
 
 	//console.log(header.parameters)
@@ -334,8 +335,11 @@ function data(req,res,catalog,header,include) {
 	com = com.replace("${id}",req.query["id"]);
 	com = com.replace("${start}",start);
 	com = com.replace("${stop}",stop);
-	var comma = req.query["parameters"] == 0 ? "" : ",";
-	com = com.replace("${parameters}",req.query["parameters"]);
+	if (req.query["parameters"]) {
+		com = com.replace("${parameters}",req.query["parameters"]);
+	} else {
+		com = com.replace("${parameters}",'');
+	}
 	com = com.replace("${format}",header["format"]);
 	com = com.replace("${SERVER_ROOT}",__dirname);
 
