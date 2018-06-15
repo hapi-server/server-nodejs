@@ -12,7 +12,7 @@ var argv    = require('yargs')
 				.argv;
 
 var allparameters = false;
-if (argv.parameters === '') {
+if (argv.parameters === true || argv.parameters === '') {
 	allparameters = true;
 } else {
 
