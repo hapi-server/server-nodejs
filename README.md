@@ -37,7 +37,6 @@ In this example, a Python script returns CSV data. The Python calling syntax is
 TestDataSimple.py --parameters PARAMETERS --start START --stop STOP
 ```
 
-
 To run this example locally, execute
 
 `
