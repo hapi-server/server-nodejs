@@ -11,7 +11,7 @@
   		$(document).ready(function(){
 			var catalogs = __CATALOG_LIST__;
 			for (var i = 0;i < catalogs.length;i++) {
-				var url = catalogs[i] + "/hapi";
+				var url = window.location.href.replace(/\/$/,"") + catalogs[i] + "/hapi";
 				var link = $("<a>")
 							.attr("href", url)
 							.attr("title", url)
