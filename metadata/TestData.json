@@ -79,14 +79,6 @@
 										"description": "Time parameter + 1 second"
 									},
 									{ 
-										"name": "scalarmulti",
-										"type": "double",
-										"units": "m",
-										"fill": "-1e31",
-										"size": [1,1],
-										"description": "Same as 'scalar' but with size = [1,1] in metadata intead of no size being provided as was case for parameter 'scalar'."
-									},
-									{ 
 										"name": "vector",
 										"type": "double",
 										"units": "m",
