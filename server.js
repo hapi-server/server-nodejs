@@ -344,10 +344,11 @@ function data(req,res,catalog,header,include) {
 	com = com.replace("${SERVER_ROOT}",__dirname);
 
 	// See if CL program supports requested format
-	var formats = d.formats;
-	var convert = true; // CL program can produce requested format
+	var formats = d.formats; // CL formats supported
+	var convert = true; // true if conversion is needed here
 	if (formats) {
 		if (formats.includes(req.query["format"])) {
+			// CL program can create requested format
 			var convert = false;
 		}
 	}
@@ -375,7 +376,11 @@ function data(req,res,catalog,header,include) {
 	})
 
 	function dataErrorMessage() {
-		wroteheader = true;
+		if (wroteheader) {
+			// Set error header and exit if header not sent.
+			res.end();
+			return;
+		}
 		if (d.contact) {
 			error(req,res,1500,"Problem with the data server. Please send URL to " + d.contact + ".");
 		} else {
@@ -383,12 +388,34 @@ function data(req,res,catalog,header,include) {
 		}
 	}
 
+	child.stdout.on('end', function() { 
+		//console.log('end');
+	})
 	child.on('exit', function (code) {
-		if (code != 0 && !wroteheader) {
-			// If !wroteheader because if header sent, 
-			// then command line sent data before it gave
-			// an error signal.
+		if (code != 0) {
 			dataErrorMessage();
+			return;
+		}
+
+		if (gotdata) { // Data returned and normal exit.
+			if (convert && header["format"] === "json") {
+				// Convert accumulated data and send it.
+				res.send(csvTo(outstr,true,true,header,include));
+			} else {
+				res.end();
+			}
+		} else { // No data returned and normal exit.
+			res.statusMessage = "HAPI 1201: No data in interval";
+			if (convert && header["format"] === "json") {
+				// Convert accumulated data and send it.
+				res.write(csvTo("",true,true,header,include));
+				return;
+			}
+			if (include) {
+				res.status(200).send("#" + JSON.stringify(header) + "\n");
+			} else {
+				res.status(200).end();
+			}
 		}
 	})
 
@@ -411,23 +438,9 @@ function data(req,res,catalog,header,include) {
 			} else {
 				res.write(buffer.toString());
 			}
-
 		}
 	})
 
-	child.stdout.on('end', function() { 
-
-		if (!gotdata) {
-			dataErrorMessage();
-			return;
-		};
-
-		if (convert && header["format"] === "json") {
-			// Convert accumulated data and send it.
-			res.write(csvTo(outstr,true,true,header,include));
-		}
-		res.end();
-	})
 }
 
 function csvTo(records,first,last,header,include) {
@@ -689,24 +702,24 @@ function timeCheck(header) {
 	return true;
 }
 
-// HAPI Errors
+// HAPIs
 function error(req,res,code,message) {
 
 	// TODO: Need to determine if headers and/or data were already sent.
 	var errs = {
-		"1400": {status: 400, "message": "HAPI error 1400: user input error"},
-		"1401": {status: 400, "message": "HAPI error 1401: unknown request field"},
-		"1402": {status: 400, "message": "HAPI error 1402: error in start time"},
-		"1403": {status: 400, "message": "HAPI error 1403: error in stop time"},
-		"1404": {status: 400, "message": "HAPI error 1404: start time equal to or after stop time"},
-		"1405": {status: 400, "message": "HAPI error 1405: time outside valid range"},
-		"1406": {status: 404, "message": "HAPI error 1406: unknown dataset id"},
-		"1407": {status: 404, "message": "HAPI error 1407: unknown dataset parameter"},
-		"1408": {status: 400, "message": "HAPI error 1408: too much time or data requested"},
-		"1409": {status: 400, "message": "HAPI error 1409: unsupported output format"},
-		"1410": {status: 400, "message": "HAPI error 1410: unsupported include value"},
-		"1500": {status: 500, "message": "HAPI error 1500: internal server error"},
-		"1501": {status: 500, "message": "HAPI error 1501: upstream request error"}
+		"1400": {status: 400, "message": "HAPI 1400: user input error"},
+		"1401": {status: 400, "message": "HAPI 1401: unknown request field"},
+		"1402": {status: 400, "message": "HAPI 1402: error in start time"},
+		"1403": {status: 400, "message": "HAPI 1403: error in stop time"},
+		"1404": {status: 400, "message": "HAPI 1404: start time equal to or after stop time"},
+		"1405": {status: 400, "message": "HAPI 1405: time outside valid range"},
+		"1406": {status: 404, "message": "HAPI 1406: unknown dataset id"},
+		"1407": {status: 404, "message": "HAPI 1407: unknown dataset parameter"},
+		"1408": {status: 400, "message": "HAPI 1408: too much time or data requested"},
+		"1409": {status: 400, "message": "HAPI 1409: unsupported output format"},
+		"1410": {status: 400, "message": "HAPI 1410: unsupported include value"},
+		"1500": {status: 500, "message": "HAPI 1500: internal server error"},
+		"1501": {status: 500, "message": "HAPI 1501: upstream request error"}
 	}
 
 	// Defaults
