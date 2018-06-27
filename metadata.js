@@ -239,8 +239,8 @@ function metadata(catalog,which,format,id) {
 		if (v.error) {
 			console.log(ds() + "Invalid HAPI " + HAPIVERSION + " info node.");
 			console.log(v.got)
-			console.log(ds() + "Exiting. Use --force command line option to ignore error.");
 			if (!FORCE) {
+				console.log(ds() + "Exiting. Use --force true command line option to ignore error.");
 				process.exit(1);
 			}
 		}
