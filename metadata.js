@@ -1,12 +1,13 @@
 // Return content of static JSON files
 
-var fs = require('fs');
-var os = require("os");
+var fs  = require('fs');
+var os  = require("os");
+var clc = require('cli-color'); // Colorize command line output
 
 // Test library
 var is = require(__dirname + '/node_modules/hapi-server-verifier/is.js');
 
-function ds() {return (new Date()).toISOString() + " ";};
+function ds() {return (new Date()).toISOString() + " [server] ";};
 
 function timeregexes(version) {
 	// Get HAPI time regular expressions from schema
@@ -240,7 +241,7 @@ function metadata(catalog,which,format,id) {
 			console.log(ds() + "Invalid HAPI " + HAPIVERSION + " info node.");
 			console.log(v.got)
 			if (!FORCE) {
-				console.log(ds() + "Exiting. Use --force true command line option to ignore error.");
+				console.log(ds() + "Exiting. To ignore error and continue, start using option --force=true");
 				process.exit(1);
 			}
 		}
