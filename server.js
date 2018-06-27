@@ -5,7 +5,7 @@
 var HAPIVERSION = "2.0"; // Spec version implemented
 
 // Date string for logging.
-function ds() {return (new Date()).toISOString() + " ";};
+function ds() {return (new Date()).toISOString() + " [server] ";};
 
 var clc  = require('cli-color'); // Colorize command line output
 var sver = require('semver');
