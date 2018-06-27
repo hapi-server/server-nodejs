@@ -26,12 +26,16 @@ This server handles
 4. logging and alerts, and
 5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed)
 
+A list of datasets that are served using this sofware is given at [http://hapi-server.org/data]([http://hapi-server.org/data]).
+
 <a name="Examples"></a>
 ## 2. Examples
 
 ### 2.1 Serve data from Python
 
-In this example, a Python script returns HAPI-formatted CSV data (with no header). The Python calling syntax is
+In this example, a Python script returns HAPI-formatted CSV data (with no header) or HAPI binary. To serve this data, only a configuration file was needed (shown below). The configuration file has information that is used to call the command line program and it also has HAPI metadata that describes the output of the script.
+
+The Python calling syntax is
 
 ```
 TestDataSimple.py --parameters PARAMETERS --start START --stop STOP
@@ -40,10 +44,11 @@ TestDataSimple.py --parameters PARAMETERS --start START --stop STOP
 To run this example locally, execute
 
 `
+git clone https://github.com/hapi-server/server-nodejs.git
 node server.js --prefix TestDataSimple
 `
 
-Sample requests for this example are shown on the [landing page](http://mag.gmu.edu/server-nodejs/TestDataSimple/hapi)
+and then open http://localhost:8999/TestDataSimple/hapi. You should see the same landing page as that at [http://hapi-server.org/data/TestDataSimple/hapi](http://hapi-server.org/data/TestDataSimple/hapi).
 
 <details> 
   <summary>Show Python code</summary>
@@ -105,6 +110,8 @@ for i in xrange(0,mf-mo):
   <summary>Show server configuration file</summary>
 https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/TestDataSimple.json
 
+Details about this configuration are described in the [Metadata](#Metadata) section.
+
 ```javascript
 {
 	"data": {
@@ -157,19 +164,20 @@ Serving data requires at most two steps:
 1. Genering an Autoplot URI for each parameter; and (in some cases)
 2. Writing (by hand) metadata for each parameter.
 
-The second step is not required in this example because the dataset has metadata that is in a format that Autoplot can translate to HAPI metadata. The following example shows the configuration needed when step 2. is not required.
+The second step is not required in this example because the data file has metadata that is in a format that Autoplot can translate to HAPI metadata.
 
 To run this example locally, execute
 
 ```bash
-node server.js --catalog AutoplotTest --prefix AutoplotTest
+git clone https://github.com/hapi-server/server-nodejs.git
+node server.js --catalog AutoplotTest
 ```
 
-Sample requests for this example are shown on the [landing page](http://mag.gmu.edu/server-nodejs/AutoplotTest/hapi)
+The landing page for this example are shown at [http://hapi-server.org/data/AutoplotTest/hapi](http://hapi-server.org/data/AutoplotTest/hapi).
 
 <details> 
   <summary>Show configuration file</summary>
-[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/AutoplotTest.json javascript)
+https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/AutoplotTest.json
 
 ```javascript
 {
