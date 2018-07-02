@@ -33,8 +33,8 @@ var argv     = require('yargs')
 				.default
 				({
 					'port': 8999,
-					'catalog': "TestDataSimple",
-					'prefix': '',
+					'catalogs': "TestDataSimple",
+					'prefixes': '',
 					'force': "false"
 				})
 				.usage('Usage: $0 --port [num] --catalog [str] --prefix [str] --force [bool]')
@@ -42,9 +42,13 @@ var argv     = require('yargs')
 				.help('help')
 				.argv;
 
+
+// TODO: Reject if unknown command line switch is given.
+// Ideally use yargs, but using .strict() in yargs does not work as expected.
+
 var FORCE   = argv.force === "true"; // Start server if metadata invalid
-var CATALOG = argv.catalog;
-var PREFIX  = argv.prefix;
+var CATALOG = argv.catalog || argv.catalogs;
+var PREFIX  = argv.prefix || argv.prefixes;
 
 var CATALOGS = CATALOG.split(",");
 var PREFIXES = PREFIX.split(",");
