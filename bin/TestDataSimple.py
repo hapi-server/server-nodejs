@@ -42,7 +42,7 @@ for i in xrange(0,mf-mo):
 			sys.stdout.write(struct.pack('>d',mo+i))
 	else:
 		#if params == 'scalar' or params == 'Time,scalar':
-		if params == 'scalar':
+		if params == 'scalar' or params == '':
 			print "%sZ,%d" % (d1.isoformat(),mo+i)
 		else:
 			print "%sZ" % (d1.isoformat())
