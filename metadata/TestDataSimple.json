@@ -1,9 +1,9 @@
 {
 	"data": {
-		"command": "python bin/TestDataSimple.py --id ${id} --parameters ${parameters} --start ${start} --stop ${stop} --format ${format}",
+		"command": "python bin/TestDataSimple.py --id ${id} --parameters=${parameters} --start ${start} --stop ${stop} --format ${format}",
 		"formats": ["csv","binary"],
 		"contact": "rweigel@gmu.edu",
-		"test": "python bin/TestDataSimple.py --id dataset1 --parameters scalar --start 2001-01-01 --stop 2001-01-01T00:10:00 --format csv"
+		"test": "python bin/TestDataSimple.py --id dataset1 --parameters=scalar --start 2001-01-01 --stop 2001-01-01T00:10:00 --format csv"
 	},
 	"catalog" :
 		[
