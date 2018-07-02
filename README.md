@@ -26,7 +26,7 @@ This server handles
 4. logging and alerts, and
 5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed)
 
-A list of datasets that are served using this sofware is given at [http://hapi-server.org/data]([http://hapi-server.org/data]).
+A list of datasets that are served using this sofware is given at [http://hapi-server.org/servers]([http://hapi-server.org/servers]).
 
 <a name="Examples"></a>
 ## 2. Examples
@@ -38,21 +38,19 @@ In this example, a Python script returns HAPI-formatted CSV data (with no header
 The Python calling syntax is
 
 ```
-TestDataSimple.py --parameters PARAMETERS --start START --stop STOP
+python TestDataSimple.py --parameters PARAMETERS --start START --stop STOP
 ```
 
-To run this example locally, execute
+To run this example locally after [installation](#Install), execute
 
-`
-git clone https://github.com/hapi-server/server-nodejs.git
-node server.js --prefix TestDataSimple
-`
+```bash
+node server.js --catalog TestDataSimple
+```
 
-and then open http://localhost:8999/TestDataSimple/hapi. You should see the same landing page as that at [http://hapi-server.org/data/TestDataSimple/hapi](http://hapi-server.org/data/TestDataSimple/hapi).
+and then open http://localhost:8999/TestDataSimple/hapi. You should see the same landing page as that at [http://hapi-server.org/servers/TestDataSimple/hapi](http://hapi-server.org/servers/TestDataSimple/hapi).
 
 <details> 
-  <summary>Show Python code</summary>
-https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/TestDataSimple.py
+  <summary>Show Python [code](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/TestDataSimple.py)</summary>
 
 ```python
 # Usage:
@@ -107,8 +105,7 @@ for i in xrange(0,mf-mo):
 </details>
 
 <details> 
-  <summary>Show server configuration file</summary>
-https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/TestDataSimple.json
+  <summary>Show server configuration [file](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/TestDataSimple.json)</summary>
 
 Details about this configuration are described in the [Metadata](#Metadata) section.
 
@@ -169,30 +166,16 @@ The second step is not required in this example because the data file has metada
 To run this example locally, execute
 
 ```bash
-git clone https://github.com/hapi-server/server-nodejs.git
 node server.js --catalog AutoplotTest
 ```
 
-The landing page for this example are shown at [http://hapi-server.org/data/AutoplotTest/hapi](http://hapi-server.org/data/AutoplotTest/hapi).
+The landing page for this example are shown at [http://hapi-server.org/servers/AutoplotTest/hapi](http://hapi-server.org/servers/AutoplotTest/hapi).
 
 <details> 
-  <summary>Show configuration file</summary>
-https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/AutoplotTest.json
+  <summary>Show configuration [file](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/AutoplotTest.json)</summary>
 
 ```javascript
-{
-    "data": {
-        "command": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri=http://autoplot.org/data/autoplot.cdf?BGSM -f hapi-data",
-        "contact": "rweigel@gmu.edu"
-    },
-	"catalog":
-		[
-			{
-                "id": "ACE",
-				"info": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri='http://autoplot.org/data/autoplot.cdf?BGSM' -f hapi-info"
-            }
-        ]
-}
+
 ```
 </details>
 
@@ -208,7 +191,7 @@ To run this example locally, execute
 node server.js --catalog OneWire --prefix OneWire
 ```
 
-Sample requests for this example are shown on the [landing page](http://mag.gmu.edu/server-nodejs/OneWire/hapi)
+Sample requests for this example are shown on the [landing page](http://hapi-server.org/servers/OneWire/hapi)
 
 <details> 
   <summary>Show configuration file</summary>
@@ -216,20 +199,21 @@ Sample requests for this example are shown on the [landing page](http://mag.gmu.
 
 ```javascript
 {
-	"data": {
-		"command": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri vap+dat:file:/Users/robertweigel/git/server-nodejs/public/data/OneWire/data/10.CF3744000800/$Y/10.CF3744000800.$Y$m$d.csv?time=field0&field1&timerange=2018-01-06/2018-01-07 -f hapi-data",
-		"formats": ["csv"],
-		"contact": "rweigel@gmu.edu",
-		"test": "java -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri vap+dat:file:/Users/robertweigel/git/server-nodejs/public/data/OneWire/data/10.CF3744000800/$Y/10.CF3744000800.$Y$m$d.csv?time=field0&field1&timerange=2018-01-06/2018-01-07 -f hapi-data"
-	},
-	"catalog" :
-		[
-			{
-	            "id": "10.CF3744000800",
-    	        "title": "Pool Temperature",
-				"info": "metadata/OneWire/info/10.CF3744000800.json"
-			}
-		]
+	data: {
+	command: "bash ./bin/OneWire.sh ${parameters} ${start} ${stop} ${SERVER_ROOT}",
+	formats: [
+		"csv"
+	],
+	contact: "rweigel@gmu.edu",
+	test: "bash ./bin/OneWire.sh Temperature 2018-01-06 2018-01-07 ${SERVER_ROOT}"
+},
+	catalog: [
+		{
+		id: "10.CF3744000800",
+		title: "Pool Temperature",
+		info: "public/data/OneWire/info/10.CF3744000800.json"
+		}
+	]
 }
 ```
 </details>
@@ -239,12 +223,13 @@ Sample requests for this example are shown on the [landing page](http://mag.gmu.
 
 `node server.js`
 
-Starts HAPI server at [`http://localhost:8999/hapi`](http://localhost:8999/hapi) and serves datasets specified in the catalog [`./metadata/TestDataSimple.json`](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestDataSimple.json). 
+Starts HAPI server at [http://localhost:8999/hapi](http://localhost:8999/hapi) and serves datasets specified in the catalog [`./metadata/TestDataSimple.json`](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestDataSimple.json). 
  
+### Single Dataset
 All command line options:
 
 ```bash
-node server.js --port PORT --catalog CATALOG --prefix PREFIX
+node server.js --port PORT --catalog CATALOG --prefix PREFIX --force [true|false]
 ```
 
 Serves data from `http://localhost:PORT/PREFIX/hapi` using datasets and command line program template specified in `./metadata/CATALOG.json`. If `./metadata/CATALOG.{htm,html}` is found, it is used as the landing page.
@@ -253,10 +238,24 @@ When requests for metadata are made, information in `CATALOG.json` is used to ge
 
 When a request is made for data, output from a command line program specified in `CATALOG.json` will be piped to the response.
 
-The server can serve multiple datasets by giving a comma-separated list for `CATALOG` and `PREFIX`. For example
+If `--force=true` is used, the server will start even if the HAPI metadata is does not pass the validation test.
+
+### Multiple Datasets
 
 ```bash
-node server.js --catalog TestDataSimple,OneWire --prefix TestData,OneWire
+node server.js --port PORT --catalogs CATALOGs --prefixes PREFIXES
+```
+
+The server can serve multiple datasets by giving a comma-separated list for `CATALOGS`. By default, `PREFIXES=CATALOGS`. For example
+
+```bash
+node server.js --catalogs TestDataSimple,OneWire
+```
+
+and
+
+```bash
+node server.js --catalogs TestDataSimple,OneWire --prefixes TestData,OneWire
 ```
 
 will serve the two datasets at
@@ -265,15 +264,6 @@ will serve the two datasets at
 http://localhost:8999/TestData/hapi
 http://localhost:8999/OneWire/hapi
 ```
-
-For example, in [`./metadata/TestDataSimple.json`](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestDataSimple.json), the command line syntax is given as
-
-```bash
-python ./bin/TestDataSimple.py --dataset ${dataset} --parameters \
-   ${parameters} --start ${start} --stop ${stop} --format ${format}"`
-```
-
-When data is requested, this command line program is executed after variable substitution and the output is sent as the response.
 
 <a name="Installation"></a>
 ## 4. Installation
@@ -297,7 +287,7 @@ git clone https://github.com/hapi-server/server-nodejs
 # Install dependencies
 cd server-nodejs; npm install
 # Start the server
-node server.js --prefix TestDataSimple
+node server.js
 ```
 
 Open [http://localhost:8999/TestDataSimple/hapi](http://localhost:8999/TestDataSimple/hapi) in a web browser.
