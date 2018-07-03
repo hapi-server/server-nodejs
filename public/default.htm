@@ -11,6 +11,8 @@
 			var src = "http://hapi-server.org/verify?url="+window.location;
 			$(document).ready(validation);
 			function validation() {
+				$("#showvalidation").attr("title",src);
+				//$("#showvalidation").attr("href",src);
 				$("#showvalidation").click(function () {
 					$("#validationresults").show();
 					$('#iframe').attr("src",src);				
@@ -86,7 +88,7 @@
 			Contact: __CONTACT__
 		</p>
 		<br/>
-		<a id="showvalidation" href="#">Validation results</a>
+		<span id="showvalidation" style="cursor:pointer;color:blue;text-decoration:underline;">Run Validation Tests</a>
 		<div id="validationresults" style="display:none;">
 			<iframe id="iframe" style="width:100%;height:1000px;border:1px solid black"/>
 		</div>

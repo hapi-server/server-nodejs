@@ -8,30 +8,62 @@
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 	</head>
 	<script>
-  		$(document).ready(function(){
-			var catalogs = __CATALOG_LIST__;
-			for (var i = 0;i < catalogs.length;i++) {
-				var url = window.location.href.replace(/\/$/,"") + catalogs[i] + "/hapi";
+		function urllist(urls,divid,prefix) {
+			prefix = prefix || "";
+
+			for (var i = 0;i < urls.length;i++) {
+
+				// In case empty line(s) in all.txt
+				if (urls[i] == "") {continue;}
+
+				var url = urls[i];
+				if (!/\/hapi$/.test(urls[i])) {
+					var url = urls[i] + "/hapi";
+				}
+				if (!/^http/.test(urls[i])) {
+					url = window.location.href.replace(/\/$/,"") + url;
+				}
+
 				var link = $("<a>")
-							.attr("href", url)
-							.attr("title", url)
-							.text(url)
-				$("#catalogs ul").append("<li>");
-				$($("#catalogs ul li")[i]).append(link);
+								.attr("href", url)
+								.attr("title", url)
+								.text(url)
+				$("#" + divid + " ul").append("<li>");
+				$($("#" + divid + " ul li")[i]).append(link);
 			}
+		}
+
+  		$(document).ready(function(){
+
+			var all = 'https://raw.githubusercontent.com/hapi-server/servers/master/all.txt';
+
+			$.ajax(all).done(function(data) {
+				// Post all.txt contents
+				urllist(data.split("\n"),"catalogsall");
+			});
+
+			// Populated by server on start-up
+			var catalogs = __CATALOG_LIST__; 
+
+			// Post datasets served by this server
+			urllist(catalogs,"catalogs");
+
     	});
 	</script>
 	<body>
 		<p>
 			This server serves the following HAPI datasets using the server code at <a href="https://github.com/hapi-server/server-nodejs">https://github.com/hapi-server/server-nodejs</a>.	
+			<div id="catalogs">
+				<ul>
+				</ul>
+			</div>
 		</p>
-		<div id="catalogs">
-			<ul>
-				
-			</ul>
-		</div>
 		<p>
-			A list of known HAPI servers is available at <a href="https://github.com/hapi-server/servers">https://github.com/hapi-server/servers</a>.
+			List of known HAPI servers from <a href="https://github.com/hapi-server/servers/blob/master/all.txt">https://github.com/hapi-server/servers/blob/master/all.txt</a>:
+			<div id="catalogsall">
+				<ul>
+				</ul>
+			</div>
 		</p>
 	</body>
 <html>
