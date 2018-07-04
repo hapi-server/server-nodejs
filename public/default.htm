@@ -7,13 +7,16 @@
 		<link rel="icon" href="favicon.ico" type="image/x-icon">
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 		<script>
-
-			var src = "http://hapi-server.org/verify?url="+window.location;
+			var VERIFIER = "http://hapi-server.org/verify";
+			var src = VERIFIER+"?url="+window.location;
 			$(document).ready(validation);
+			
 			function validation() {
 				$("#showvalidation").attr("title",src);
-				//$("#showvalidation").attr("href",src);
+				$("#verifierurl").html(src);
+				$("#verifierurl").attr("href",src);
 				$("#showvalidation").click(function () {
+					$("#verifierurl").show();
 					$("#validationresults").show();
 					$('#iframe').attr("src",src);				
 				})
@@ -88,7 +91,9 @@
 			Contact: __CONTACT__
 		</p>
 		<br/>
-		<span id="showvalidation" style="cursor:pointer;color:blue;text-decoration:underline;">Run Validation Tests</a>
+		<div id="showvalidation" style="cursor:pointer;color:blue;text-decoration:underline;">Run Validation Tests</div>
+		<br/>
+		<a id="verifierurl" style="display:none;"></a>
 		<div id="validationresults" style="display:none;">
 			<iframe id="iframe" style="width:100%;height:1000px;border:1px solid black"/>
 		</div>
