@@ -370,6 +370,11 @@ function data(req,res,catalog,header,include) {
 	var child = require('child_process')
 					.spawn(coms0,coms,{"encoding":"buffer"})
 
+    req.connection.on('close',function(){    
+       console.log(ds() + 'HTTP Connection closed. Killing ' + coms);
+       child.kill('SIGINT');
+    });
+
 	var wroteheader = false; // If header already sent.
 	var gotdata = false;
 	var outstr = "";
@@ -396,6 +401,7 @@ function data(req,res,catalog,header,include) {
 		//console.log('end');
 	})
 	child.on('exit', function (code) {
+		//console.log('exit');
 		if (code != 0) {
 			dataErrorMessage();
 			return;
