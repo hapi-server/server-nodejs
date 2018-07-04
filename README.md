@@ -16,7 +16,7 @@
 The intended use case for this server is for a data provider that has
 
 1. [HAPI](https://github.com/hapi-server/data-specification) metadata, in one of a [variety of forms](#Metadata), for a set of datasets and
-2. a command line program that returns at least [HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) given inputs of a dataset, a list of one or more parameters in a dataset, start/stop times, and (optionally) an output format.
+2. a command line program that returns at least [HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) for a dataset and optionally: a list of one or more parameters in a dataset, start/stop times, and an output format.
 
 This server handles
 
@@ -30,6 +30,8 @@ A list of datasets that are served using this sofware is given at [http://hapi-s
 
 <a name="Examples"></a>
 ## 2. Examples
+
+### 2.1 Serve data from File
 
 ### 2.1 Serve data from Python
 
