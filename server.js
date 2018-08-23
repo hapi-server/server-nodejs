@@ -57,7 +57,7 @@ if (PREFIX !== '' && CATALOGS.length != PREFIXES.length) {
 	console.log(ds() + clc.red("If multiple catalogs given, same number of prefixes must be given."));
 	process.exit(1);
 } else {
-	PREFIXES = CATALOGS;
+	PREFIXES = CATALOGS.slice(0); // Clone array
 }
 
 for (var i = 0;i < PREFIXES.length;i++) {
@@ -293,7 +293,7 @@ function apiInit(catalog,PREFIX,last) {
 	})
 
 	// The following must always be after last app.get() statement.
-	// Any requests not matching above patters will trigger errorHandler() call.
+	// Any requests not matching above patterns will trigger errorHandler() call.
 	if (last) {
 		// Fall through
 		app.get('*', function(req, res) {
@@ -357,32 +357,40 @@ function data(req,res,catalog,header,include) {
 		}
 	}
 
-	// var child = require('child_process').exec(com, {"encoding":"buffer"});
-	console.log(ds() + "Executing " + com);
-	//console.log(com)
+	// If command does not contain ${parameters}, assume CL program
+	// always outputs all variables. Subset the output using the
+	// Unix "cut" command.
+	if (req.query["parameters"] && !/\$\{parameters\}/.test(d.command)) {
+		var params = req.query["parameters"].split(",");
+		var headerfull = metadata(catalog,'info','json',req.query.id);
 
-	// Call the CL command and send output.	
-	var coms = com.split(/\s+/);
-	var coms0 = coms.shift();
-	//console.log(coms);
-	//quote = require('shell-quote').quote;
-	//console.log(quote(coms))
-	var child = require('child_process')
-					.spawn(coms0,coms,{"encoding":"buffer"})
+		if (params[0] !== headerfull.parameters[0].name) {
+			// If time variable was not requested, add it so first column
+			// is always output.
+			params.unshift(headerfull.parameters[0].name);
+		}
 
-    req.connection.on('close',function(){    
-       console.log(ds() + 'HTTP Connection closed. Killing ' + coms);
-       child.kill('SIGINT');
-    });
+		var fields = {};
+		var col = 1;
+		var df = 0;
 
-	var wroteheader = false; // If header already sent.
-	var gotdata = false;
-	var outstr = "";
-	//console.log(child)
-	// TODO: Write this to log file
-	child.stderr.on('data', function (err) {
-		console.log("Error message:" + err.toString());
-	})
+		// Generate comma separated list of columns to output, e.g.,
+		// 1,2-4,7
+		for (var i = 0;i < headerfull.parameters.length;i++) {
+			df = prod(headerfull.parameters[i].size || [1]);
+			if (df > 1) {
+				fields[headerfull.parameters[i].name] = col + "-" + (col+df-1);
+			} else {
+				fields[headerfull.parameters[i].name] = col;
+			}
+			col = col+df;
+		}
+		var fieldstr = "";
+		for (var i = 0;i < params.length;i++) {
+			fieldstr = fieldstr + fields[params[i]] + ",";
+		}
+		com = com + " | cut -d , -f " + fieldstr.slice(0, -1);
+	}
 
 	function dataErrorMessage() {
 		if (wroteheader) {
@@ -397,11 +405,36 @@ function data(req,res,catalog,header,include) {
 		}
 	}
 
-	child.stdout.on('end', function() { 
-		//console.log('end');
+	console.log(ds() + "Executing " + com);
+
+	// Call the CL command and send output.	
+	var coms  = com.split(/\s+/);
+	var coms0 = coms.shift();
+	//var child = require('child_process')
+	//				.spawn(coms0,coms,{"encoding":"buffer"})
+	var child = require('child_process')
+					.spawn('sh',['-c',com],{"encoding":"buffer"})
+
+	var wroteheader = false; // If header already sent.
+	var gotdata = false; // First chunk of data received.
+	var outstr = ""; // output string.
+
+	req.connection.on('close',function () {
+		if (child.exitCode == null) {
+			console.log(ds() + 'HTTP Connection closed. Killing ' + com);
+			child.kill('SIGINT');
+		}
+	});
+
+	child.stdout.on('end', function() {})
+
+	// TODO: Write this to log file
+	child.stderr.on('data', function (err) {
+		console.log("Error message:" + err.toString());
 	})
+
 	child.on('exit', function (code) {
-		//console.log('exit');
+
 		if (code != 0) {
 			dataErrorMessage();
 			return;
@@ -417,7 +450,7 @@ function data(req,res,catalog,header,include) {
 		} else { // No data returned and normal exit.
 			res.statusMessage = "HAPI 1201: No data in interval";
 			if (convert && header["format"] === "json") {
-				// Convert accumulated data and send it.
+				// Send header only
 				res.write(csvTo("",true,true,header,include));
 				return;
 			}
@@ -443,20 +476,25 @@ function data(req,res,catalog,header,include) {
 			// TODO: Write incrementally; use buffer.toString().lastIndexOf(/\n/)
 			outstr = outstr + buffer.toString();
 		} else {
-			if (header["format"] === "binary") {
+			if (!convert && header["format"] === "binary") {
 				res.write(buffer,'binary');
 			} else {
-				res.write(buffer.toString());
+				if (convert && header["format"] === "binary") {
+					res.write(csvTo(buffer.toString(),true,true,header,include),'binary');
+				} else {
+					res.write(buffer.toString());
+				}
 			}
 		}
 	})
 
 }
 
+function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
+
 function csvTo(records,first,last,header,include) {
 
 	// Helper functions
-	function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
 	function append(str,arr,N) {for (var i=0;i<N;i++) {arr.push(str);};return arr;}
 
 	// TODO: Do this on first call only.
@@ -481,7 +519,64 @@ function csvTo(records,first,last,header,include) {
 		}
 	}
 	
-	return csv2json(records,po,names,first,last,header,include);
+	if (header["format"] === "json") {
+		return csv2json(records,po,names,first,last,header,include);
+	}
+
+	if (header["format"] === "binary") {
+		return csv2bin(records,types);
+	}
+
+
+	function csv2bin(records,types) {
+
+		// TODO: Only handles integer and double.
+		// Does not use length info for Time variable - it is inferred
+		// from input (so no padding).
+
+		var recordsarr = records.split("\n");
+		var Nr = recordsarr.length; // Number of rows
+		if (/\n$/.test(records)) {
+			Nr = Nr-1; // Last array element is empty if trailing newline.
+			// Does not check for multiple trailing newlines.
+		}
+
+		var record1 = recordsarr[0].split(",");
+		var Nt = record1[0].length ; // Number of time characters
+		var Nd = record1.length - 1; // Number of data columns
+
+		Nb = 0;
+		for (var i = 1;i < types.length;i++) {
+			if (types[i] === 'double') {
+				Nb = Nb + 8;
+			}
+			if (types[i] === 'integer') {
+				Nb = Nb + 4;
+			}		
+		}
+
+		console.log(records,types,Nr,Nt,Nb);
+
+		var recordbuff = new Buffer.alloc(Nr*(Nt + Nb));
+		var pos = 0;
+		for (var i = 0; i < Nr; i++) {
+			var record = recordsarr[i].split(",");
+			recordbuff.write(record[0],pos); // Time
+			pos = pos + Nt;
+			for (var j = 1;j < Nd+1;j++) {
+				console.log(record[j])
+				if (types[j] === 'double') {
+					recordbuff.writeDoubleLE(record[j],pos);
+					pos = pos + 8;
+				}
+				if (types[j] === 'integer') {
+					recordbuff.writeInt32LE(records[j],pos);	
+					pos = pos + 4;
+				}
+			}
+		}
+		return recordbuff;
+	}
 
 	function csv2json(records,po,names,first,last,header,include) {
 
@@ -712,7 +807,7 @@ function timeCheck(header) {
 	return true;
 }
 
-// HAPIs
+// HAPI errors
 function error(req,res,code,message) {
 
 	// TODO: Need to determine if headers and/or data were already sent.
