@@ -1,3 +1,4 @@
+// Call the SSCWeb API and respond with HAPI CSV.
 var fs      = require('fs');
 var request = require('request');
 var moment  = require('moment');
