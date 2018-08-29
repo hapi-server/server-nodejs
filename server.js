@@ -324,7 +324,7 @@ function normalizeTime(timestr) {
 	if (/^[0-9]{4}-[0-9]{2}-[0-9]{2}Z$/.test(timestr)) {
 		timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
 	}
-	timestr = moment(timestr).toISOString();
+	timestr = moment.utc(timestr).toISOString();
 	return timestr;
 }
 
@@ -479,7 +479,7 @@ function data(req,res,catalog,header,include) {
 			if (!convert && header["format"] === "binary") {
 				res.write(buffer,'binary');
 			} else {
-				if (convert && header["format"] === "binary") {
+				if (convert && header["format"] === "binary") {					
 					res.write(csvTo(buffer.toString(),true,true,header,include),'binary');
 				} else {
 					res.write(buffer.toString());
@@ -499,17 +499,23 @@ function csvTo(records,first,last,header,include) {
 
 	// TODO: Do this on first call only.
 	var size    = [];
-	var type    = "";
-	var types   = []; // Type associated with number in each column 
+	var sizes   = [];
 	var name    = "";
 	var names   = []; // Name associated with number in each column
+	var type    = "";
+	var types   = []; // Type associated with number in each column 
+	var length  = -1;
+	var lengths = [];
 	var po      = {}; // Parameter object
 	for (var i = 0;i < header.parameters.length; i++) {
 		size  = header.parameters[i]["size"] || [1];
+		sizes = append(size,sizes,prod(size));
 		name  = header.parameters[i]["name"];
 		names = append(name,names,prod(size));
 		type  = header.parameters[i]["type"];
 		types = append(type,types,prod(size));
+		length  = header.parameters[i]["length"] || -1;
+		lengths = append(length,lengths,prod(size));
 		po[header.parameters[i].name] = {};
 		po[header.parameters[i].name]["type"] = header.parameters[i].type;
 		po[header.parameters[i].name]["size"] = header.parameters[i].size || [1];
@@ -524,13 +530,14 @@ function csvTo(records,first,last,header,include) {
 	}
 
 	if (header["format"] === "binary") {
-		return csv2bin(records,types);
+		return csv2bin(records,types,lengths,sizes);
 	}
 
 
-	function csv2bin(records,types) {
+	function csv2bin(records,types,lengths,sizes) {
 
 		// TODO: Only handles integer and double.
+
 		// Does not use length info for Time variable - it is inferred
 		// from input (so no padding).
 
@@ -542,36 +549,40 @@ function csvTo(records,first,last,header,include) {
 		}
 
 		var record1 = recordsarr[0].split(",");
-		var Nt = record1[0].length ; // Number of time characters
 		var Nd = record1.length - 1; // Number of data columns
 
 		Nb = 0;
-		for (var i = 1;i < types.length;i++) {
+		for (var i = 0;i < types.length;i++) {
 			if (types[i] === 'double') {
 				Nb = Nb + 8;
 			}
 			if (types[i] === 'integer') {
 				Nb = Nb + 4;
 			}		
+			if (types[i] === 'string' || types[i] === 'isotime') {
+				Nb = Nb + lengths[i];
+			}		
 		}
 
-		console.log(records,types,Nr,Nt,Nb);
+		console.log(records,types,lengths,sizes,Nr,Nb);
 
-		var recordbuff = new Buffer.alloc(Nr*(Nt + Nb));
+		var recordbuff = new Buffer.alloc(Nr*Nb);
 		var pos = 0;
 		for (var i = 0; i < Nr; i++) {
 			var record = recordsarr[i].split(",");
-			recordbuff.write(record[0],pos); // Time
-			pos = pos + Nt;
-			for (var j = 1;j < Nd+1;j++) {
+			for (var j = 0;j < Nd+1;j++) {
 				console.log(record[j])
 				if (types[j] === 'double') {
 					recordbuff.writeDoubleLE(record[j],pos);
 					pos = pos + 8;
 				}
 				if (types[j] === 'integer') {
-					recordbuff.writeInt32LE(records[j],pos);	
+					recordbuff.writeInt32LE(record[j],pos);	
 					pos = pos + 4;
+				}
+				if (types[j] === 'string' || types[j] === 'isotime') {
+					recordbuff.write(record[j],pos)
+					pos = pos + lengths[j];
 				}
 			}
 		}
