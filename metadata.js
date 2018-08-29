@@ -24,6 +24,7 @@ exports.timeregexes = timeregexes;
 
 function metadata(catalog,which,format,id) {
 
+
 	// Call before server starts as metadata(cb) to read 
 	// and memory cache content from metadata.
 	if (metadata.cache && metadata.cache[catalog]) {
