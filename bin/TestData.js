@@ -10,9 +10,8 @@ var argv    = require('yargs')
 				.argv;
 
 var all = false;
-if (typeof(argv.parameters) === 'boolean') {
-	// Command line was --parameters
-	// with no parameters.
+if (argv.parameters === '' || typeof(argv.parameters) === 'boolean') {
+	// If --parameters with no parameters, type is boolean.
 	all = true;
 	var parameters = [""];
 } else {

@@ -12,149 +12,91 @@
 
 <a name="About"></a>
 ## 1. About
-
 The intended use case for this server is for a data provider that has
 
-1. [HAPI](https://github.com/hapi-server/data-specification) metadata, in one of a [variety of forms](#Metadata), for a set of datasets and
-2. a command line program that returns at least [HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) for a dataset and optionally: a list of one or more parameters in a dataset, start/stop times, and an output format.
+1. [HAPI](https://github.com/hapi-server/data-specification) metadata, in one of a [variety of forms](#Metadata), for a  dataset and
+2. a command line program that returns at least [HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (headerless) for all parameters in the dataset over a given start/stop timerange. Optionally, the command line program can take inputs of a list of one or more parameters to output and an output format.
 
 This server handles
 
 1. HAPI metadata validation,
-2. request validation,
-3. error responses,
-4. logging and alerts, and
-5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed)
+2. request validation and error responses,
+3. logging and alerts,
+4. parameter subsetting (as needed), and
+5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed).
 
 A list of datasets that are served using this sofware is given at [http://hapi-server.org/servers]([http://hapi-server.org/servers]).
 
 <a name="Examples"></a>
 ## 2. Examples
 
-### 2.1 Serve data from File
+### 2.1 Serve data from a minimal Python program
 
-### 2.1 Serve data from Python
+In this example, we assume that the command line program that returns a dataset has the minimal capabilities required - when executed with inputs of a start and stop time, it generates a headerless HAPI CSV file with all parameters in the dataset. The server handles parameter subsetting and the generation of HAPI Binary and JSON.
 
-In this example, a Python script returns HAPI-formatted CSV data (with no header) or HAPI binary. To serve this data, only a configuration file was needed (shown below). The configuration file has information that is used to call the command line program and it also has HAPI metadata that describes the output of the script.
+In this example, a Python script [Example.py](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/Example.py) returns HAPI-formatted CSV data (with no header) with two parameters. To serve this data, only a configuration file, [Example1.json](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/Example1.json) is needed. The configuration file has information that is used to call the command line program and it also has HAPI metadata that describes the output of [Example.py](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/Example.py). Details about the configuration file format are described in the [Metadata](#Metadata) section.
 
-The Python calling syntax is
+The Python calling syntax of [Example.py](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/Example.py) is 
 
 ```
-python TestDataSimple.py --parameters PARAMETERS --start START --stop STOP
+python Example.py --start START --stop STOP
 ```
 
 To run this example locally after [installation](#Install), execute
 
 ```bash
-node server.js --catalog TestDataSimple
+node server.js --catalog Example1
 ```
 
-and then open http://localhost:8999/TestDataSimple/hapi. You should see the same landing page as that at [http://hapi-server.org/servers/TestDataSimple/hapi](http://hapi-server.org/servers/TestDataSimple/hapi).
+and then open http://localhost:8999/Example1/hapi. You should see the same landing page as that at [http://hapi-server.org/servers/Example1/hapi](http://hapi-server.org/servers/Example1/hapi).
 
-<details> 
-  <summary>Show Python [code](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/TestDataSimple.py)</summary>
+### 2.2 Serve data from a enhanced Python program
 
-```python
-# Usage:
-#  python TestDataSimple.py --start 1970-01-01 --stop 1970-01-01T00:10:00
-#
-# Generates a HAPI CSV file with a scalar parameter that is the
-# number of minutes since 1970-01-01.
-#
-#  python TestDataSimple.py --start 1970-01-01 --stop 1970-01-01T00:10:00 --format binary
-#  Generates a HAPI Binary file.
+The Python script [Example.py](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/Example.py) actually has the ability to subset parameters and to provide binary output. To force the server to use these capabilities, we need to modify the server configuration metadata in [Example1.json](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/Example1.json). The changes are replacing
 
-import sys
-import struct
-import argparse
-import datetime
-import dateutil.parser
-import re
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--id') # ignored
-parser.add_argument('--parameters') # ignored
-parser.add_argument('--start')
-parser.add_argument('--stop')
-parser.add_argument('--format')
-
-v      = vars(parser.parse_args())
-epoch  = datetime.datetime(1970,1,1)
-params = v['parameters']
-start  = dateutil.parser.parse(re.sub("Z$","",v['start']))
-stop   = dateutil.parser.parse(re.sub("Z$","",v['stop']))
-format = v["format"]
-
-mo = int((start-epoch).total_seconds()/60.0)
-mf = int((stop-epoch).total_seconds()/60.0)
-
-dt = (stop-epoch).total_seconds()-(start-epoch).total_seconds()
-if dt < 60: mf=mo+1 # To output 1 record if stop < start + 60 sec
-
-for i in xrange(0,mf-mo):
-	d1 = start + datetime.timedelta(minutes=i)
-	if format == 'binary':
-		sys.stdout.write("%sZ" % d1.isoformat())
-		if params == 'scalar' or params == 'Time,scalar':
-			sys.stdout.write(struct.pack('>d',mo+i))
-	else:
-		#if params == 'scalar' or params == 'Time,scalar':
-		if params == 'scalar':
-			print "%sZ,%d" % (d1.isoformat(),mo+i)
-		else:
-			print "%sZ" % (d1.isoformat())
 ```
-</details>
-
-<details> 
-  <summary>Show server configuration [file](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/TestDataSimple.json)</summary>
-
-Details about this configuration are described in the [Metadata](#Metadata) section.
-
-```javascript
-{
-	"data": {
-		"command": "python bin/TestDataSimple.py --id ${id} --parameters ${parameters} --start ${start} --stop ${stop} --format ${format}",
-		"formats": ["csv","binary"],
-		"contact": "rweigel@gmu.edu",
-		"test": "python bin/TestDataSimple.py --id dataset1 --parameters scalar --start 2001-01-01 --stop 2001-01-01T00:10:00 --format csv"
-	},
-	"catalog" :
-		[
-			{
-				"id": "dataset1",
-				"title": "Simple dataset generated by Python",
-				"info": {
-					"startDate": "1970-01-01Z",
-					"stopDate" : "2016-12-31Z",
-					"sampleStartDate": "1970-01-01Z",
-					"sampleStopDate" : "1970-01-01T00:11:00Z",
-					"cadence": "PT1M",
-					"parameters":
-						[
-							{ 
-								"name": "Time",
-								"type": "isotime",
-								"units": "UTC",
-								"fill": null,
-								"length": 20
-							},
-							{ 
-								"name": "scalar",
-								"type": "double",
-								"units": "m",
-								"fill": "-1e31",
-								"description": "Sine wave with 600 s period"
-							}
-						]
-					}
-			}
-		]
-}
+"command": "python bin/Example.py --start ${start} --stop ${stop}"
 ```
-</details>
 
-### 2.2 Serve data read by Autoplot
+with
+
+```
+"command": "python bin/Example.py --params ${parameters} --start ${start} --stop ${stop} --fmt ${format}"
+```
+
+and adding
+
+```
+"formats": ["csv","binary"]
+```
+
+The modified file is [Example2.json](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/Example2.json). To run this example locally after [installation](#Install), execute
+
+```bash
+node server.js --catalog Example2
+```
+
+and then open http://localhost:8999/Example2/hapi.  The command line program now produces binary output and performs parameter subsetting as needed and the response time for data should decrease.
+
+The server responses will be idential to that in the previous example. You should see the same landing page as that at [http://hapi-server.org/servers/Example1/hapi](http://hapi-server.org/servers/Example1/hapi).
+
+### 2.3 Serve data from a non-HAPI web service
+
+A non-HAPI server can be quickly be made HAPI compliant by using this server as a pass-through. Data from [SSCWeb](https://sscweb.sci.gsfc.nasa.gov/), which is available from a [REST API](https://sscweb.sci.gsfc.nasa.gov/WebServices/REST/), has been made avaliable through a HAPI API at [http://hapi-server.org/servers/SSCWeb/hapi](http://hapi-server.org/servers/SSCWeb/hapi). The configuration file is [SSCWeb.json](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/SSCWeb.json) and the command line program is [SSCWeb.js](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/SSCWeb.js). Note that the configuration file [SSCWeb.json](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/SSCWeb.json) was created using code in [metadata/SSCWeb](https://github.com/hapi-server/server-nodejs/tree/master/metadata/SSCWeb).
+
+ this example locally after [installation](#Install), execute
+
+```bash
+node server.js --catalog SSCWeb
+```
+
+and then open http://localhost:8999/SSCWeb/hapi. You should see the same landing page as that at [http://hapi-server.org/servers/SSCWeb/hapi](http://hapi-server.org/servers/SSCWeb/hapi).
+
+### 2.4 Serve data stored in a file
+
+### 2.5 Serve data stored in a local directory tree
+
+### 2.6 Serve data read by Autoplot
 
 Nearly any data file that can be read by Autoplot can be served using this server. 
 
@@ -181,44 +123,6 @@ The landing page for this example are shown at [http://hapi-server.org/servers/A
 ```
 </details>
 
-### 2.3 Serve data from files in a directory
-
-Data are stored in [a directory tree containing ASCII files](https://github.com/hapi-server/server-nodejs/tree/master/public/data/OneWire/data/10.CF3744000800/2018).
-
-In the previous example, metadata was available in the files in a format that Autoplot could interpret and translate to HAPI metadata, so the second step was not needed. In this example, the metadata is in a README file that must be hand-translated to HAPI metadata.
-
-To run this example locally, execute
-
-```bash
-node server.js --catalog OneWire --prefix OneWire
-```
-
-Sample requests for this example are shown on the [landing page](http://hapi-server.org/servers/OneWire/hapi)
-
-<details> 
-  <summary>Show configuration file</summary>
-[embedmd]:# (https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/OneWire.json javascript)
-
-```javascript
-{
-	data: {
-	command: "bash ./bin/OneWire.sh ${parameters} ${start} ${stop} ${SERVER_ROOT}",
-	formats: [
-		"csv"
-	],
-	contact: "rweigel@gmu.edu",
-	test: "bash ./bin/OneWire.sh Temperature 2018-01-06 2018-01-07 ${SERVER_ROOT}"
-},
-	catalog: [
-		{
-		id: "10.CF3744000800",
-		title: "Pool Temperature",
-		info: "public/data/OneWire/info/10.CF3744000800.json"
-		}
-	]
-}
-```
-</details>
 
 <a name="Usage"></a>
 ## 3. Usage
