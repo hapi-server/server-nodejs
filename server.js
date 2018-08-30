@@ -441,7 +441,7 @@ function data(req,res,catalog,header,include) {
 		}
 
 		if (gotdata) { // Data returned and normal exit.
-			if (convert && header["format"] === "json") {
+			if (convert) {
 				// Convert accumulated data and send it.
 				res.send(csvTo(outstr,true,true,header,include));
 			} else {
@@ -470,20 +470,30 @@ function data(req,res,catalog,header,include) {
 			wroteheader = true;
 			res.write("#" + JSON.stringify(header) + "\n");
 		}
-		if (convert && header["format"] === "json") {
-			// JSON requested and CL program cannot produce it.
-			// Accumulate output and send everything at once for now.
-			// TODO: Write incrementally; use buffer.toString().lastIndexOf(/\n/)
-			outstr = outstr + buffer.toString();
-		} else {
-			if (!convert && header["format"] === "binary") {
-				res.write(buffer,'binary');
+		if (header["format"] === "csv") {
+			res.write(buffer.toString());
+			return;	
+		}
+		if (header["format"] === "json") {
+			if (!convert) {
+				res.write(buffer.toString());
+				return;			
 			} else {
-				if (convert && header["format"] === "binary") {					
-					res.write(csvTo(buffer.toString(),true,true,header,include),'binary');
-				} else {
-					res.write(buffer.toString());
-				}
+				// JSON requested and CL program cannot produce it.
+				// Accumulate output and send everything at once for now.
+				// TODO: Write incrementally; use
+				//    buffer.toString().lastIndexOf(/\n/)
+				// along with saving part of string that was not written.
+				outstr = outstr + buffer.toString();
+			}
+		}
+		if (header["format"] === "binary") {
+			if (!convert) {
+				res.write(buffer,'binary');
+				return;
+			} else {
+				// TODO: Write incrementally. See above.
+				outstr = outstr + buffer.toString();
 			}
 		}
 	})
@@ -564,14 +574,14 @@ function csvTo(records,first,last,header,include) {
 			}		
 		}
 
-		console.log(records,types,lengths,sizes,Nr,Nb);
+		console.log(types,lengths,sizes,Nr,Nb,recordsarr);
 
 		var recordbuff = new Buffer.alloc(Nr*Nb);
 		var pos = 0;
 		for (var i = 0; i < Nr; i++) {
 			var record = recordsarr[i].split(",");
+			//console.log(record)
 			for (var j = 0;j < Nd+1;j++) {
-				console.log(record[j])
 				if (types[j] === 'double') {
 					recordbuff.writeDoubleLE(record[j],pos);
 					pos = pos + 8;

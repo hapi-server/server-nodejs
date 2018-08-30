@@ -194,6 +194,7 @@ for (var i = startsec; i < stopsec; i++) {
 				console.log(records + "\n");
 			}
 		}
+		records = "";
 		Nwrote  = (i-startsec);
 	}
 }
