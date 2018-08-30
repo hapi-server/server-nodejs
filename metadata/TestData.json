@@ -16,20 +16,6 @@
 							"stopDate" : "2016-12-31Z",
 							"sampleStartDate": "1970-01-01Z",
 							"sampleStopDate" : "1970-01-01T00:00:11Z",
-							"_maxDurations": {
-								"Time": "P366D",
-								"scalar": "P366D",
-								"scalarint": "P366D",
-								"scalariso": "P366D",
-								"scalarstr": "P366D",
-								"scalarcats": "P366D",
-								"vector": "P366D",
-								"vectorint": "P366D",
-								"vectorstr": "P366D",
-								"vectoriso": "P366D",
-								"vectorcats": "P366D",
-								"spectra": "P1D"
-							},
 							"cadence": "PT1S",
 							"parameters":
 								[
