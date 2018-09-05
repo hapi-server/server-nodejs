@@ -21,7 +21,7 @@
 					var url = urls[i] + "/hapi";
 				}
 				if (!/^http/.test(urls[i])) {
-					url = window.location.href.replace(/\/$/,"") + url;
+					url = window.location.href.replace(/\/$/,"") + "/" + url;
 				}
 
 				var link = $("<a>")
