@@ -49,14 +49,18 @@
 				function process(json,status) {
 					console.log(status)
 					var url = "./hapi/data?id=" + id + "&parameters=" + json["parameters"][1]["name"];
-					if (json["sampleStartDate"] && json["sampleStopDate"])
+					if (json["sampleStartDate"] && json["sampleStopDate"]) {
 						url = url + "&time.min="+json["sampleStartDate"]+"&time.max="+json["sampleStopDate"];
-					var link = $("<a>")
-								.attr("href", url+"&attach=false")
-								.attr("title", url)
-								.text(url);
-					$("#data").append("<li>");
-					$($("#data li")[0]).append(link);
+						var link = $("<a>")
+									.attr("href", url+"&attach=false")
+									.attr("title", url)
+									.text(url);
+						$("#data").append("<li>");
+						$($("#data li")[0]).append(link);
+					} else {
+						$("#dataexamples").hide();
+					}
+
 				}
 			}
 		</script>
@@ -82,7 +86,7 @@
 				</ul>
 			</li>
 			<li>
-				<code>data</code> - stream data for parameters in a dataset. Example(s)
+				<code>data</code> - stream data for parameters in a dataset. <span id="dataexamples">Example(s)</span>
 				<ul id="data">
 				</ul>
 			</li>
