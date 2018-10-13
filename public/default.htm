@@ -27,6 +27,7 @@
 			function info(json) {
 				// Process output of /hapi/catalog
 				// Place sample /hapi/info request links
+				$("#Ndatasets").text(json["catalog"].length);
 				var N = Math.min(5,json["catalog"].length);
 				for (var i = 0;i < N;i++) {
 					var url = "./hapi/info?id="+json["catalog"][i]["id"];
@@ -46,21 +47,30 @@
 
 				$.ajax(url).done(process);
 
-				function process(json,status) {
+				function process(json, status) {
 					console.log(status)
-					var url = "./hapi/data?id=" + id + "&parameters=" + json["parameters"][1]["name"];
 					if (json["sampleStartDate"] && json["sampleStopDate"]) {
-						url = url + "&time.min="+json["sampleStartDate"]+"&time.max="+json["sampleStopDate"];
+						var start = json["sampleStartDate"];
+						var stop  = json["sampleStopDate"];
+					} else {
+						// Add one day
+						// TODO: If json["cadence"], use it to determine
+						// reasonable sampleStopDate
+						var start = new Date(json["startDate"]);
+						var stop  = new Date(start.setDate(start.getDate() + 1)).toISOString()
+						start = json["startDate"];
+					}
+					for (var i = 1; i < json.parameters.length; i++) {
+						var url = "./hapi/data?id=" + id + "&parameters=" 
+								+ json["parameters"][i]["name"]
+								+ "&time.min=" + start + "&time.max=" + stop;
 						var link = $("<a>")
 									.attr("href", url+"&attach=false")
 									.attr("title", url)
 									.text(url);
-						$("#data").append("<li>");
-						$($("#data li")[0]).append(link);
-					} else {
-						$("#dataexamples").hide();
+						$("#data").append("<li>")
+						$("#data li").last().append(link);
 					}
-
 				}
 			}
 		</script>
@@ -78,15 +88,15 @@
 				<a href="./hapi/capabilities"><code>capabilities</code></a> - list the API version and output options
 			</li>
 			<li>
-				<a href="./hapi/catalog"><code>catalog</code></a> - list the datasets that are available
+				<a href="./hapi/catalog"><code>catalog</code></a> - list the datasets that are available (<span id="Ndatasets"></span> total)
 			</li>
 			<li>
-				<code>info</code> - list information about parameters in a dataset. Example(s):
+				<code>info</code> - list information about parameters in a dataset, e.g,:
 				<ul id="info">
 				</ul>
 			</li>
 			<li>
-				<code>data</code> - stream data for parameters in a dataset. <span id="dataexamples">Example(s)</span>
+				<code>data</code> - stream data for parameters in a dataset. <span id="dataexamples">Examples for first dataset:</span>
 				<ul id="data">
 				</ul>
 			</li>
