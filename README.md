@@ -23,7 +23,7 @@ This server handles
 2. request validation and error responses,
 3. logging and alerts,
 4. parameter subsetting (as needed), and
-5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI Binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed).
+5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed).
 
 A list of datasets that are served using this sofware is given at [http://hapi-server.org/servers]([http://hapi-server.org/servers]).
 
@@ -92,9 +92,9 @@ node server.js --catalog SSCWeb
 
 and then open http://localhost:8999/SSCWeb/hapi. You should see the same landing page as that at [http://hapi-server.org/servers/SSCWeb/hapi](http://hapi-server.org/servers/SSCWeb/hapi).
 
-### 2.4 Serve data stored in a file
+### 2.4 Serve data stored in a single file
 
-### 2.5 Serve data stored in a local directory tree
+### 2.5 Serve data stored in multiple files
 
 ### 2.6 Serve data read by Autoplot
 
