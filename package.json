@@ -28,6 +28,7 @@
     "yargs": "^8.0.1"
   },
   "scripts": {
+    "postinstall": "ln -s node_modules/hapi-server-verifier/verify.js",
     "start": "node server.js --port 8999"
   }
 }

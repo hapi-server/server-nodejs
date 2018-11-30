@@ -24,9 +24,12 @@ exports.timeregexes = timeregexes;
 
 function metadata(catalog,which,format,id) {
 
+	// First time metadata() (before server starts) is called, 
+	// no cache exists and call is 
+	//   metadata(catalog,HAPIversion,force,verifierURL)
+	// Second time called, cache exists and call is
+	//   metadata(catalog, metadatatype, metadataformat, datasetid)
 
-	// Call before server starts as metadata(cb) to read 
-	// and memory cache content from metadata.
 	if (metadata.cache && metadata.cache[catalog]) {
 		// Content has been read from disk into object before server started.
 		// Return it.
@@ -38,6 +41,7 @@ function metadata(catalog,which,format,id) {
 	} else {
 		var HAPIVERSION = which;
 		var FORCE = format;
+		var VERIFIER = id;
 		if (!metadata.cache) {
 			metadata.cache = {};
 		}
@@ -50,7 +54,7 @@ function metadata(catalog,which,format,id) {
 	var schema = metadata.cache["schema"];
 
 	// Landing page html
-	var landing = __dirname+"/metadata/"+catalog+".htm";
+	var landing = __dirname+"/public/"+catalog+".htm";
 	if (!fs.existsSync(landing)) {
 		console.log(ds() + "Did not find " + landing.replace(__dirname,".") + ". Will use ./public/default.htm");
 		landing = __dirname+"/public/default.htm";
@@ -65,7 +69,8 @@ function metadata(catalog,which,format,id) {
 				.readFileSync(landing,"utf8")
 				.toString()
 				.replace(/__CATALOG__/g, catalog.replace(/.*\//,""))
-				.replace(/__VERSION__/g, HAPIVERSION);
+				.replace(/__VERSION__/g, HAPIVERSION)
+				.replace(/__VERIFIER__/g, VERIFIER);
 	}
 
 	// Capabilities 
