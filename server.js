@@ -10,7 +10,7 @@ function ds() {return (new Date()).toISOString() + " [server] ";};
 var clc  = require('cli-color'); // Colorize command line output
 var sver = require('semver');
 if (!sver.gte(process.version,'6.0.0')) {
-	console.log(clc.red("node.js version >= 6 required. node.js -v returns " + process.version + ". Consider installing https://github.com/creationix/nvm."));
+	console.log(clc.red("!!! node.js version >= 6 required.!!! node.js -v returns " + process.version + ".\nConsider installing https://github.com/creationix/nvm and then 'nvm use 6'.\n"));
 	process.exit(1);
 }
 
@@ -33,11 +33,12 @@ var argv     = require('yargs')
 				.default
 				({
 					'port': 8999,
-					'catalogs': "TestDataSimple",
+					'catalogs': "TestData",
 					'prefixes': '',
-					'force': "false"
+					'force': "false",
+					'verifier': "http://hapi-server.org/verify"
 				})
-				.usage('Usage: $0 --port [num] --catalog [str] --prefix [str] --force [bool]')
+				.usage('Usage: $0 --port [num] --catalog [str] --prefix [str] --force [bool] --verifierport [int]')
 				.help('h')
 				.help('help')
 				.argv;
@@ -46,9 +47,10 @@ var argv     = require('yargs')
 // TODO: Reject if unknown command line switch is given.
 // Ideally use yargs, but using .strict() in yargs does not work as expected.
 
-var FORCE   = argv.force === "true"; // Start server if metadata invalid
-var CATALOG = argv.catalog || argv.catalogs;
-var PREFIX  = argv.prefix || argv.prefixes;
+var FORCE    = argv.force === "true"; // Start server if metadata invalid
+var VERIFIER = argv.verifier;
+var CATALOG  = argv.catalog || argv.catalogs;
+var PREFIX   = argv.prefix || argv.prefixes;
 
 var CATALOGS = CATALOG.split(",");
 var PREFIXES = PREFIX.split(",");
@@ -76,9 +78,6 @@ exceptions(); // Catch common start-up exceptions
 
 app.use(compress()); // Compress responses using gzip
 
-// Serve static files in ./public
-app.use(express.static('public'));
-
 // Log all requests, then call next route handler
 app.get('*', function (req,res,next) {
 	logreq(req);
@@ -97,25 +96,34 @@ if (CATALOGS.length > 1) {
 
 for (var i = 0;i < CATALOGS.length;i++) {
 	console.log(ds() + clc.green("Initializing http://localhost:" + argv.port + PREFIXES[i] + "/hapi"));
-	console.log(ds() + "Server can be tested using");
-	console.log(ds() + "   git clone https://github.com/hapi-server/verifier-nodejs.git");
-	console.log(ds() + "   cd verifier-nodejs; npm install; node verify.js --url 'http://localhost:" + argv.port + PREFIXES[i] + "/hapi'");
+	console.log(ds() + "Server can be tested/verified on the command line using");
+	console.log(ds() + "   node verify.js --url 'http://localhost:" + argv.port + PREFIXES[i] + "/hapi'");
+	console.log(ds() + "Server can be tested/verified on localhost page by starting server using");
+	console.log(ds() + "   node server.js --verifier 'http://localhost:9000/'");
+	console.log(ds() + "and then starting the verifier server using")
+	console.log(ds() + "   node verify.js --port 9000");
 
 	// Initialize the API
 	apiInit(CATALOGS[i],PREFIXES[i],i == CATALOGS.length-1);
 	// Read static JSON files
-	metadata(CATALOGS[i],HAPIVERSION,FORCE);
+	metadata(CATALOGS[i],HAPIVERSION,FORCE,VERIFIER);
 }
 
 // TODO: Can server start before apiInit() and metadata() finished?
 // If so, prevent it.
 app.listen(argv.port, function () {
 	if (CATALOGS.length > 1) {
+		var url = 'http://localhost:' + argv.port;
 		console.log(ds() + "Dataset list at http://localhost:" + argv.port);
 		for (var i = 0;i < CATALOGS.length;i++) {
 			console.log(ds() + "  http://localhost:" + argv.port + PREFIXES[i] + "/hapi");
 		}
+	} else {
+		var url = 'http://localhost:' + argv.port + PREFIXES[0] + "/hapi";
 	}
+	var start = (process.platform == 'darwin'? 'open': process.platform == 'win32'? 'start': 'xdg-open');
+	require('child_process').exec(start + ' ' + url);
+
 	console.log(ds() + clc.blue("Listening on port " + argv.port))
 });
 
@@ -123,10 +131,8 @@ app.listen(argv.port, function () {
 
 function apiInit(catalog,PREFIX,last) {
 
-	// Redirect http://localhost:PORT/ to http://localhost:PORT/hapi
-	app.get(PREFIX || '/', function (req,res) {
-		res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
-	})
+	// Serve static files in ./public
+	app.use(PREFIX, express.static('public'));
 
 	// Serve landing web page
 	app.get(PREFIX + '/hapi', function (req, res) {
@@ -297,7 +303,7 @@ function apiInit(catalog,PREFIX,last) {
 	if (last) {
 		// Fall through
 		app.get('*', function(req, res) {
-			res.send("See <a href='."+PREFIX+"/hapi'>."+PREFIX+"/hapi</a>");
+			res.send("See <a href='"+PREFIX+"/hapi'>"+PREFIX+"/hapi</a>");
 		});
 
 		app.use(errorHandler);
