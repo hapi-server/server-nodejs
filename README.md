@@ -123,7 +123,6 @@ The landing page for this example are shown at [http://hapi-server.org/servers/A
 ```
 </details>
 
-
 <a name="Usage"></a>
 ## 3. Usage
 
@@ -135,7 +134,7 @@ Starts HAPI server at [http://localhost:8999/hapi](http://localhost:8999/hapi) a
 All command line options:
 
 ```bash
-node server.js --port PORT --catalog CATALOG --prefix PREFIX --force [true|false]
+node server.js --port PORT --catalog CATALOG --prefix PREFIX --force [true]|false
 ```
 
 Serves data from `http://localhost:PORT/PREFIX/hapi` using datasets and command line program template specified in `./metadata/CATALOG.json`. If `./metadata/CATALOG.{htm,html}` is found, it is used as the landing page.
@@ -192,8 +191,16 @@ then
 git clone https://github.com/hapi-server/server-nodejs
 # Install dependencies
 cd server-nodejs; npm install
+
 # Start the server
 node server.js
+
+# or, to allow use of the "Run Validation Tests" links on the 
+# /hapi landing pages if testing a server with a localhost URL,
+# (1) Start the server and specify the verifier server location
+node server.js --verifier 'http://localhost:9000/'
+# (2) Start the verifier server,
+node verify.js --port 9000
 ```
 
 Open [http://localhost:8999/TestDataSimple/hapi](http://localhost:8999/TestDataSimple/hapi) in a web browser.
