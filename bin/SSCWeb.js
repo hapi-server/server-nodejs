@@ -24,7 +24,7 @@ if (argv.parameters === true || argv.parameters === '') {
 		var timeonly = true;
 	}
 
-	var json = JSON.parse(fs.readFileSync('metadata/SSCWeb-info.json', 'utf8'));
+	var json = JSON.parse(fs.readFileSync('metadata/SSCWeb/SSCWeb-info.json', 'utf8'));
 	var parameters = json.catalog[0].info.parameters;
 	if (PARAMETERS[0] !== "Time") {
 		PARAMETERS.push("Time");
