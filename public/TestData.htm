@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+		<title>TestData</title>
+		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+		<link rel="icon" href="favicon.ico" type="image/x-icon">
+		<script src="js/jquery-1.8.2.min.js"></script>
+		<script src="js/default.js"></script>
+	</head>
+	<body>
+		<h2>HAPI Server for TestData datasets</h2>
+		<p>
+			This server servers software-generated parameters that can be used to test a HAPI client (see <a href="https://github.com/hapi-server/">the HAPI project page</a> for a list of existing clients).
+		</p>
+		<p>
+			The parameters include most types that are supported by the HAPI specification along with variations that are expected to be found in real datasets (non-uniform cadence, fill values, empty time intervals).
+		</p>
+		<p>
+			Note that if the time interval <code>1970-01-01T00:00:10.000</code> to <code>1970-01-01T00:00:20.000</code> is requested for any parameter, the body of the response for a HAPI CSV or HAPI Binary request (with no header) is empty, e.g. <a href="hapi/data?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10.000Z&time.max=1970-01-01T00:00:20.000">this request</a>.
+		</p>
+		<p>
+			This server supports the <a href="https://github.com/hapi-server/data-specification">HAPI 2.0 API</a> specification for delivery of time series data.
+		</p>
+		<p>
+			The server responds to GET requests to the following <a href="https://github.com/hapi-server/data-specification/tree/v1.1.0#endpoints">HAPI endpoints</a>:
+		</p>
+		<ul>
+			<li>
+				<a href="./hapi/capabilities"><code>capabilities</code></a> - list the API version and output options
+			</li>
+			<li>
+				<a href="./hapi/catalog"><code>catalog</code></a> - list the datasets that are available (<span id="Ndatasets"></span> total)
+			</li>
+			<li>
+				<code>info</code> - list information about parameters in a dataset, e.g,:
+				<ul id="info">
+				</ul>
+			</li>
+			<li>
+				<code>data</code> - stream data for parameters in a dataset. Note that this server supports the non-HAPI input of <code>attach=false</code>, which tells the server to not send data as an attachment; typically a browser will display the data in a window instead of prompting a download (e.g., <a href="hapi/data?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00.000Z&time.max=1970-01-01T00:00:10.000&attach=false">this request</a>). <span id="dataexamples">Examples for first dataset:</span>
+				<ul id="data">
+				</ul>
+			</li>
+		</ul>
+		<p>
+			Contact: rweigel@gmu.edu
+		</p>
+		<br/>
+		<div id="showvalidation" style="cursor:pointer;color:blue;text-decoration:underline;">Run Validation Tests</div>
+		<br/>
+		<a id="verifierurl" style="display:none;"></a>
+		<div id="validationresults" style="display:none;">
+			<iframe id="iframe" style="width:100%;height:1000px;border:1px solid black"/>
+		</div>
+	</body>
+<html>
