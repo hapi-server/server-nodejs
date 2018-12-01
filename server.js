@@ -30,36 +30,49 @@ var is = require(__dirname + '/node_modules/hapi-server-verifier/is.js');
 var timeregexes = require('./metadata.js').timeregexes(HAPIVERSION);
 
 var argv     = require('yargs')
+				.strict()
+				.help('help')
+				.describe('port','Port to listen on')
+				.describe('catalog','A catalog name')
+				.describe('catalogs','Comma separated list of catalog names')
+				.describe('prefix','A catalog prefix')
+				.describe('prefixes','Comma separated list of prefixes')
+				.describe('verifier','URL of verifier to use')
+				.describe('force','Start server even if invalid metadata')
+				.describe('open','Open web page on start')
 				.default
 				({
 					'port': 8999,
 					'catalogs': "TestData",
+					'catalog': "TestData",
 					'prefixes': '',
-					'force': "false",
+					'prefix': '',
 					'verifier': "http://hapi-server.org/verify"
 				})
-				.usage('Usage: $0 --port [num] --catalog [str] --prefix [str] --force [bool] --verifierport [int]')
-				.help('h')
-				.help('help')
+				.option('help')
+				.option('force')
+				.option('open')
+				.option('help', {alias: 'h'})
+				.usage('Usage: $0 [options]')
+				.epilog('For more details, see https://github.com/hapi-server/server-nodejs/blob/master/README.md')
 				.argv;
-
-
-// TODO: Reject if unknown command line switch is given.
-// Ideally use yargs, but using .strict() in yargs does not work as expected.
 
 var FORCE    = argv.force === "true"; // Start server if metadata invalid
 var VERIFIER = argv.verifier;
 var CATALOG  = argv.catalog || argv.catalogs;
 var PREFIX   = argv.prefix || argv.prefixes;
+var OPEN     = argv.open || false; // Open browser window on start
 
 var CATALOGS = CATALOG.split(",");
 var PREFIXES = PREFIX.split(",");
 
-if (PREFIX !== '' && CATALOGS.length != PREFIXES.length) {
-	console.log(ds() + clc.red("If multiple catalogs given, same number of prefixes must be given."));
-	process.exit(1);
-} else {
+if (PREFIX == '') {
 	PREFIXES = CATALOGS.slice(0); // Clone array
+} else {
+	if (CATALOGS.length != PREFIXES.length) {
+		console.log(ds() + clc.red("Number of catalogs must equal number of prefixes if prefixes given."));
+		process.exit(1);
+	}
 }
 
 for (var i = 0;i < PREFIXES.length;i++) {
@@ -121,9 +134,10 @@ app.listen(argv.port, function () {
 	} else {
 		var url = 'http://localhost:' + argv.port + PREFIXES[0] + "/hapi";
 	}
-	var start = (process.platform == 'darwin'? 'open': process.platform == 'win32'? 'start': 'xdg-open');
-	require('child_process').exec(start + ' ' + url);
-
+	if (OPEN) {
+		var start = (process.platform == 'darwin'? 'open': process.platform == 'win32'? 'start': 'xdg-open');
+		require('child_process').exec(start + ' ' + url);
+	}
 	console.log(ds() + clc.blue("Listening on port " + argv.port))
 });
 
@@ -303,7 +317,11 @@ function apiInit(catalog,PREFIX,last) {
 	if (last) {
 		// Fall through
 		app.get('*', function(req, res) {
-			res.send("See <a href='"+PREFIX+"/hapi'>"+PREFIX+"/hapi</a>");
+			if (PREFIXES.length == 1) {
+				res.send("Invalid URL. See <a href='"+PREFIX+"/hapi'>"+PREFIX+"/hapi</a>");
+			} else {
+				res.send("Invalid URL. See <a href='/'>start page</a>");
+			}
 		});
 
 		app.use(errorHandler);
