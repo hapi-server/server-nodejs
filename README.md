@@ -1,11 +1,15 @@
 # HAPI Server Front-End
 
+A generic server for HAPI data implemented in Node.js.
+
 ## Contents
 
 1. [About](#About)
 2. [Examples](#Examples)
 3. [Usage](#Usage)
-4. [Installation](#Installation)
+4. Installation and Configuration
+	1. [Installation](#Installation)
+	2. [Apache and Nginx](#Apache_and_Nginx)
 5. [Metadata](#Metadata)
 6. [Tests](#Tests)
 7. [Contact](#Contact)
@@ -15,7 +19,7 @@
 The intended use case for this server is for a data provider that has
 
 1. [HAPI](https://github.com/hapi-server/data-specification) metadata, in one of a [variety of forms](#Metadata), for a  dataset and
-2. a command line program that returns at least [HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (headerless) for all parameters in the dataset over a given start/stop timerange. Optionally, the command line program can take inputs of a list of one or more parameters to output and an output format.
+2. a command line program that returns at least [headerless HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) for all parameters in the dataset over a given start/stop timerange. Optionally, the command line program can take inputs of a list of one or more parameters to output and an output format.
 
 This server handles
 
@@ -34,7 +38,7 @@ A list of datasets that are served using this sofware is given at [http://hapi-s
 
 In this example, we assume that the command line program that returns a dataset has the minimal capabilities required - when executed with inputs of a start and stop time, it generates a headerless HAPI CSV file with all parameters in the dataset. The server handles parameter subsetting and the generation of HAPI Binary and JSON.
 
-In this example, a Python script [Example.py](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/Example.py) returns HAPI-formatted CSV data (with no header) with two parameters. To serve this data, only a configuration file, [Example1.json](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/Example1.json) is needed. The configuration file has information that is used to call the command line program and it also has HAPI metadata that describes the output of [Example.py](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/Example.py). Details about the configuration file format are described in the [Metadata](#Metadata) section.
+The Python script [Example.py](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/Example.py) returns HAPI-formatted CSV data (with no header) with two parameters. To serve this data, only a configuration file, [Example1.json](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/Example1.json) is needed. The configuration file has information that is used to call the command line program and it also has HAPI metadata that describes the output of [Example.py](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/Example.py). Details about the configuration file format are described in the [Metadata](#Metadata) section.
 
 The Python calling syntax of [Example.py](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/Example.py) is 
 
@@ -84,7 +88,7 @@ The server responses will be idential to that in the previous example. You shoul
 
 A non-HAPI server can be quickly be made HAPI compliant by using this server as a pass-through. Data from [SSCWeb](https://sscweb.sci.gsfc.nasa.gov/), which is available from a [REST API](https://sscweb.sci.gsfc.nasa.gov/WebServices/REST/), has been made avaliable through a HAPI API at [http://hapi-server.org/servers/SSCWeb/hapi](http://hapi-server.org/servers/SSCWeb/hapi). The configuration file is [SSCWeb.json](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/SSCWeb.json) and the command line program is [SSCWeb.js](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/bin/SSCWeb.js). Note that the configuration file [SSCWeb.json](https://raw.githubusercontent.com/hapi-server/server-nodejs/master/metadata/SSCWeb.json) was created using code in [metadata/SSCWeb](https://github.com/hapi-server/server-nodejs/tree/master/metadata/SSCWeb).
 
- this example locally after [installation](#Install), execute
+To run this example locally after [installation](#Install), execute
 
 ```bash
 node server.js --catalog SSCWeb
@@ -129,87 +133,121 @@ The landing page for this example are shown at [http://hapi-server.org/servers/A
 `node server.js`
 
 Starts HAPI server at [http://localhost:8999/hapi](http://localhost:8999/hapi) and serves datasets specified in the catalog [`./metadata/TestDataSimple.json`](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestDataSimple.json). 
- 
-### Single Dataset
+
 All command line options:
 
 ```bash
-node server.js --port PORT --catalog CATALOG --prefix PREFIX --force [true]|false
+node server.js
+	--port PORT			Start server at http://localhost:PORT/
+	--catalog CATALOG	Use catalog in metadata/CATALOG.json
+	--catalogs CATALOGS	A comma-separated list of catalogs
+	--prefix PREFIX		See below; default is CATALOG
+	--prefixes PREFIXES	A comma-separated list of prefixes
+	--verifier URL		URL to a verifier that can read from server
+	--force				Start if catalog does not validate
+	--open				On start, open http://localhost:PORT/CATALOG/hapi
+```
+ 
+### Single Dataset
+
+```
+node server.js --catalog CATALOG [--prefix PREFIX] [args]
 ```
 
-Serves data from `http://localhost:PORT/PREFIX/hapi` using datasets and command line program template specified in `./metadata/CATALOG.json`. If `./metadata/CATALOG.{htm,html}` is found, it is used as the landing page.
+Data is served from `http://localhost:PORT/PREFIX/hapi` using datasets and command line program template specified in `./metadata/CATALOG.json`. If `public/CATALOG.{htm,html}` is found, it is used as the landing page instead of `public/default.htm`. If `PREFIX` is not given, `PREFIX=CATALOG`.
 
-When requests for metadata are made, information in `CATALOG.json` is used to generate the response. See the [Metadata](#Metadata) section for details.
+When requests for metadata are made, information in `metadata/CATALOG.json` is used to generate the response. See the [Metadata](#Metadata) section for details.
 
 When a request is made for data, output from a command line program specified in `CATALOG.json` will be piped to the response.
 
-If `--force=true` is used, the server will start even if the HAPI metadata is does not pass the validation test.
+If `--force` is used, the server will start even if the HAPI metadata node in `metadata/CATALOG.json` is does not pass the validation test.
+
+The default landing page `public/default.htm` has a link at the bottom that allows the server to be tested. The `URL` argument to `--verifier` is can be used to change the default of `http://hapi-server.org/verify` to a localhost address for testing. See the [Installation](#Installation) section for more details.
+
+If `--open` is given, the web page of the server opens when the server starts.
 
 ### Multiple Datasets
 
+This server can serve mutiple catalogs by providing a comma-separated list of catalog names `CATALOGS`:
+
 ```bash
-node server.js --port PORT --catalogs CATALOGs --prefixes PREFIXES
+node server.js --catalogs CATALOGS [--prefixes PREFIXES] [args]
 ```
 
-The server can serve multiple datasets by giving a comma-separated list for `CATALOGS`. By default, `PREFIXES=CATALOGS`. For example
+For example
 
 ```bash
 node server.js --catalogs TestDataSimple,OneWire
 ```
+will serve the two datasets at
 
-and
+```
+http://localhost:8999/TestDataSimple/hapi
+http://localhost:8999/OneWire/hapi
+```
+
+And the page at `http://localhost:8999/` will point to these two URLs.
+
+The URL of the catalogs can be changed by either using a symlink in the `metadata` directory using a prefix:
 
 ```bash
-node server.js --catalogs TestDataSimple,OneWire --prefixes TestData,OneWire
+node server.js --catalogs CATALOGS --prefixes PREFIXES
+```
+
+For example
+
+```bash
+node server.js --catalogs TestDataSimple,OneWire --prefixes xTestDataSimple,xOneWire
 ```
 
 will serve the two datasets at
 
 ```
-http://localhost:8999/TestData/hapi
-http://localhost:8999/OneWire/hapi
+http://localhost:8999/xTestDataSimple/hapi
+http://localhost:8999/xOneWire/hapi
 ```
 
+This could have also been effected by creating symlinks pointing `metadata/xTestDataSimple` to `metadata/TestDataSimple` and `metadata/xOneWire` to `metadata/OneWire`.
+
+## 4. Installation and Server Configuration
+
 <a name="Installation"></a>
-## 4. Installation
+### 4.1 Installation
 
-Install [nodejs](https://nodejs.org/en/download/) (tested with v7.10.0) 
+Install [nodejs](https://nodejs.org/en/download/) (tested with v7.10.0) using either the [standard installer](https://nodejs.org/en/download/) or [NVM](https://github.com/creationix/nvm).
 
+<details> 
+  <summary>Show NVM installation notes</summary>
+  
 ```bash
-# Install Node Version Manager https://github.com/creationix/nvm
+# Install [Node Version Manager](https://github.com/creationix/nvm)
 curl https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
 # Reload modified shell configuration (may not be needed)
 source ~/.bash_profile ~/.bashrc
 # Install and use node.js version 7
 nvm install 7
 ```
-
-then
+</details>
 
 ```bash
 # Clone the server respository
 git clone https://github.com/hapi-server/server-nodejs
+
 # Install dependencies
 cd server-nodejs; npm install
 
 # Start the server
-node server.js
+node server.js --open
+```
 
-# or, to allow use of the "Run Validation Tests" links on the 
-# /hapi landing pages if testing a server with a localhost URL,
-# (1) Start the server and specify the verifier server location
+To allow use of the "Run Validation Tests" links on the /hapi landing pages when testing a server with a localhost URL,
+
+```
+# Start the server and specify the verifier server location
 node server.js --verifier 'http://localhost:9000/'
-# (2) Start the verifier server,
+
+# Start the verifier server
 node verify.js --port 9000
-```
-
-Open [http://localhost:8999/TestDataSimple/hapi](http://localhost:8999/TestDataSimple/hapi) in a web browser.
-
-To expose this URL through Apache, add the following to the Apache configuration file
-
-```
-ProxyPass /TestDataSimple/hapi http://localhost:8999/TestDataSimple/hapi retry=1
-ProxyPassReverse /TestDataSimple/hapi http://localhost:8999/TestDataSimple/hapi
 ```
 
 In production, it is recommended that [forever](https://github.com/foreverjs/forever) is used to automatically restart the application after an uncaught execption causes the application to abort (this should rarely happen).
@@ -217,9 +255,36 @@ In production, it is recommended that [forever](https://github.com/foreverjs/for
 ```bash
 # Install forever
 npm install -g forever
+
 # Start server
 forever server.js
-# or forever server.js --port PORT --catalog CATALOG --prefix PREFIX
+# or forever server.js [server.js args]
+```
+
+<a name="Apache_and_Nginx"></a>
+### 4.2 Apache and Nginx
+
+**Apache**
+
+To expose a URL through Apache, (1) enable `mod_proxy` and `mod_proxy_http`, (2) add the following in a `<VirtualHost>` node in a [Apache Virtual Hosts](https://httpd.apache.org/docs/2.4/vhosts/examples.html) file
+
+```
+<VirtualHost *:80>
+	ProxyPass /TestDataSimple http://localhost:8999/TestDataSimple retry=1
+	ProxyPassReverse /TestDataSimple http://localhost:8999/TestDataSimple
+</VirtualHost>
+```
+
+and (3) `Include` ths file in the Apache start-up configuration file.
+
+**Nginx**
+
+For Nginx, add the following to `nginx.conf`
+
+```
+location /TestDataSimple {
+    proxy_pass http://localhost:8999/TestDataSimple;
+}
 ```
 
 <a name="Metadata"></a>
@@ -247,10 +312,10 @@ See also examples in [`./metadata`](https://github.com/hapi-server/server-nodejs
 
 Each of the options for the catalog property are described in the following sections.
 
-The command line template string in the JSON `data` object will have placeholders for a dataset id (`${ID}`), start (`${start}`) and stop (`${stop}`) times, and optionally a output format (`${format}`). For example,
+The command line template string in the JSON `data` object must have placeholders for start (`${start}`), and stop (`${stop}`) times,; a dataset id (`${id}`) is required if there are multiple datasets. Optionsl placeholdsers are for parameters (`${parameters}`), and an output format (`${format}`). For example,
 
 ```bash
-python ./bin/TestDataSimple.py --dataset ${ID} --parameters \
+python ./bin/TestDataSimple.py --dataset ${id} --parameters \
 	${parameters} --start ${start} --stop ${stop} --format ${format}"`
 ```
 
@@ -264,12 +329,20 @@ If `catalog` is an array, it should have the same format as a HAPI `/catalog` re
 	{
 		"id": "dataset1",
 		"title": "a dataset",
-		"info": {"startDate":"2000-01","stopDate":"2000-02","parameters":[...]}
+		"info": {
+				"startDate": "2000-01",
+				"stopDate": "2000-02",
+				"parameters": [...]
+		}
 	},
 	{
 		"id": "dataset2",
 		"title": "another dataset",
-		"info": {"startDate":"2000-01","stopDate":"2000-02","parameters":[...]}
+		"info": {
+			"startDate": "2000-01",
+			"stopDate": "2000-02",
+			"parameters": [...]
+		}
 	}
  ]
 ```
@@ -313,8 +386,8 @@ Alternatively, the metadata for each dataset may be produced by execution of a c
 	{
 		"id": "dataset1",
 		"title": "a dataset",
-		"info": "bin/program --id ${ID}" 
-	}
+		"info": "bin/program --id ${id}" 
+	},
 	{
 		"id": "dataset2",
 		"title": "another dataset",
@@ -342,17 +415,19 @@ The path to a fully resolved catalog can also be given
 <a name="Tests"></a>
 ## 6. Tests
 
-The following commands creates a local installation of the [HAPI verifier](https://github.com/hapi-server/verifier-nodejs) and tests the URL ```http://localhost:8999/hapi```.
+The following commands creates a local installation of the [HAPI verifier](https://github.com/hapi-server/verifier-nodejs) and tests the URL ```http://localhost:8999/Example/hapi```.
 
 ```bash
-mkdir tmp; cd tmp; 
-git clone https://github.com/hapi-server/verifier-nodejs.git; 
-cd verifier-nodejs; 
-npm install; 
-node test.js http://localhost:8999/hapi"
+mkdir tmp; cd tmp
+git clone https://github.com/hapi-server/verifier-nodejs.git
+cd verifier-nodejs
+npm install
+node test.js http://localhost:8999/Example/hapi
 ```
 
 <a name="Contact"></a>
 ## 7. Contact
 
 Bob Weigel <rweigel@gmu.edu>
+
+Please submit bugs and feature requests to the [issue tracker](https://github.com/hapi-server/server-nodejs/issues)
