@@ -1,9 +1,9 @@
 {
 	"data": {
-		"command": "node bin/TestData.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop} --format ${format}",
-		"formats": ["csv","binary"],
+		"command": "node bin/TestData.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
+		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
-		"test": "node bin/TestData.js --id dataset0 --parameters Time,scalar --start 2001-01-01 --stop 2001-01-01T00:10:00 --format csv"
+		"test": "node bin/TestData.js --id dataset0 --parameters Time,scalar --start 2001-01-01 --stop 2001-01-01T00:10:00"
 	},
 	"catalog" :
 		[
