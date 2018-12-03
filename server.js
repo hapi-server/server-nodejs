@@ -21,7 +21,6 @@ var app      = express();
 var server   = require("http").createServer(app);
 var compress = require('compression'); // Express compression module
 var moment   = require('moment'); // Time library http://moment.js
-
 var metadata = require('./metadata.js').metadata;
  
 // Test library
@@ -43,10 +42,10 @@ var argv     = require('yargs')
 				.default
 				({
 					'port': 8999,
-					'catalogs': "TestData",
 					'catalog': "TestData",
-					'prefixes': '',
+					'catalogs': '',
 					'prefix': '',
+					'prefixes': '',
 					'verifier': "http://hapi-server.org/verify"
 				})
 				.option('help')
@@ -57,10 +56,10 @@ var argv     = require('yargs')
 				.epilog('For more details, see https://github.com/hapi-server/server-nodejs/blob/master/README.md')
 				.argv;
 
-var FORCE    = argv.force === "true"; // Start server if metadata invalid
+var FORCE    = argv.force || false; // Start server if metadata invalid
 var VERIFIER = argv.verifier;
-var CATALOG  = argv.catalog || argv.catalogs;
-var PREFIX   = argv.prefix || argv.prefixes;
+var CATALOG  = argv.catalogs || argv.catalog;
+var PREFIX   = argv.prefixes || argv.prefix;
 var OPEN     = argv.open || false; // Open browser window on start
 
 var CATALOGS = CATALOG.split(",");
@@ -104,26 +103,26 @@ if (CATALOGS.length > 1) {
 			.toString()
 			.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
 
-	app.get('/', function (req,res) {res.send(html)})	
+	app.get('/', function (req,res) {res.send(html);});
 }
 
 for (var i = 0;i < CATALOGS.length;i++) {
 	console.log(ds() + clc.green("Initializing http://localhost:" + argv.port + PREFIXES[i] + "/hapi"));
 	console.log(ds() + "Server can be tested/verified on the command line using");
 	console.log(ds() + "   node verify.js --url 'http://localhost:" + argv.port + PREFIXES[i] + "/hapi'");
-	console.log(ds() + "Server can be tested/verified on localhost page by starting server using");
-	console.log(ds() + "   node server.js --verifier 'http://localhost:9000/'");
-	console.log(ds() + "and then starting the verifier server using")
-	console.log(ds() + "   node verify.js --port 9000");
-
+		console.log(ds() + "Server can be tested/verified on localhost page using");
+		console.log(ds() + "   node verify.js --port 9000 &");
+		console.log(ds() + "   node server.js " 
+						 + process.argv.slice(2).join(' ')
+						 + " --verifier 'http://localhost:9000/'");
 	// Initialize the API
 	apiInit(CATALOGS[i],PREFIXES[i],i == CATALOGS.length-1);
 	// Read static JSON files
 	metadata(CATALOGS[i],HAPIVERSION,FORCE,VERIFIER);
 }
 
-// TODO: Can server start before apiInit() and metadata() finished?
-// If so, prevent it.
+// TODO: Server can start before apiInit() and metadata() finished.
+// Use await apiInit() and await metadata()
 app.listen(argv.port, function () {
 	if (CATALOGS.length > 1) {
 		var url = 'http://localhost:' + argv.port;
@@ -313,17 +312,17 @@ function apiInit(catalog,PREFIX,last) {
 	})
 
 	// The following must always be after last app.get() statement.
-	// Any requests not matching above patterns will trigger errorHandler() call.
+	// Any requests not matching above patterns will trigger 
+	// errorHandler() call.
 	if (last) {
 		// Fall through
 		app.get('*', function(req, res) {
 			if (PREFIXES.length == 1) {
-				res.send("Invalid URL. See <a href='"+PREFIX+"/hapi'>"+PREFIX+"/hapi</a>");
+				res.send("Invalid URL. See <a href='"+PREFIX+"/hapi'>"+PREFIX.substr(1)+"/hapi</a>");
 			} else {
 				res.send("Invalid URL. See <a href='/'>start page</a>");
 			}
 		});
-
 		app.use(errorHandler);
 	}
 }
@@ -521,7 +520,6 @@ function data(req,res,catalog,header,include) {
 			}
 		}
 	})
-
 }
 
 function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
@@ -859,9 +857,9 @@ function error(req,res,code,message) {
 	var errs = {
 		"1400": {status: 400, "message": "HAPI 1400: user input error"},
 		"1401": {status: 400, "message": "HAPI 1401: unknown request field"},
-		"1402": {status: 400, "message": "HAPI 1402: error in start time"},
-		"1403": {status: 400, "message": "HAPI 1403: error in stop time"},
-		"1404": {status: 400, "message": "HAPI 1404: start time equal to or after stop time"},
+		"1402": {status: 400, "message": "HAPI 1402: error in time.min"},
+		"1403": {status: 400, "message": "HAPI 1403: error in time.min"},
+		"1404": {status: 400, "message": "HAPI 1404: time.min equal to or after time.max"},
 		"1405": {status: 400, "message": "HAPI 1405: time outside valid range"},
 		"1406": {status: 404, "message": "HAPI 1406: unknown dataset id"},
 		"1407": {status: 404, "message": "HAPI 1407: unknown dataset parameter"},
