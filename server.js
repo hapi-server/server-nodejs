@@ -561,7 +561,7 @@ function data(req,res,catalog,header,include) {
 	//var child = require('child_process')
 	//				.spawn(coms0,coms,{"encoding":"buffer"})
 	var child = require('child_process')
-					.spawn('sh',['-c',com],{"encoding":"buffer"})
+					.spawn('bash',['-c',com],{"encoding":"buffer"})
 
 	var wroteheader = false; // If header already sent.
 	var gotdata = false; // First chunk of data received.
