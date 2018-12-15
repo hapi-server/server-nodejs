@@ -1,14 +1,14 @@
 {
 	"data": {
-		"command": "python ./bin/Example.py --start ${start} --stop ${stop}",
+		"file": "public/data/Example/Example.csv",
+		"fileformat": "csv",
 		"contact": "rweigel@gmu.edu",
-		"test": "python ./bin/Example.py --start 1970-01-01Z --stop 1970-01-01T00:00:11Z",
 		"testurls": [
-			{"url": "${server}/data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00Z&time.max=1970-01-01T00:10Z", "Nlines": 10},
-			{"url": "${server}/data/?id=dataset1&parameters=vector&time.min=1970-12-31T23:50Z&time.max=1971-01-01Z", "Nlines": 10}
+			{"url": "${server}/data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:10:00Z", "length": 4190, "Nlines": 50},
+			{"url": "${server}/data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00:50Z&time.max=1970-01-01T00:01:00Z", "length": 834, "Nlines": 10}
 		]
 	},
-	"catalog" :
+	"catalog":
 		[
 			{
 				"id": "dataset1",
@@ -16,9 +16,9 @@
 				"info": 
 						{
 							"startDate": "1970-01-01Z",
-							"stopDate" : "1971-01-01Z",
+							"stopDate" : "1970-01-01T01:00:00Z",
 							"sampleStartDate": "1970-01-01Z",
-							"sampleStopDate" : "1970-01-01T00:10Z",
+							"sampleStopDate" : "1970-01-01T00:10:00Z",
 							"cadence": "PT1M",
 							"parameters":
 								[

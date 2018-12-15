@@ -1,36 +1,37 @@
-if (typeof(elem) == 'undefined') {
+if (typeof(VERIFIER) == 'undefined') {
 	VERIFIER = "http://hapi-server.org/verify";
 	console.log('VERIFIER variable is not defined. Using ' + VERIFIER);
 }
+if (typeof(PLOTSERVER) == 'undefined') {
+	PLOTSERVER = "http://hapi-server.org/plot";
+	console.log('PLOTSERVER variable is not defined. Using ' + PLOTSERVER);
+}
+
 var src = VERIFIER+"?url="+window.location;
+var hostname = window.location.hostname;
+var link = "<a href='https://github.com/hapi-server/server-nodejs/blob/master/README.md#Installation'>the documentation</a>"
 
-if (window.location.hostname == 'localhost' && !VERIFIER.match('localhost')) {
-	$(document).ready(function () {
-		link = "<a href='https://github.com/hapi-server/server-nodejs/blob/master/README.md#Installation'>the documentation</a>"
-		$("#verifierurl").html("If HAPI server is run on localhost, verifier must be run on localhost. See " + link + " for instructions on starting a localhost verifier server.");
+$(document).ready(function () {
+	validationlink();
+	$.ajax("./hapi/catalog").done(info);
+})
 
+function validationlink() {
+	if (hostname === 'localhost' && !VERIFIER.match('localhost')) {
+		$("#verifierurl").html("If HAPI server is run on localhost, a verifier server must be running on localhost. See " + link + " for instructions on starting a localhost verifier server.");
 		$("#showvalidation").click(function () {
 			$("#verifierurl").show();
 		})
-		$.ajax("./hapi/catalog").done(info);
-	})
-} else {
-	// When DOM is ready, set links.
-	$(document).ready(function () {
-		validation();
-		$.ajax("./hapi/catalog").done(info);
-	})
-}
-
-function validation() {
-	$("#showvalidation").attr("title",src);
-	$("#verifierurl").html(src);
-	$("#verifierurl").attr("href",src);
-	$("#showvalidation").click(function () {
-		$("#verifierurl").show();
-		$("#validationresults").show();
-		$('#iframe').attr("src",src);				
-	})
+	} else {
+		$("#showvalidation").attr("title",src);
+		$("#verifierurl").html(src);
+		$("#verifierurl").attr("href",src);
+		$("#showvalidation").click(function () {
+			$("#verifierurl").show();
+			$("#validationresults").show();
+			$('#iframe').attr("src",src);				
+		})
+	}
 }
 
 function info(json) {
@@ -48,7 +49,26 @@ function info(json) {
 		$($("#info li")[i]).append(link);
 	}
 
+	plotlinks(json);
 	data(json["catalog"][0]["id"]);
+}
+
+function plotlinks(json) {
+	if (false && hostname === 'localhost' && !PLOTSERVER.match('localhost')) {
+		$("#plotlinks").html("If HAPI server is run on localhost, a plot server must be running on localhost. See " + link + " for instructions on starting a localhost verifier server.");
+	} else {
+		var N = Math.min(5,json["catalog"].length);
+		$("#plotlinks").html("<ul id='plotul'></ul>")
+		for (var i = 0;i < N;i++) {
+			var url = PLOTSERVER+"?server="+window.location+"&id="+json["catalog"][i]["id"]+"&format=gallery";
+			var link = $("<a>")
+						.attr("href", url)
+						.attr("title", url)
+						.text(url);
+			$("#plotul").append("<li>");
+			$($("#plotul li")[i]).append(link);
+		}
+	} 	
 }
 
 function data(id) {
@@ -58,6 +78,7 @@ function data(id) {
 	$.ajax(url).done(process);
 
 	function process(json, status) {
+		
 		if (json["sampleStartDate"] && json["sampleStopDate"]) {
 			var start = json["sampleStartDate"];
 			var stop  = json["sampleStopDate"];

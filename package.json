@@ -20,15 +20,18 @@
     "command-exists": "^1.2.2",
     "compression": "^1.6.2",
     "express": "^4.15.3",
+    "hapi-verifier-nodejs": "git+https://github.com/hapi-server/verifier-nodejs.git",
     "moment": "^2.18.1",
     "request": "^2.87.0",
+    "request-async": "^0.1.0",
     "semver": "^5.5.0",
     "sync-request": "^6.0.0",
-    "verifier-nodejs": "https://github.com/hapi-server/verifier-nodejs",
     "yargs": "^8.0.1"
   },
   "scripts": {
-    "postinstall": "ln -s node_modules/hapi-server-verifier/verify.js",
+    "test": "bash test/test.sh",
+    "preinstall": "npm install hapi-verifier-nodejs",
+    "postinstall": "ln -s -f node_modules/hapi-verifier-nodejs/verify.js",
     "start": "node server.js --port 8999"
   }
 }

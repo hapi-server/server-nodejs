@@ -6,7 +6,10 @@
 		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 		<link rel="icon" href="favicon.ico" type="image/x-icon">
 		<script src="js/jquery-1.8.2.min.js"></script>
-		<script>VERIFIER = "__VERIFIER__"</script>
+		<script>
+			VERIFIER = "__VERIFIER__";
+			PLOTSERVER = "__PLOTSERVER__";
+		</script>
 		<script src="js/default.js"></script>
 	</head>
 	<body>
@@ -38,7 +41,12 @@
 		<p>
 			Contact: __CONTACT__
 		</p>
-		<br/>
+		<h2>Plots</h2>
+		<p>
+			<div id="plotlinks">
+			</div>
+		</p>
+		<h2>Server Tests</h2>
 		<div id="showvalidation" style="cursor:pointer;color:blue;text-decoration:underline;">Run Validation Tests</div>
 		<br/>
 		<a id="verifierurl" style="display:none;"></a>
