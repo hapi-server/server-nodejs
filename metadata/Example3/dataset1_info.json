@@ -1,6 +1,6 @@
 {
 	"startDate": "1970-01-01Z",
-	"stopDate" : "2016-12-31Z",
+	"stopDate" : "1971-01-01Z",
 	"sampleStartDate": "1970-01-01Z",
 	"sampleStopDate" : "1970-01-01T00:00:10Z",
 	"cadence": "PT1M",

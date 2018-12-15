@@ -30,17 +30,6 @@ if (stop.length == 8 || stop.length == 10) { // YYYY-DOY
 	stop = stop + "T00:00:00.000";
 }
 
-if (start === "1970-01-01T00:00:10.000" && stop === "1970-01-01T00:00:20.000") {
-	// For testing verifier for intervals with no data.
-	// If request in this time range, return zero bytes for single parameter request
-	// and data for all parameter request.
-	if (!all && id === 'dataset0') {
-		process.exit(0); // Exit if id=dataset0 and not all parameters requested.
-	} else {
-		process.exit(0);
-	}
-}
-
 var startsec = moment(start+"Z").valueOf()/1000;
 var stopsec  = moment(stop+"Z").valueOf()/1000;
 
@@ -164,8 +153,13 @@ for (var i = startsec; i < stopsec; i++) {
 		record = record.replace(/,/g,", ");  // Make dataset0 use space after comma.
 	}
 
+	if (i > 9 && i < 20) {
+		record = "";
+	}
+
 	if (records.length > 0) {
-		records = records + "\n" + record;
+		if (record.length > 0)
+			records = records + "\n" + record;
 	} else {
 		records = record;
 	}
@@ -176,7 +170,8 @@ for (var i = startsec; i < stopsec; i++) {
 
 	if (flush) {
 		if (id !== "dataset0") {
-			console.log(records); // Correct way.					
+			if (records.length > 0)
+				console.log(records); // Correct way.					
 		} else {
 			// Make time non-monotonic for dataset0.
 			records = records.split("\n");

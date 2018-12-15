@@ -27,10 +27,18 @@ import datetime
 import dateutil.parser
 import re
 
+from signal import signal, SIGPIPE, SIG_DFL
+# Trap broke pipe signal so usage in the form of
+# python ./bin/Example.py | python lib/subset.py ...
+# does not throw error when subset.py terminates read
+# of output of Example.py.
+signal(SIGPIPE, SIG_DFL)
+
 parser = argparse.ArgumentParser()
+parser.add_argument('--id',default='dataset1') # Not used
 parser.add_argument('--params',default='')
 parser.add_argument('--start',default='1970-01-01Z')
-parser.add_argument('--stop',default='1970-01-01T00:00:11Z')
+parser.add_argument('--stop',default='1971-01-01Z')
 parser.add_argument('--fmt',default='csv')
 
 v      = vars(parser.parse_args())

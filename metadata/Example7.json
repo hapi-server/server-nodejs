@@ -1,0 +1,17 @@
+{
+	"data": {
+		"command": "curl -s 'http://hapi-server.org/servers/TestData/hapi/data?id=${id}&parameters=${parameters}&time.min=${start}&time.max=${stop}&format=${format}'",
+		"formats": ["csv","binary","json"],
+		"contact": "rweigel@gmu.edu",
+		"test": "curl -s http://hapi-server.org/servers/TestData/hapi/data?id=dataset1&parameters=scalar&time.min=1970-01-01Z&time.max=1970-01-01T00:00:10Z&format=csv",
+		"testcommands": [
+			{"command": "curl -s 'http://hapi-server.org/servers/TestData/hapi/data?id=dataset1&parameters=scalar&time.min=1970-01-01Z&time.max=1970-01-01T00:00:10Z&format=csv'","Nlines": 10},
+			{"command": "curl -s 'http://hapi-server.org/servers/TestData/hapi/data?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10Z&time.max=1970-01-01T00:00:20Z&format=csv'","Nlines": 0}
+		],
+		"testurls": [
+			{"url": "${server}/data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10},
+			{"url": "${server}/data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10Z&time.max=1970-01-01T00:00:20Z", "Nlines": 0}
+		]
+	},
+	"catalog" : "http://hapi-server.org/servers/TestData/hapi/catalog"
+}

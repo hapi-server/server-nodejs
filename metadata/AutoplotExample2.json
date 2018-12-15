@@ -1,0 +1,15 @@
+{
+	"data": {
+		"command": "bash ./bin/OneWire.sh ${parameters} ${start} ${stop} ${public_path}",
+		"formats": ["csv"],
+		"contact": "rweigel@gmu.edu"
+	},
+	"catalog" :
+		[
+			{
+				"id": "10.CF3744000800",
+				"title": "Pool Temperature",
+				"info": "public/data/OneWire/info/10.CF3744000800.json"
+			}
+		]
+}
