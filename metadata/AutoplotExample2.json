@@ -1,6 +1,6 @@
 {
 	"data": {
-		"command": "bash ./bin/OneWire.sh ${parameters} ${start} ${stop} ${public_path}",
+		"command": "bash ./bin/AutoplotExample2.sh ${parameters} ${start} ${stop} ${public_path}",
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu"
 	},
