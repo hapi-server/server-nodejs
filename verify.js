@@ -1,0 +1,1 @@
+node_modules/hapi-verifier-nodejs/verify.js
