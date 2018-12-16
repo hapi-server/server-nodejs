@@ -9,7 +9,6 @@
         },
         {
             "description": "temperature of garden house pool",
-            "label": "temperature",
             "fill": "-1e31",
             "name": "Temperature",
             "type": "double",

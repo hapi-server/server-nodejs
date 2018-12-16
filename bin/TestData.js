@@ -164,8 +164,13 @@ for (var i = startsec; i < stopsec; i++) {
 		record = record.replace(/,/g,", ");  // Make dataset0 use space after comma.
 	}
 
+	if (i > 9 && i < 20) {
+		record = "";
+	}
+
 	if (records.length > 0) {
-		records = records + "\n" + record;
+		if (record.length > 0)
+			records = records + "\n" + record;
 	} else {
 		records = record;
 	}
@@ -176,7 +181,8 @@ for (var i = startsec; i < stopsec; i++) {
 
 	if (flush) {
 		if (id !== "dataset0") {
-			console.log(records); // Correct way.					
+			if (records.length > 0)
+				console.log(records); // Correct way.					
 		} else {
 			// Make time non-monotonic for dataset0.
 			records = records.split("\n");
