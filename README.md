@@ -125,7 +125,6 @@ The landing page for this example are shown at [http://hapi-server.org/servers/A
 ```javascript
 
 ```
-</details>
 
 <a name="Usage"></a>
 ## 3. Usage
@@ -289,8 +288,15 @@ location /TestDataSimple {
 
 <a name="Metadata"></a>
 ## 5. Metadata
+
+The metadata required for this server is similar to the `/catalog` and `/info` response of a HAPI server. 
+
+* Example [`/catalog`](http://hapi-server.org/servers/TestData/hapi/catalog) response
+* Example [`/info`](http://http://hapi-server.org/servers/TestData/hapi/info?id=dataset1) response
+
+The server requires that the `/catalog` response is combined with the `/info` response for all datasets in the catalog in single JSON file. In addition, additional information about how to generate data is included in this JSON file.
  
-The top-level structure of `CATALOG.json` file is
+The top-level structure of the configuration file is
 
 ```
 {
@@ -301,8 +307,31 @@ The top-level structure of `CATALOG.json` file is
 	"catalog": "See 5.3: Command line template or file",
 	"data": {
 	    "command": "Command line template",
+	     or
+	    "file": "HAPI CSV file"
+	    "fileformat": "one of 'csv', 'binary', 'json'"
+	     or
+	    "url": "URL that returns HAPI CSV"
+	    "urlformat": "one of 'csv', 'binary', 'json'"
 	    "contact": "Email address if error in command line program",
-	    "test": "Server will not start if this command line call is given and fails (gives exit 1 signal)"
+	    "testcommands": [
+	    		{
+		    		"command": string,  
+		    		"lines": integer,
+		    		"bytes": integer,
+		    		"md5", string
+	    		},
+	    		...
+	    	]
+	    "testurls": [
+	    		{
+		    		"url": string,  
+		    		"lines": integer, 
+		    		"length": integer,  
+		    		"md5", string
+	    		},
+	    		...
+	    	]
 	},
 
 }
@@ -356,7 +385,6 @@ Examples of this type of catalog include
 
 ### 5.2 `/catalog` response with file or command template for `info` object
 
-Examples of this type of catalog include
 
 * [TestDataSimple2](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestDataSimple2.json)
 * [TestDataSimple3](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestDataSimple3.json)
@@ -376,9 +404,9 @@ Examples of this type of catalog include
 	}
  ]
 ```
+See also [Example3.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example3.json).
 
-Alternatively, the metadata for each dataset may be produced by execution of a command line program for each dataset. For example, in the following `program1` should result in a HAPI JSON response from `/info?id=dataset1` to `stdout`. Before execution, the string `${ID}`, if found, is replaced with the requested dataset ID. Execution of `program2` should produce the HAPI JSON corresponding to the query `/info?id=dataset2`.
-
+Alternatively, the metadata for each dataset may be produced by execution of a command line program for each dataset. For example, in the following, `program1` should result in a HAPI JSON response from `/info?id=dataset1` to `stdout`. Before execution, the string `${id}`, if found, is replaced with the requested dataset ID. Execution of `program2` should produce the HAPI JSON corresponding to the query `/info?id=dataset2`. 
 
 ```json
 "catalog":
@@ -395,10 +423,11 @@ Alternatively, the metadata for each dataset may be produced by execution of a c
 	}
  ]
 ```
+See also [Example4.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example4.json).
 
 ### 5.3 References to a command line template or file
 
-The in the following the file or command line output can contain either a fully resolved catalog in the form shown in section 5.1 or a catalog with references as given in section 5.2.
+The `catalog` value can be a command line program that generates a fully resolved catalog, e.g.,
 
 ```json
 "catalog": "program --arg1 val1 ..."
@@ -406,11 +435,7 @@ The in the following the file or command line output can contain either a fully 
 
 The command line command should return the response of an `/info` query (with no `id` argument). 
 
-The path to a fully resolved catalog can also be given
-
-```json
-"catalog": "file:///"
-```
+The path to a fully resolved catalog can also be given. See also [Example5.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example4.json).
 
 <a name="Tests"></a>
 ## 6. Tests
