@@ -15,7 +15,7 @@ do
 		echo "--------------------------------"
 		echo "test.sh: Failed: "$com
 		echo "--------------------------------"
-		#exit 1
+		exit 1
 	else
 		echo "--------------------------------"
 		echo "test.sh: Passed: "$com
