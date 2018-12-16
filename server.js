@@ -26,7 +26,7 @@ var metadata = require('./metadata.js').metadata;
 // Test library
 var is = require(__dirname + '/node_modules/hapi-server-verifier/is.js');
 
-var timeregexes = require('./metadata.js').timeregexes(HAPIVERSION);
+var timeregexes = require('./lib/metadata.js').timeregexes(HAPIVERSION);
 
 var argv     = require('yargs')
 				.strict()
@@ -140,7 +140,10 @@ app.listen(argv.port, function () {
 	console.log(ds() + clc.blue("Listening on port " + argv.port))
 });
 
-////////////////////////////////////////////////////////////
+	if (TEST) {
+		test.urls(CATALOGS,PREFIXES,url,TEST);
+	}
+});
 
 function apiInit(catalog,PREFIX,last) {
 
@@ -484,6 +487,8 @@ function data(req,res,catalog,header,include) {
 			}
 		}
 	})
+
+	var remainder = "";
 
 	child.stdout.on('data', function (buffer) {
 		gotdata = true;

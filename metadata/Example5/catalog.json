@@ -1,0 +1,39 @@
+[
+	{
+		"id": "dataset1",
+		"title": "Documentation Example",
+		"info": 
+				{
+					"startDate": "1970-01-01Z",
+					"stopDate" : "1971-01-01Z",
+					"sampleStartDate": "1970-01-01Z",
+					"sampleStopDate" : "1970-01-01T00:10Z",
+					"cadence": "PT1M",
+					"parameters":
+						[
+							{ 
+								"name": "Time",
+								"type": "isotime",
+								"units": "UTC",
+								"fill": null,
+								"length": 20
+							},
+							{ 
+								"name": "scalar",
+								"type": "double",
+								"units": "m",
+								"fill": "-1e31",
+								"description": "Minutes since 1970-01-01"
+							},
+							{ 
+								"name": "vector",
+								"type": "double",
+								"units": "m",
+								"fill": "-1e31",
+								"size": [3],
+								"description": "Minutes since 1970-01-01 + i, where i is vector index component 1,2, or 3."
+							}
+						]
+				}				
+	}
+]

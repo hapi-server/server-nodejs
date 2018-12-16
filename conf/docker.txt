@@ -1,0 +1,7 @@
+https://nodejs.org/en/docs/guides/nodejs-docker-webapp/
+https://semaphoreci.com/community/tutorials/dockerizing-a-node-js-web-application
+https://docs.docker.com/docker-hub/builds/#prerequisites
+https://hub.docker.com/r/rweigel/hapi-reference-server/
+
+https://buddy.works/guides/how-dockerize-node-application
+https://medium.com/datreeio/node-js-docker-workflow-b9d936c931e1
