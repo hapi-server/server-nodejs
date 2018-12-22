@@ -1,51 +1,29 @@
-var moment  = require('moment');
-var argv    = require('yargs')
-				.default
-				({
-					'id': '',
-					'parameters': '',
-					'start': '',
-					'stop': ''
-				})
-				.argv;
-
-var all = false;
-if (argv.parameters === '' || typeof(argv.parameters) === 'boolean') {
-	// If --parameters with no parameters, type is boolean.
-	all = true;
-	var parameters = [""];
-} else {
-	var parameters = argv.parameters.split(",");
-}
-var start = argv.start.replace("Z","");
-var stop  = argv.stop.replace("Z","");
-var id    = argv.id;
-
-// Date YYYY-MM-DD or YYYY-DOY with no Z is considered invalid by moment.js
-// see timeCheck().
-if (start.length == 8 || start.length == 10) { // YYYY-MM-DD
-	start = start + "T00:00:00.000";
-}
-if (stop.length == 8 || stop.length == 10) { // YYYY-DOY
-	stop = stop + "T00:00:00.000";
-}
-
-if (start === "1970-01-01T00:00:10.000" && stop === "1970-01-01T00:00:20.000") {
-	// For testing verifier for intervals with no data.
-	// If request in this time range, return zero bytes for single parameter request
-	// and data for all parameter request.
-	if (!all && id === 'dataset0') {
-		process.exit(0); // Exit if id=dataset0 and not all parameters requested.
-	} else {
-		process.exit(0);
+var argv = process.argv;
+for (var i = 0; i < argv.length-1; i++) {
+	if (argv[i] == "--id") {
+		id = argv[i+1];
+	}
+	if (argv[i] == "--parameters") {
+		parameters = argv[i+1];
+	}
+	if (argv[i] == "--start") {
+		start = argv[i+1];
+	}
+	if (argv[i] == "--stop") {
+		stop = argv[i+1];
 	}
 }
+if (parameters.trim() === '') {
+	// If --parameters with string following.
+	var all = true;
+	var parameters = [""];
+} else {
+	var all = false;
+	var parameters = parameters.split(",");
+}
 
-var startsec = moment(start+"Z").valueOf()/1000;
-var stopsec  = moment(stop+"Z").valueOf()/1000;
-
-startsec = Math.floor(startsec);
-stopsec  = Math.floor(stopsec);
+var startsec = new Date(start).valueOf()/1000;
+var stopsec  = new Date(stop).valueOf()/1000;
 
 var records = ""; // Number of records (lines)
 var record  = ""; // A record with comma-separated fields (columns)
@@ -53,7 +31,6 @@ var Nwrote  = 0;  // Number of records flushed
 
 scalarstrs = ["P/P","P/F","F/P","F/F"];
 scalarcats = [0,1,2];
-
 
 // https://github.com/nodejs/node/issues/3524
 // https://github.com/nodejs/node/issues/1741#issuecomment-190649817
