@@ -1,6 +1,9 @@
 import sys
 import argparse
-from urllib.request import urlopen
+if sys.version_info[0] > 2:
+	from urllib.request import urlopen
+else:
+	from urllib2 import urlopen
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--columns', default=None)

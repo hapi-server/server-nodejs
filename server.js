@@ -1,89 +1,125 @@
 // R.S. Weigel <rweigel@gmu.edu>
-// License: Public Domain
+
+// Basic usage:
+//   hapi-server -f FILE
+// Create example files
+//   hapi-server --demo
+// - Writes hapi-server-demo/meta/, demo/bin/, and demo/public/ directories.
+// - States:
+// Try:
+//   cd hapi-server-demo
+//   hapi-server -f meta/Example0.json
+//   hapi-server -f meta/Example1.json
+//   etc.
+//   hapi-server -f meta/Example0.json -f meta/Example1.json
+//   hapi-server -c config.json
+//   config = {"files": [], "port": PORT, "verifier": URL, "plotserver": URL}
+// Paths in .json files should be relative to that file!
+
 
 // Global variable
 var HAPIVERSION = "2.0"; // Spec version implemented
-
-// Date string for logging.
-function ds() {return (new Date()).toISOString() + " [server] ";};
+var SCHEMAVERSION = "2.0-1";
 
 var clc  = require('cli-color'); // Colorize command line output
-var sver = require('semver');
-if (!sver.gte(process.version,'6.0.0')) {
+var ver  = parseInt(process.version.slice(1).split('.')[0]);
+if (ver < 6) {
 	console.log(clc.red("!!! node.js version >= 6 required.!!! node.js -v returns " + process.version + ".\nConsider installing https://github.com/creationix/nvm and then 'nvm use 6'.\n"));
 	process.exit(1);
 }
 
 var fs       = require('fs');
-
 var express  = require('express'); // Client/server library
 var app      = express();
 var server   = require("http").createServer(app);
 var compress = require('compression'); // Express compression module
 var moment   = require('moment'); // Time library http://moment.js
-var metadata = require('./metadata.js').metadata;
- 
+
+var metadata = require('./lib/metadata.js').metadata;
+var prepmetadata = require('./lib/metadata.js').prepmetadata;
+
+var test = require('./lib/test.js');
+
 // Test library
-var is = require(__dirname + '/node_modules/hapi-server-verifier/is.js');
+var is = require('hapi-server-verifier').is;
 
-var timeregexes = require('./lib/metadata.js').timeregexes(HAPIVERSION);
+// Date string for logging.
+function ds() {return (new Date()).toISOString() + " [server] ";};
 
-var argv     = require('yargs')
-				.strict()
-				.help('help')
-				.describe('port','Port to listen on')
-				.describe('catalog','A catalog name')
-				.describe('catalogs','Comma separated list of catalog names')
-				.describe('prefix','A catalog prefix')
-				.describe('prefixes','Comma separated list of prefixes')
-				.describe('verifier','URL of verifier to use')
-				.describe('force','Start server even if invalid metadata')
-				.describe('open','Open web page on start')
-				.default
-				({
-					'port': 8999,
-					'catalog': "TestData",
-					'catalogs': '',
-					'prefix': '',
-					'prefixes': '',
-					'verifier': "http://hapi-server.org/verify"
-				})
-				.option('help')
-				.option('force')
-				.option('open')
-				.option('help', {alias: 'h'})
-				.usage('Usage: $0 [options]')
-				.epilog('For more details, see https://github.com/hapi-server/server-nodejs/blob/master/README.md')
-				.argv;
+const yargs = require('yargs')
 
-var FORCE    = argv.force || false; // Start server if metadata invalid
-var VERIFIER = argv.verifier;
-var CATALOG  = argv.catalogs || argv.catalog;
-var PREFIX   = argv.prefixes || argv.prefix;
-var OPEN     = argv.open || false; // Open browser window on start
+yargs
+	.strict()
+	.help()
+	.describe('file','Server configuration file')
+	.alias('file','f')
+	.describe('port','Server port')
+	.alias('port','p')
+	.describe('ignore','Ignore metadata errors')
+	.alias('ignore','i')
+	.describe('open','Open web page on start')
+	.alias('open','o')
+	.describe('test','Exit after test URL tests complete')
+	.alias('test','t')
+	.describe('verifier','URL of verifier')
+	.describe('plotserver','URL of plot server')
+	.option('ignore')
+	.option('open')
+	.option('test')
+	.option('help', {alias: 'h'})
+	.epilog('For more details, see README at https://github.com/hapi-server/server-nodejs/')
 
-var CATALOGS = CATALOG.split(",");
-var PREFIXES = PREFIX.split(",");
+defaults = {
+		'file': 'metadata/TestData.json',
+		'port': 8999,
+		'verifier': "http://hapi-server.org/verify",
+		'plotserver': "http://hapi-server.org/plot"
+	};
 
-if (PREFIX == '') {
-	PREFIXES = CATALOGS.slice(0); // Clone array
+const env = process.env;
+if (!process.pkg) {
+	yargs
+		.usage('Usage: node server.js [options]')
+		.default(defaults)
+	var argv = yargs.argv;
 } else {
-	if (CATALOGS.length != PREFIXES.length) {
-		console.log(ds() + clc.red("Number of catalogs must equal number of prefixes if prefixes given."));
-		process.exit(1);
-	}
+
+	//var x = require('./bin/TestData.js').forpkg;
+
+	env['PKG_EXECPATH'] = 'PKG_INVOKE_NODEJS';
+	// Add a demo option
+	//defaults['demo'] = 'hapi-server-demo';
+	yargs
+		.usage("hapi-server [options]")
+		.describe('demo','Dir to write demos into')
+		.option('demo')
+		.alias('demo','d')
+		.default(defaults)
+
+	var argv = yargs.argv;
+
 }
 
-for (var i = 0;i < PREFIXES.length;i++) {
-	if (PREFIXES[i]) {
-		// Remove one or more leading or trailing / in PREFIX.
-		PREFIXES[i] = PREFIXES[i].replace(/^\/+/, '').replace(/\/+$/, '');
-		PREFIXES[i] = "/" + PREFIXES[i];
-	} else {
-		PREFIXES[i] = "";
-	}
-	// If PREFIX = '', serves from http://localhost:PORT/hapi
-	// Otherwise, serve from http://localhost:PORT/PREFIX/hapi
+var FILE       = argv.file;
+var PORT       = argv.port;
+var FORCE      = argv.ignore || false;
+var VERIFIER   = argv.verifier;
+var PLOTSERVER = argv.plotserver;
+var OPEN       = argv.open || false;
+var TEST       = argv.test || false;
+
+if (typeof(FILE) == 'string') {
+	FILES = [FILE];	
+} else {
+	FILES = FILE;
+}
+
+CATALOGS = [];
+PREFIXES = [];
+for (var i = 0; i < FILES.length; i++) {
+	json = prepmetadata(FILES[i],HAPIVERSION,FORCE,VERIFIER,PLOTSERVER);
+	CATALOGS[i] = json['server']['id'];
+	PREFIXES[i] = json['server']['prefix'];
 }
 
 exceptions(); // Catch common start-up exceptions
@@ -97,7 +133,7 @@ app.get('*', function (req,res,next) {
 })
 
 if (CATALOGS.length > 1) {
-	// TODO: Move file read to metadata.
+	// TODO: Move file read to metadata?
 	html = fs
 			.readFileSync(__dirname + "/public/multiple.htm","utf8")
 			.toString()
@@ -110,42 +146,39 @@ for (var i = 0;i < CATALOGS.length;i++) {
 	console.log(ds() + clc.green("Initializing http://localhost:" + argv.port + PREFIXES[i] + "/hapi"));
 	console.log(ds() + "Server can be tested/verified on the command line using");
 	console.log(ds() + "   node verify.js --url 'http://localhost:" + argv.port + PREFIXES[i] + "/hapi'");
-		console.log(ds() + "Server can be tested/verified on localhost page using");
-		console.log(ds() + "   node verify.js --port 9000 &");
-		console.log(ds() + "   node server.js " 
-						 + process.argv.slice(2).join(' ')
-						 + " --verifier 'http://localhost:9000/'");
-	// Initialize the API
-	apiInit(CATALOGS[i],PREFIXES[i],i == CATALOGS.length-1);
-	// Read static JSON files
-	metadata(CATALOGS[i],HAPIVERSION,FORCE,VERIFIER);
+	console.log(ds() + "Server can be tested/verified on localhost page using");
+	console.log(ds() + "   node verify.js --port 9000 &");
+	console.log(ds() + "   node server.js " 
+					 + process.argv.slice(2).join(' ').replace(' --test','').replace(' -t','')
+					 + " --verifier 'http://localhost:9000/'");
+
+	// Initialize the REST API for each catalog.
+	apiInit(CATALOGS[i],PREFIXES[i],i == CATALOGS.length-1);	
 }
 
-// TODO: Server can start before apiInit() and metadata() finished.
-// Use await apiInit() and await metadata()
 app.listen(argv.port, function () {
-	if (CATALOGS.length > 1) {
+	// Show messages after server started.
+	if (CATALOGS.length == 1) {
+		var url = 'http://localhost:' + argv.port + PREFIXES[0] + "/hapi";
+	} else {
 		var url = 'http://localhost:' + argv.port;
-		console.log(ds() + "Dataset list at http://localhost:" + argv.port);
+		console.log(ds() + "HAPI server list at http://localhost:" + argv.port);
 		for (var i = 0;i < CATALOGS.length;i++) {
 			console.log(ds() + "  http://localhost:" + argv.port + PREFIXES[i] + "/hapi");
 		}
-	} else {
-		var url = 'http://localhost:' + argv.port + PREFIXES[0] + "/hapi";
 	}
 	if (OPEN) {
 		var start = (process.platform == 'darwin'? 'open': process.platform == 'win32'? 'start': 'xdg-open');
 		require('child_process').exec(start + ' ' + url);
 	}
-	console.log(ds() + clc.blue("Listening on port " + argv.port))
-});
+	console.log(ds() + clc.blue("Listening on port " + argv.port));
 
 	if (TEST) {
 		test.urls(CATALOGS,PREFIXES,url,TEST);
 	}
 });
 
-function apiInit(catalog,PREFIX,last) {
+function apiInit(CATALOG,PREFIX,last) {
 
 	// Serve static files in ./public
 	app.use(PREFIX, express.static('public'));
@@ -154,7 +187,7 @@ function apiInit(catalog,PREFIX,last) {
 	app.get(PREFIX + '/hapi', function (req, res) {
 		cors(res); // Set CORS headers
 		res.contentType('text/html');
-		res.send(metadata(catalog,"landing"));
+		res.send(metadata(CATALOG,"landing"));
 	})
 
 	// /capabilities
@@ -169,7 +202,7 @@ function apiInit(catalog,PREFIX,last) {
 			return;
 		}
 
-		res.send(metadata(catalog,"capabilities"));
+		res.send(metadata(CATALOG,"capabilities"));
 	})
 
 	// /catalog
@@ -184,7 +217,7 @@ function apiInit(catalog,PREFIX,last) {
 			return;
 		}
 
-		res.send(metadata(catalog,"catalog"));
+		res.send(metadata(CATALOG,"catalog"));
 	})
 
 	// /info
@@ -208,13 +241,16 @@ function apiInit(catalog,PREFIX,last) {
 		}	
 
 		// Check if id is valid
-		if (!idCheck(catalog,req.query.id)) {error(req,res,1406);return;}
+		if (!idCheck(CATALOG,req.query.id)) {
+			error(req,res,1406);
+			return;
+		}
 
 		// Get subsetted info response based on requested parameters.
 		// info() returns integer error code if error.
 		// TODO: Reconsider this interface to info() - 
 		// infoCheck() is more consistent with other code.
-		var header = info(catalog,req,res); 
+		var header = info(CATALOG,req,res); 
 		if (typeof(header) === "number") {
 			error(req,res,header,"At least one parameter not found in dataset.");
 			return;
@@ -229,7 +265,7 @@ function apiInit(catalog,PREFIX,last) {
 
 		cors(res);
 
-		// TODO: Duplicate code from /info
+		// TODO: This is duplicate code from /info
 		if (!req.query.id) {
 			error(req,res,1400,"A dataset id must be given.");
 			return;
@@ -237,7 +273,10 @@ function apiInit(catalog,PREFIX,last) {
 
 		// Check if id is valid
 		// TODO: Duplicate code from /info
-		if (!idCheck(catalog,req.query["id"])) {error(req,res,1406);return;}
+		if (!idCheck(CATALOG,req.query.id)) {
+			error(req,res,1406);
+			return;
+		}
 
 		// Check if query parameters are all valid
 		var allowed = ["id","parameters","time.min","time.max","format","include","attach"];
@@ -258,7 +297,7 @@ function apiInit(catalog,PREFIX,last) {
 		}
 
 		// Get subsetted /info response based on requested parameters.
-		var header = info(catalog,req,res);
+		var header = info(CATALOG,req,res);
 		if (typeof(header) === "number") {
 			// One or more of the requested parameters are invalid.
 			error(req,res,header,"At least one parameter not found in dataset.");
@@ -274,7 +313,10 @@ function apiInit(catalog,PREFIX,last) {
 
 		// timeCheck() returns integer error code if error or true if no error.
 		var timeOK = timeCheck(header)
-		if (timeOK !== true) {error(req,res,timeOK);return;};
+		if (timeOK !== true) {
+			error(req,res,timeOK);
+			return;
+		}
 
 		header["format"] = "csv"; // Set default format
 		if (req.query["format"]) {
@@ -288,7 +330,7 @@ function apiInit(catalog,PREFIX,last) {
 		
 		if (req.query["include"]) {
 			if (req.query["include"] !== "header") {
-				error(req,res,1410,"Allowed value of 'include' is 'header'."); // Unknown include value
+				error(req,res,1410,"Allowed value of 'include' is 'header'.");
 				return;
 			}
 		}
@@ -299,19 +341,27 @@ function apiInit(catalog,PREFIX,last) {
 		if (header["format"] === "binary") {res.contentType("application/octet-stream")};
 		if (header["format"] === "json")   {res.contentType("application/json")};
 
-		var fname = "id-" + req.query["id"] + "_parameters-" + req.query["parameters"] + "_time.min-" + req.query["time.min"] + "_time.max-" + req.query["time.max"] + "." + header["format"];
+		var fname = "id-" 
+					+ req.query["id"] 
+					+ "_parameters-" 
+					+ req.query["parameters"] 
+					+ "_time.min-" 
+					+ req.query["time.min"] 
+					+ "_time.max-" 
+					+ req.query["time.max"] 
+					+ "." + header["format"];
 
 		if (req.query["attach"] === "false") {
 			// Allow non-standard "attach" query parameter for debugging.
-			// This will cause browser to display data instead of triggering
-			// a download dialog.
+			// Content-Type of 'text' will cause browser to display data 
+			// instead of triggering a download dialog.
 			res.contentType("text");
 		} else {
 			res.setHeader("Content-Disposition", "attachment;filename=" + fname);
 		}
 
 		// Send the data
-		data(req,res,catalog,header,include);
+		data(req,res,CATALOG,header,include);
 	})
 
 	// The following must always be after last app.get() statement.
@@ -338,6 +388,22 @@ function cors(res) {
 }
 
 function normalizeTime(timestr) {
+
+	// Convert to YYYY-MM-DDTHH:MM:SS.FFFFFFFFFZ 
+	// (nanosecond precision). All command line programs
+	// will be given this format.
+
+	// Need to extract it here and then insert at end
+	// because moment.utc(timestr).toISOString()
+	// ignores sub-millisecond parts of time string.
+	var re = new RegExp(/.*\.[0-9]{3}([0-9].*)Z/);
+	var submilli = "000000";
+	if (re.test(timestr)) {
+		var submilli = timestr.replace(/.*\.[0-9]{3}([0-9].*)Z$/,"$1");
+		var pad = "0".repeat(6-submilli.length);
+		submilli = submilli + pad; 
+	}
+
 	if (/^[0-9]{4}Z$/.test(timestr)) {
 		timestr = timestr.slice(0,-1) + "-01-01T00:00:00.000Z";
 	}
@@ -351,7 +417,72 @@ function normalizeTime(timestr) {
 		timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
 	}
 	timestr = moment.utc(timestr).toISOString();
+	timestr = timestr.slice(0,-1) + submilli + "Z";
 	return timestr;
+}
+
+function info(catalog,req,res) {
+
+	// Read parameter metadata.
+	// Parse string metadata because (json will be modified).
+	json = metadata(catalog,'info',req.query.id)
+	var json = JSON.parse(JSON.stringify(json));
+
+	// Create array of known parameter names
+	var knownparams = [];
+	for (var i = 0;i < json.parameters.length;i++) {
+		knownparams[i] = json.parameters[i].name;
+	}
+
+	// Create arrray from comma-separated parameters in query
+	var wantedparams = [];
+	if (req.query.parameters) {
+		wantedparams = req.query.parameters.split(",");
+	} else {
+		// If parameters field not in query string, default is all.
+		wantedparams = knownparams;
+	}
+
+	// Remove repeated parameters from query
+	var wantedparams = Array.from(new Set(wantedparams));
+
+	// Catches case where parameters= is given in query string.
+	// Assume it means same as if no parameters field was given
+	// (which means all parameters wanted).
+	if (wantedparams.length == 0) {return json;}
+
+	// Determine if any parameters requested are invalid
+	validparams = []; iv = 0;
+	invalidparams = []; ii = 0;
+	for (var i = 0;i < wantedparams.length;i++) {
+		if (knownparams.includes(wantedparams[i])) {
+			// TODO: Consider using objects if parameter lists are very long.
+			validparams[iv] = wantedparams[i];
+			iv++;
+		} else {
+			invalidparams[ii] = wantedparams[i];
+			ii++;
+		}
+	}
+
+	// Invalid parameter found
+	if (validparams.length != wantedparams.length) {
+		//console.log(validparams);
+		//console.log(wantedparams);
+		return 1401;
+	}
+
+	// Delete parameters from JSON response that were not requested
+	for (var i = 1;i < knownparams.length;i++) {
+		if (!wantedparams.includes(knownparams[i])) {
+			delete json.parameters[i];
+		}
+	}
+	// Remove nulls placed when array element is deleted
+	json.parameters = json.parameters.filter(function(n){return n != undefined}); 
+
+	// Return JSON string
+	return json;
 }
 
 function data(req,res,catalog,header,include) {
@@ -359,19 +490,26 @@ function data(req,res,catalog,header,include) {
 	//console.log(header.parameters)
 	var start = normalizeTime(req.query["time.min"]);
 	var stop = normalizeTime(req.query["time.max"]);
+
 	// Extract command line (CL) command and replace placeholders.
-	var d = metadata(catalog,'data','json');
-	var com = d.command; 
-	com = com.replace("${id}",req.query["id"]);
-	com = com.replace("${start}",start);
-	com = com.replace("${stop}",stop);
-	if (req.query["parameters"]) {
-		com = com.replace("${parameters}",req.query["parameters"]);
-	} else {
-		com = com.replace("${parameters}",'');
+	var d = metadata(catalog,'data');
+
+	function replacevars(com) {
+		com = com.replace("${id}",req.query["id"]);
+		com = com.replace("${start}",start);
+		com = com.replace("${stop}",stop);
+		if (req.query["parameters"]) {
+			com = com.replace("${parameters}",req.query["parameters"]);
+		} else {
+			com = com.replace("${parameters}",'');
+		}
+		com = com.replace("${format}",header["format"]);
+		com = com.replace("${server}","http://localhost:" + argv.port);
+		return com;	
 	}
-	com = com.replace("${format}",header["format"]);
-	com = com.replace("${SERVER_ROOT}",__dirname);
+	if (d.command) {
+		var com = replacevars(d.command); 
+	}
 
 	// See if CL program supports requested format
 	var formats = d.formats; // CL formats supported
@@ -384,12 +522,14 @@ function data(req,res,catalog,header,include) {
 	}
 
 	// If command does not contain ${parameters}, assume CL program
-	// always outputs all variables. Subset the output using the
-	// Unix "cut" command.
+	// always outputs all variables. Subset the output using subset.py.
+	var fieldstr = "";
+	var subsetcols = false;
 	if (req.query["parameters"] && !/\$\{parameters\}/.test(d.command)) {
+		subsetcols = true;
 		var params = req.query["parameters"].split(",");
-		var headerfull = metadata(catalog,'info','json',req.query.id);
-
+		var headerfull = metadata(catalog,'info',req.query.id);
+		//console.log(headerfull)
 		if (params[0] !== headerfull.parameters[0].name) {
 			// If time variable was not requested, add it so first column
 			// is always output.
@@ -415,7 +555,35 @@ function data(req,res,catalog,header,include) {
 		for (var i = 0;i < params.length;i++) {
 			fieldstr = fieldstr + fields[params[i]] + ",";
 		}
-		com = com + " | cut -d , -f " + fieldstr.slice(0, -1);
+		fieldstr = fieldstr.slice(0, -1)
+	}
+	var subsettime = false;
+	if (!/\$\{start\}/.test(d.command) && !/\$\{stop\}/.test(d.command)) {
+		subsettime = true;
+	}
+	if (subsetcols || subsettime) {
+		com = com + " | python lib/subset.py";
+		if (subsettime) {
+			com = com + " --start " + start;
+			com = com + " --stop " + stop;
+		}
+		if (subsetcols) {
+			com = com + " --columns " + fieldstr;	
+		}
+	}
+	if (d.file || d.url) {
+		com = "python lib/subset.py"
+		if (d.file) com = com + " --file '" + replacevars(d.file) + "'";
+		if (d.url)  com = com + " --url '" + replacevars(d.url) + "'";
+		com = com + " --start " + start;
+		com = com + " --stop " + stop;
+		if (d.file && !/\$\{parameters\}/.test(d.file)) {
+			com = com + " --columns " + fieldstr;
+		}
+		if (d.url && !/\$\{parameters\}/.test(d.url)) {
+			com = com + " --columns " + fieldstr;
+		}
+		com = com + " --format " + header["format"];
 	}
 
 	function dataErrorMessage() {
@@ -431,15 +599,16 @@ function data(req,res,catalog,header,include) {
 		}
 	}
 
-	console.log(ds() + "Executing " + com);
+	console.log(ds() + "Executing: " + com);
 
 	// Call the CL command and send output.	
 	var coms  = com.split(/\s+/);
 	var coms0 = coms.shift();
-	//var child = require('child_process')
-	//				.spawn(coms0,coms,{"encoding":"buffer"})
+
+	// This method leads to issues with escaping quotes.
+	//var child = require('child_process').spawn(coms0,coms,{"encoding":"buffer"})
 	var child = require('child_process')
-					.spawn('sh',['-c',com],{"encoding":"buffer"})
+					.spawn('sh',['-c',com],{"encoding":"buffer", "env": env})
 
 	var wroteheader = false; // If header already sent.
 	var gotdata = false; // First chunk of data received.
@@ -456,7 +625,7 @@ function data(req,res,catalog,header,include) {
 
 	// TODO: Write this to log file
 	child.stderr.on('data', function (err) {
-		console.log("Error message:" + err.toString());
+		console.log(ds() + "Error message: " + clc.red(err.toString().trim()));
 	})
 
 	child.on('exit', function (code) {
@@ -498,6 +667,26 @@ function data(req,res,catalog,header,include) {
 			wroteheader = true;
 			res.write("#" + JSON.stringify(header) + "\n");
 		}
+
+		if (false) {
+			// Un-finished code for allowing incremental writes.
+			// See comments below.
+			bufferstr = buffer.toString();
+			if (remainder !== "") {
+				bufferstr = remainder + bufferstr;
+			}
+			var lastnl = bufferstr.lastIndexOf("\n");
+			//console.log("bufferstr = " + bufferstr);
+			if (lastnl+1 == bufferstr.length) {
+				//console.log("no remainder");
+				remainder = "";
+			} else {
+				remainder = bufferstr.slice(lastnl);
+				//console.log("remainder = " + remainder);
+				bufferstr = bufferstr.slice(0,lastnl);
+			}
+		} 
+
 		if (header["format"] === "csv") {
 			res.write(buffer.toString());
 			return;	
@@ -694,77 +883,14 @@ function csvTo(records,first,last,header,include) {
 	}
 }
 
-function info(catalog,req,res) {
-
-	// Read parameter metadata.
-	// Parse string metadata because (json will be modified).
-	var json = JSON.parse(metadata(catalog,'info','string',req.query.id));
-
-	// Create array of known parameter names
-	var knownparams = [];
-	for (var i = 0;i < json.parameters.length;i++) {
-		knownparams[i] = json.parameters[i].name;
-	}
-
-	// Create arrray from comma-separated parameters in query
-	var wantedparams = [];
-	if (req.query.parameters) {
-		wantedparams = req.query.parameters.split(",");
-	} else {
-		// If parameters field not in query string, default is all.
-		wantedparams = knownparams;
-	}
-
-	// Remove repeated parameters from query
-	var wantedparams = Array.from(new Set(wantedparams));
-
-	// Catches case where parameters= is given in query string.
-	// Assume it means same as if no parameters field was given
-	// (which means all parameters wanted).
-	if (wantedparams.length == 0) {return json;}
-
-	// Determine if any parameters requested are invalid
-	validparams = []; iv = 0;
-	invalidparams = []; ii = 0;
-	for (var i = 0;i < wantedparams.length;i++) {
-		if (knownparams.includes(wantedparams[i])) {
-			// TODO: Consider using objects if parameter lists are very long.
-			validparams[iv] = wantedparams[i];
-			iv++;
-		} else {
-			invalidparams[ii] = wantedparams[i];
-			ii++;
-		}
-	}
-
-	// Invalid parameter found
-	if (validparams.length != wantedparams.length) {
-		//console.log(validparams);
-		//console.log(wantedparams);
-		return 1401;
-	}
-
-	// Delete parameters from JSON response that were not requested
-	for (var i = 1;i < knownparams.length;i++) {
-		if (!wantedparams.includes(knownparams[i])) {
-			delete json.parameters[i];
-		}
-	}
-	// Remove nulls placed when array element is deleted
-	json.parameters = json.parameters.filter(function(n){return n != undefined}); 
-
-	// Return JSON string
-	return json;
-}
-
-function idCheck(catalog,id) {
+function idCheck(catalogid,datasetid) {
 	// Get list of datasets.
-	var catalog = metadata(catalog,'catalog','json');
+	var catalog = metadata(catalogid,'catalog');
 	var datasets = catalog.catalog;
 	var found = false;
 	// Determine if requested id is in list
-	for (var i=0;i<datasets.length;i++) {
-		if (datasets[i]['id'] === id) {
+	for (var i = 0;i < datasets.length;i++) {
+		if (datasets[i]['id'] === datasetid) {
 			return true;
 			break;
 		}
@@ -800,11 +926,11 @@ function timeCheck(header) {
 		times[i] = times[i].replace(/\.Z/,".0Z"); // moment.js says .Z is invalid.
 	}
 
-	var r = is.HAPITime(times[0],timeregexes);
+	var r = is.HAPITime(times[0],SCHEMAVERSION);
 	if (r.error) {
 		return 1402;
 	}
-	var r = is.HAPITime(times[1],timeregexes);
+	var r = is.HAPITime(times[1],SCHEMAVERSION);
 	if (r.error) {
 		return 1403;
 	}

@@ -1,21 +1,22 @@
 #!/usr/bin/bash
 
+status="0"
 fail="0"
-for file in metadata/*.json
+for file in metadata/Example*.json
 do
 	name=${file##*/}
 	base=${name%.json}
-	com="node server.js --catalog ${base} --test --force"
+	com="node server.js --file ${file} --test --ignore"
 	echo "--------------------------------"
 	echo "test.sh: Running: "$com
 	echo "--------------------------------"
 	$com
-	fail=$?
-	if [[ $fail == "1" ]]; then
+	status=$?
+	if [[ $status == "1" ]]; then
 		echo "--------------------------------"
 		echo "test.sh: Failed: "$com
 		echo "--------------------------------"
-		exit 1
+		fail="1"
 	else
 		echo "--------------------------------"
 		echo "test.sh: Passed: "$com
@@ -24,9 +25,9 @@ do
 done
 
 if [[ $fail == "0" ]]; then
-	echo "test.sh: All tests passed in test suite. Exiting with code 0."
+	echo "test.sh: All tests passed in test suite. Exiting with status 0."
 	exit 0
 else
-	echo "test.sh: Not all tests passed in test suite.  Exiting with code 1."
+	echo "test.sh: Not all tests passed in test suite.  Exiting with status 1."
 	exit 1
 fi

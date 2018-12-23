@@ -1,18 +1,18 @@
 # Usage:
 #   python3 create-metadata.py
+#   python3 create-metadata.py TMPDIR
 
 import os
 import re
-import re
+import sys
 import gzip
 import json
 import pickle
 import ftputil
-import shutil
 import urllib.request
 import datetime as datetime
 
-def createmanifest(server):
+def createmanifest(server, fnametxt):
 	"""Create list of IAGA 2002 files below /intermagnet directory"""
 
 	# Could also create manifest.txt using
@@ -42,14 +42,15 @@ def createmanifest(server):
 	print("Wrote " + fnametxt)
 	outfile.close()
 
-def header(url):
+def header(url, tmpdir):
 	"""Extract parts of header from IAGA 2002 file"""
 
-	if not os.path.exists('./tmp'):
-		os.mkdirs('./tmp')
+	tmpdir = os.path.join(tmpdir,'INTERMAGNET')
+	if not os.path.exists(tmpdir):
+		os.mkdirs(tmpdir)
 
 	filename = url.split("/")[-1][0:3]
-	filename = "./tmp/" + url.split("/")[-1]
+	filename = os.path.join(tmpdir,url.split("/")[-1])
 	if not os.path.exists(filename):
 		print("Downloading " + url)
 		urllib.request.urlretrieve(url, filename)
@@ -104,7 +105,7 @@ def parsemanifest(fnametxt, fnamepkl):
 		date = file[3:11]
 		id = cadence + "/" + quality + "/" + tlc
 		if not id in s:
-			print('Found first ' + id + ' file.')
+			print('Found first ' + id + ' file in ' + fnametxt)
 			s[id] = {}
 			s[id]['dates'] = {}
 			s[id]['dates'][date] = path
@@ -118,7 +119,7 @@ def parsemanifest(fnametxt, fnamepkl):
 	pickle.dump(s, f, protocol=2)
 	f.close()
 
-def writejson(fnamepkl):
+def writejson(fnamepkl, fnamejson, tmpdir):
 
 	f = open(fnamepkl, 'rb')
 	s = pickle.load(f)
@@ -129,12 +130,12 @@ def writejson(fnamepkl):
 	for id in s:
 		url = "ftp://" + server + s[id]['first']
 		# TODO: Make sure header info is same for first and last file
-		(title, vars) = header(url) # Get header info for first file
+		(title, vars) = header(url, tmpdir) # Get header info for first file
 		if title == False: 
 			# Problem w/ first file; get header info for last file
 			problems.append(url)
 			url = "ftp://" + server + s[id]['last']
-			(title, vars) = header(url)
+			(title, vars) = header(url, tmpdir)
 			if title == False:
 				problems.append(url)
 				continue
@@ -205,20 +206,27 @@ def writejson(fnamepkl):
 	print("Problem files")
 	print(problems)
 
+if len(sys.argv) == 2:
+	tmpdir = sys.argv[1]
+else:
+	tmpdir = '/tmp'
+
 server = 'ftp.seismo.nrcan.gc.ca'
 fnametxt = 'INTERMAGNET-manifest.txt'
 fnamepkl = 'INTERMAGNET-manifest.pkl'
 fnamejson = 'INTERMAGNET-catalog.json'
 
-#createmanifest(server)
+#createmanifest(server, fnametxt)
 parsemanifest(fnametxt, fnamepkl)
-writejson(fnamepkl)
+writejson(fnamepkl, fnamejson, tmpdir)
 
 ds = datetime.datetime.now().strftime('%Y-%m-%d')
 
-print('Copying files to ./out/')
-shutil.copyfile(fnamepkl, 'out/%s-%s.txt' % (fnamepkl[0:-4], ds))
-shutil.copyfile(fnametxt, 'out/%s-%s.txt' % (fnametxt[0:-4], ds))
-shutil.copyfile(fnamejson, 'out/%s-%s.json' % (fnamejson[0:-5], ds))
+if False:
+	import shutil
+	print('Copying files to ./out/')
+	shutil.copyfile(fnamepkl, 'out/%s-%s.txt' % (fnamepkl[0:-4], ds))
+	shutil.copyfile(fnametxt, 'out/%s-%s.txt' % (fnametxt[0:-4], ds))
+	shutil.copyfile(fnamejson, 'out/%s-%s.json' % (fnamejson[0:-5], ds))
 
 

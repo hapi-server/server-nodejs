@@ -6,5 +6,5 @@
 			{"url": "${server}/data?id=minute/definitive/ams&parameters=X&time.min=1991-01-01Z&time.max=1991-01-01T00:10:00.000Z", "Nlines": 10}
 		]
 	},
-	"catalog" : "metadata/INTERMAGNET/INTERMAGNET-catalog.json"
+	"catalog": "metadata/INTERMAGNET/INTERMAGNET-catalog.json"
 }

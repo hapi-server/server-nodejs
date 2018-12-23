@@ -6,7 +6,7 @@
             {"command": "java -Djava.awt.headless=true -cp bin/autoplot.jar org.autoplot.AutoplotDataServer --uri=http://autoplot.org/data/autoplot.cdf?BGSM -f hapi-data | python lib/subset.py --start 2006-01-01T00:00:00.000Z --stop 2006-01-01T23:00:00.000Z --columns 1,2","Nlines": 23}
         ],
         "testurls": [
-            {"url": "${server}/data?id=ACE&parameters=Bx__GSM_&time.min=2006-01-01T00:00:00.000Z&time.max=2006-01-01T23:00:00.000Z","Nlines": 23}
+            {"url": "${server}/data?id=ACE&parameters=Bx__GSM_&time.min=2006-01-01T00:00:00.000Z&time.max=2006-01-02T00:00:00.000Z&attach=false","Nlines": 24}
         ]
     },
     "catalog":

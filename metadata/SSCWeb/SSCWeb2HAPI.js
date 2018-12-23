@@ -5,7 +5,7 @@ var xml2js  = require('xml2js');
 const fs = require('fs-extra');
 
 var urlo = "https://sscweb.sci.gsfc.nasa.gov/WS/sscr/2/observatories";
-var cfile = "SSCWeb-info.json";
+var cfile = "SSCWeb-catalog.json";
 
 SSCWeb2HAPI(
 	function (err,catalog) {
@@ -71,40 +71,39 @@ function makeHAPI(jsonraw,cb) {
 	var params = fs.readFileSync("SSCWeb-parameters.txt").toString();
 	params = params.split(/\n/);
 
-	var catalog = {}
-	catalog["catalog"] = [];
+	var catalog = [];
 	var obs = jsonraw.ObservatoryResponse.Observatory;
 	for (var i = 0; i < obs.length; i++) {
-		catalog["catalog"][i] = {};
-		catalog["catalog"][i]["id"] = obs[i]["Id"][0];
-		catalog["catalog"][i]["title"] = obs[i]["Name"][0];
-		catalog["catalog"][i]["info"] = {};
-		catalog["catalog"][i]["info"]["startDate"] = obs[i]["StartTime"][0];
-		catalog["catalog"][i]["info"]["stopDate"] = obs[i]["EndTime"][0];
-		catalog["catalog"][i]["info"]["cadence"] = "PT" + obs[i]["Resolution"][0] + "S";
-		catalog["catalog"][i]["info"]["description"] = "Ephemeris data";
-		catalog["catalog"][i]["info"]["resourceURL"] = "https://sscweb.sci.gsfc.nasa.gov/";
-		catalog["catalog"][i]["info"]["parameters"] = [];
+		catalog[i] = {};
+		catalog[i]["id"] = obs[i]["Id"][0];
+		catalog[i]["title"] = obs[i]["Name"][0];
+		catalog[i]["info"] = {};
+		catalog[i]["info"]["startDate"] = obs[i]["StartTime"][0];
+		catalog[i]["info"]["stopDate"] = obs[i]["EndTime"][0];
+		catalog[i]["info"]["cadence"] = "PT" + obs[i]["Resolution"][0] + "S";
+		catalog[i]["info"]["description"] = "Ephemeris data";
+		catalog[i]["info"]["resourceURL"] = "https://sscweb.sci.gsfc.nasa.gov/";
+		catalog[i]["info"]["parameters"] = [];
 		for (var j = 0;j < params.length;j++) {
 			paraminfo = params[j].split("\",");
 			if (params[j] === '') {continue} // Skip blank lines
-			catalog["catalog"][i]["info"]["parameters"][j] = {};
-			catalog["catalog"][i]["info"]["parameters"][j]["name"] = paraminfo[0].replace(/"/g,"");
-			catalog["catalog"][i]["info"]["parameters"][j]["description"] = paraminfo[2].replace(/"/g,"");
-			catalog["catalog"][i]["info"]["parameters"][j]["units"] = paraminfo[3].replace(/"/g,"");
-			catalog["catalog"][i]["info"]["parameters"][j]["fill"] = paraminfo[4].replace(/"/g,"");
-			catalog["catalog"][i]["info"]["parameters"][j]["type"] = paraminfo[5].replace(/"/g,"");
+			catalog[i]["info"]["parameters"][j] = {};
+			catalog[i]["info"]["parameters"][j]["name"] = paraminfo[0].replace(/"/g,"");
+			catalog[i]["info"]["parameters"][j]["description"] = paraminfo[2].replace(/"/g,"");
+			catalog[i]["info"]["parameters"][j]["units"] = paraminfo[3].replace(/"/g,"");
+			catalog[i]["info"]["parameters"][j]["fill"] = paraminfo[4].replace(/"/g,"");
+			catalog[i]["info"]["parameters"][j]["type"] = paraminfo[5].replace(/"/g,"");
 			var type = paraminfo[5].replace(/"/g,"");
 			console.log(paraminfo[0].replace(/"/g,"") + " " + type);
 			if (/f$/.test(type)) {
-				catalog["catalog"][i]["info"]["parameters"][j]["type"] = "double";
+				catalog[i]["info"]["parameters"][j]["type"] = "double";
 			}
 			if (/d$/.test(type)) {
-				catalog["catalog"][i]["info"]["parameters"][j]["type"] = "integer";
+				catalog[i]["info"]["parameters"][j]["type"] = "integer";
 			}
 			if (/s$/.test(type)) {
-				catalog["catalog"][i]["info"]["parameters"][j]["type"] = "string";
-				catalog["catalog"][i]["info"]["parameters"][j]["length"] = catalog["catalog"][i]["info"]["parameters"][j]["fill"].length;
+				catalog[i]["info"]["parameters"][j]["type"] = "string";
+				catalog[i]["info"]["parameters"][j]["length"] = catalog[i]["info"]["parameters"][j]["fill"].length;
 			}
 		}
 
@@ -116,7 +115,7 @@ function makeHAPI(jsonraw,cb) {
                         "length": 18
                     };
 
-		catalog["catalog"][i]["info"]["parameters"].unshift(Time);
+		catalog[i]["info"]["parameters"].unshift(Time);
 
 	}
 	if (!makeHAPI.writing) {

@@ -24,20 +24,27 @@ import sys
 import struct
 import argparse
 import datetime
-import dateutil.parser
 import re
 
+from signal import signal, SIGPIPE, SIG_DFL
+# Trap broke pipe signal so usage in the form of
+# python ./bin/Example.py | python lib/subset.py ...
+# does not throw error when subset.py terminates read
+# of output of Example.py.
+signal(SIGPIPE, SIG_DFL)
+
 parser = argparse.ArgumentParser()
+parser.add_argument('--id',default='dataset1') # Not used
 parser.add_argument('--params',default='')
-parser.add_argument('--start',default='1970-01-01Z')
-parser.add_argument('--stop',default='1970-01-01T00:00:11Z')
+parser.add_argument('--start',default='1970-01-01T00:00:00.000000000Z')
+parser.add_argument('--stop',default='1970-01-01T00:59:00.000000000Z')
 parser.add_argument('--fmt',default='csv')
 
 v      = vars(parser.parse_args())
 epoch  = datetime.datetime(1970,1,1)
 params = v['params']
-start  = dateutil.parser.parse(re.sub("Z$","",v['start']))
-stop   = dateutil.parser.parse(re.sub("Z$","",v['stop']))
+start  = datetime.datetime.strptime(v['start'][0:26],"%Y-%m-%dT%H:%M:%S.%f")
+stop   = datetime.datetime.strptime(v['stop'][0:26],"%Y-%m-%dT%H:%M:%S.%f")
 fmt    = v["fmt"]
 
 if params == '':
