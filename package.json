@@ -36,5 +36,10 @@
     "test": "node test/test.js",
     "start": "node server.js --port 8999"
   },
-  "bin": "server.js"
+  "bin": "server.js",
+  "release-it": {
+    "github": {
+      "release": true
+    }
+  }
 }

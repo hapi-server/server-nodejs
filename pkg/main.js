@@ -3,7 +3,7 @@ var spawn = require('child_process').spawn;
 const env = process.env;
 env['PKG_EXECPATH'] = 'PKG_INVOKE_NODEJS';
 
-if (1) {
+if (0) {
 	console.log("Execpath: " + process.execPath);
 	console.log("__dirname: " + __dirname);
 	console.log("args: " + process.argv);
@@ -34,6 +34,7 @@ var N = 0;
 start();
 
 function start() {
+	//console.log(args);
 	var child = spawn(process.execPath, args, {env: env});
 	child.stdout.on('data', (data) => {
 		console.log(data.toString().trim());
