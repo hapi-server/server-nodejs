@@ -1,23 +1,4 @@
-// R.S. Weigel <rweigel@gmu.edu>
-
-// Basic usage:
-//   hapi-server -f FILE
-// Create example files
-//   hapi-server --demo
-// - Writes hapi-server-demo/meta/, demo/bin/, and demo/public/ directories.
-// - States:
-// Try:
-//   cd hapi-server-demo
-//   hapi-server -f meta/Example0.json
-//   hapi-server -f meta/Example1.json
-//   etc.
-//   hapi-server -f meta/Example0.json -f meta/Example1.json
-//   hapi-server -c config.json
-//   config = {"files": [], "port": PORT, "verifier": URL, "plotserver": URL}
-// Paths in .json files should be relative to that file!
-
-
-// Global variable
+// Global variables
 var HAPIVERSION = "2.0"; // Spec version implemented
 var SCHEMAVERSION = "2.0-1";
 
@@ -34,71 +15,56 @@ var app      = express();
 var server   = require("http").createServer(app);
 var compress = require('compression'); // Express compression module
 var moment   = require('moment'); // Time library http://moment.js
+var yargs    = require('yargs');
 
 var metadata = require('./lib/metadata.js').metadata;
 var prepmetadata = require('./lib/metadata.js').prepmetadata;
 
+// Test commands and urls
 var test = require('./lib/test.js');
 
-// Test library
+// HAPI schema tests
 var is = require('hapi-server-verifier').is;
 
 // Date string for logging.
 function ds() {return (new Date()).toISOString() + " [server] ";};
 
-const yargs = require('yargs')
+var usage = "node server.js";
+if (/server$/.test(process.execPath)) {
+	var usage = "server";
+}
 
-yargs
-	.strict()
-	.help()
-	.describe('file','Server configuration file')
-	.alias('file','f')
-	.describe('port','Server port')
-	.alias('port','p')
-	.describe('ignore','Ignore metadata errors')
-	.alias('ignore','i')
-	.describe('open','Open web page on start')
-	.alias('open','o')
-	.describe('test','Exit after test URL tests complete')
-	.alias('test','t')
-	.describe('verifier','URL of verifier')
-	.describe('plotserver','URL of plot server')
-	.option('ignore')
-	.option('open')
-	.option('test')
-	.option('help', {alias: 'h'})
-	.epilog('For more details, see README at https://github.com/hapi-server/server-nodejs/')
-
-defaults = {
-		'file': 'metadata/TestData.json',
-		'port': 8999,
-		'verifier': "http://hapi-server.org/verify",
-		'plotserver': "http://hapi-server.org/plot"
-	};
+var argv = yargs
+			.strict()
+			.help()
+			.describe('file','Server configuration file')
+			.alias('file','f')
+			.describe('port','Server port')
+			.alias('port','p')
+			.describe('ignore','Ignore metadata errors')
+			.alias('ignore','i')
+			.describe('open','Open web page on start')
+			.alias('open','o')
+			.describe('test','Exit after test URL tests complete')
+			.alias('test','t')
+			.describe('verifier','URL of verifier')
+			.describe('plotserver','URL of plot server')
+			.option('ignore')
+			.option('open')
+			.option('test')
+			.option('help', {alias: 'h'})
+			.epilog('For more details, see README at https://github.com/hapi-server/server-nodejs/')
+			.usage('Usage: ' + usage + ' [options]')
+			.default({
+				'file': __dirname + '/metadata/TestData.json',
+				'port': 8999,
+				'verifier': "http://hapi-server.org/verify",
+				'plotserver': "http://hapi-server.org/plot"
+			})
+			.argv
 
 const env = process.env;
-if (!process.pkg) {
-	yargs
-		.usage('Usage: node server.js [options]')
-		.default(defaults)
-	var argv = yargs.argv;
-} else {
-
-	//var x = require('./bin/TestData.js').forpkg;
-
-	env['PKG_EXECPATH'] = 'PKG_INVOKE_NODEJS';
-	// Add a demo option
-	//defaults['demo'] = 'hapi-server-demo';
-	yargs
-		.usage("hapi-server [options]")
-		.describe('demo','Dir to write demos into')
-		.option('demo')
-		.alias('demo','d')
-		.default(defaults)
-
-	var argv = yargs.argv;
-
-}
+env['PKG_EXECPATH'] = 'PKG_INVOKE_NODEJS';
 
 var FILE       = argv.file;
 var PORT       = argv.port;

@@ -12,8 +12,10 @@ const excludes =
 	];
 
 var env = process.env;
-if (process.pkg) {
-	env['PKG_EXECPATH'] = 'PKG_INVOKE_NODEJS';
+var exe = process.execPath + " server.js";
+if (/server$/.test(process.execPath)) {
+	//env['PKG_EXECPATH'] = 'PKG_INVOKE_NODEJS';
+	//var exe = process.execPath;
 }
 
 const metadir = __dirname + '/../metadata';
@@ -28,7 +30,7 @@ fs.readdirSync(metadir).forEach(file => {
 
 var fails = 0;
 for (var i = 0; i < files.length; i++) {
-	var com = process.execPath + " server.js --test --ignore " + metadir + "/" + files[i];
+	var com = exe + " --test --ignore -f " + metadir + "/" + files[i];
 	process.stdout.write(clc.blue("Testing: ") + com);
 	var child = spawnSync('bash', ['-c', com], {stdio: 'pipe', env: env});
 	if (child.status == 0) {

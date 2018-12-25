@@ -1,6 +1,6 @@
 {
   "name": "hapi-server",
-  "version": "2.0.0",
+  "version": "0.9.0",
   "license": "Public Domain",
   "engine-strict": true,
   "engines": {
@@ -33,26 +33,8 @@
     "clean": "rm -rf node_modules/; rm -rf public/data/QinDenton/",
     "preinstall": "npm install hapi-server-verifier",
     "postinstall": "ln -s -f node_modules/hapi-server-verifier/verify.js",
-    "pkg:osx": "rm -rf dist/hapi-server-linux-x64-$npm_package_version; pkg . -t node6-osx-x64 --public --out-path dist/hapi-server-osx-x64-$npm_package_version",
-    "zip:osx": "cp -r public bin metadata lib dist/hapi-server-osx-x64-$npm_package_version; cd dist; zip -r hapi-server-osx-x64-$npm_package_version.zip hapi-server-osx-x64-$npm_package_version",
-    "pkg:linux": "rm -rf dist/hapi-server-linux-x64-$npm_package_version; pkg . -t node6-linux-x64 --public --out-path dist/hapi-server-linux-x64-$npm_package_version",
-    "zip:linux": "cp -r public bin metadata lib dist/hapi-server-linux-x64-$npm_package_version; cd dist; zip -r hapi-server-linux-x64-$npm_package_version.zip hapi-server-linux-x64-$npm_package_version",
-    "pkg:alpine": "rm -rf dist/hapi-server-alpine-$npm_package_version; pkg . -t node6-alpine-x64 --no-bytecode --out-path dist/hapi-server-alpine-x64-$npm_package_version",
-    "zip:alpine": "cp -r public bin metadata lib dist/hapi-server-alpine-x64-$npm_package_version; cd dist; zip -r hapi-server-alpine-x64-$npm_package_version.zip hapi-server-alpine-x64-$npm_package_version",
-    "pkg:armv6": "rm -rf dist/hapi-server-linux-armv6-$npm_package_version; pkg . -t node6-linux-armv7 --no-bytecode --out-path dist/hapi-server-linux-armv6-$npm_package_version",
-    "zip:armv6": "cp -r public bin metadata lib dist/hapi-server-linux-armv6-$npm_package_version; cd dist; zip -r hapi-server-linux-armv6-$npm_package_version.zip hapi-server-linux-armv6-$npm_package_version",
     "test": "node test/test.js",
     "start": "node server.js --port 8999"
   },
-  "bin": "server.js",
-  "pkg": {
-    "assets": [
-      "node_modules/**/*",
-      "lib/**/*",
-      "public/**/*",
-      "metadata/**/*",
-      "conf/**/*",
-      "bin/**/*"
-    ]
-  }
+  "bin": "server.js"
 }
