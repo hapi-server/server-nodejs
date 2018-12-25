@@ -2,3 +2,4 @@ tmp/
 node_modules/*
 *~
 pkg/dist
+pkg/bin
