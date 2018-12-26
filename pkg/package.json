@@ -1,6 +1,6 @@
 {
   "name": "hapi-server",
-  "version": "0.9.0",
+  "version": "0.9.1-beta.0",
   "devDependencies": {
     "pkg": "^4.3.5"
   },
@@ -10,10 +10,10 @@
     "bin": "mkdir node_modules; pkg . -t ${dist} --out-path dist/hapi-server-v$npm_package_version/",
     "zip": "cd dist; zip -qr hapi-server-${dist}-v$npm_package_version.zip hapi-server-v$npm_package_version",
     "pkg": "npm run files; dist=${dist} npm run bin; dist=${dist} npm run zip",
-    "all": "dist=node6-osx-x64 npm run pkg; dist=node6-linux-x64 npm run pkg",
     "linux": "dist=node6-linux-x64 npm run pkg",
     "alpine": "dist=node6-alpine-x64 npm run pkg",
     "osx": "dist=node6-osx-x64 npm run pkg",
+    "all": "dist=node6-osx-x64 npm run pkg; dist=node6-linux-x64 npm run pkg;dist=node6-alpine-x64 npm run pkg",
     "clean": "rm -rf dist"
   }
 }
