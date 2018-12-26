@@ -2,7 +2,9 @@
 var HAPIVERSION = "2.0"; // Spec version implemented
 var SCHEMAVERSION = "2.0-1";
 
-var clc  = require('cli-color'); // Colorize command line output
+//var clc  = require('cli-color'); // Colorize command line output
+var clc  = require('chalk'); // Colorize command line output
+
 var ver  = parseInt(process.version.slice(1).split('.')[0]);
 if (ver < 6) {
 	console.log(clc.red("!!! node.js version >= 6 required.!!! node.js -v returns " + process.version + ".\nConsider installing https://github.com/creationix/nvm and then 'nvm use 6'.\n"));
