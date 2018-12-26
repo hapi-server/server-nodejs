@@ -28,6 +28,8 @@ var test = require('./lib/test.js');
 // HAPI schema tests
 var is = require('hapi-server-verifier').is;
 
+var verify = require('hapi-server-verifier').tests.run;
+
 // Date string for logging.
 function ds() {return (new Date()).toISOString() + " [server] ";};
 
@@ -49,19 +51,18 @@ var argv = yargs
 			.alias('open','o')
 			.describe('test','Exit after test URL tests complete')
 			.alias('test','t')
-			.describe('verifier','URL of verifier')
-			.describe('plotserver','URL of plot server')
+			.describe('verify','Run verification tests')
+			.alias('verify','v')
 			.option('ignore')
 			.option('open')
 			.option('test')
+			.option('verify')
 			.option('help', {alias: 'h'})
 			.epilog('For more details, see README at https://github.com/hapi-server/server-nodejs/')
 			.usage('Usage: ' + usage + ' [options]')
 			.default({
 				'file': __dirname + '/metadata/TestData.json',
-				'port': 8999,
-				'verifier': "http://hapi-server.org/verify",
-				'plotserver': "http://hapi-server.org/plot"
+				'port': 8999 
 			})
 			.argv
 
@@ -71,10 +72,11 @@ env['PKG_EXECPATH'] = 'PKG_INVOKE_NODEJS';
 var FILE       = argv.file;
 var PORT       = argv.port;
 var FORCE      = argv.ignore || false;
-var VERIFIER   = argv.verifier;
-var PLOTSERVER = argv.plotserver;
+var VERIFIER   = "http://hapi-server.org/verify";
+var PLOTSERVER = "http://hapi-server.org/plot";
 var OPEN       = argv.open || false;
 var TEST       = argv.test || false;
+var VERIFY     = argv.verify || false;
 
 if (typeof(FILE) == 'string') {
 	FILES = [FILE];	
@@ -143,6 +145,9 @@ app.listen(argv.port, function () {
 
 	if (TEST) {
 		test.urls(CATALOGS,PREFIXES,url,TEST);
+	}
+	if (VERIFY) {
+		verify(url);
 	}
 });
 
