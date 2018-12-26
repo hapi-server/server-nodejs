@@ -6,6 +6,7 @@ var spawnSync = require('child_process').spawnSync;
 const excludes = 
 	[
 		"INTERMAGNET",
+		"SSCWeb",
 		"AutoplotExample1",
 		"AutoplotExample2",
 		"TestDataBad"

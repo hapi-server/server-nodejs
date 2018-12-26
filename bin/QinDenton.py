@@ -5,11 +5,11 @@ import argparse
 from datetime import datetime
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--start',default='1964-01-01T00:00:00.000Z')
-parser.add_argument('--stop',default='1964-01-02T00:00:00.000Z')
+parser.add_argument('--start',default='1964-01-01T00:00:00.000000000Z')
+parser.add_argument('--stop',default='1964-01-02T00:00:00.000000000Z')
 args = vars(parser.parse_args())
 
-start, stop = args['start'], args['stop']
+start, stop = args['start'][0:26], args['stop'][0:26]
 
 def convert(timestr):
     timestr = re.sub(r'(.*) 00([0-9])',r"\1   \2", timestr)
@@ -18,8 +18,8 @@ def convert(timestr):
     return timestr
 
 # Convert from input ISO 8601 time to format used in file
-startp = datetime.strptime(start,"%Y-%m-%dT%H:%M:%S.%fZ").strftime(" %Y %j %H")
-stopp = datetime.strptime(stop,"%Y-%m-%dT%H:%M:%S.%fZ").strftime(" %Y %j %H")
+startp = datetime.strptime(start,"%Y-%m-%dT%H:%M:%S.%f").strftime(" %Y %j %H")
+stopp = datetime.strptime(stop,"%Y-%m-%dT%H:%M:%S.%f").strftime(" %Y %j %H")
 
 # Strip out leading zeros as in file
 startp = convert(startp)
@@ -31,7 +31,7 @@ if not os.path.exists('./public/data/QinDenton/WGhour.d'):
     import urllib.request
     os.makedirs('./public/data/QinDenton/')
     url = 'http://mag.gmu.edu/ftp/QinDenton/hour/merged/latest/WGhour-latest.d'
-    print('QinDenton.py: Downloading %s' % url)
+    #print('QinDenton.py: Downloading %s' % url)
     urllib.request.urlretrieve(url, filename)
 
 file = open(filename, "r")

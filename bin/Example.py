@@ -37,7 +37,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--id',default='dataset1') # Not used
 parser.add_argument('--params',default='')
 parser.add_argument('--start',default='1970-01-01T00:00:00.000000000Z')
-parser.add_argument('--stop',default='1970-01-01T00:59:00.000000000Z')
+parser.add_argument('--stop',default='1971-01-01T00:00:00.000000000Z')
 parser.add_argument('--fmt',default='csv')
 
 v      = vars(parser.parse_args())

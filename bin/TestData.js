@@ -3,16 +3,21 @@ for (var i = 0; i < argv.length-1; i++) {
 	if (argv[i] == "--id") {
 		id = argv[i+1];
 	}
-	if (argv[i] == "--parameters") {
+	if (argv[i] === "--parameters") {
 		parameters = argv[i+1];
+		if (/--/.test(parameters)) {
+			// Catch case of --parameters --start START ...
+			parameters = "";
+		}
 	}
-	if (argv[i] == "--start") {
+	if (argv[i] === "--start") {
 		start = argv[i+1];
 	}
-	if (argv[i] == "--stop") {
+	if (argv[i] === "--stop") {
 		stop = argv[i+1];
 	}
 }
+
 if (parameters.trim() === '') {
 	// If --parameters with string following.
 	var all = true;
