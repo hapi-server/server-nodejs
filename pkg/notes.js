@@ -1,3 +1,12 @@
+//~/Desktop/jx_osx64v8/jx package server.js "test" --native
+// Lots of compiler errors, but final binary size is much smaller
+
+// nexe works, but does not seem to allow to call internal node
+
+// pkg works, but it seems maybe easier to just include node
+
+// Consider packaging from top-level so no need to expose node_modules
+
 // Alternative method to packaging. Create a single binary
 // and then add switch to allow demo files to be created.
 // Need to add to main package.json.
