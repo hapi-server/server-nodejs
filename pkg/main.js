@@ -11,24 +11,27 @@ if (0) {
 
 // Get directory of executable. TODO: Address Windows.
 var path = process.execPath.replace(/(.*)\/.*/,'$1');
+path = path.replace(/(.*)\\.*/,'$1');
+//console.log(path);
+
 // args will be /path/to/serverbinary, main.js
 args = process.argv;
 if (args[2] === "test") {
+	MAX = 0;
 	// "./server test" was command
 	var file = path + "/test/test.js";
-	console.log(file);
+	//console.log(file);
 	args = args.slice(3);
 	args.unshift(file);
-	console.log("targs: " + args);
+	//console.log("targs: " + args);
 } else {
+	var MAX = 10;
 	var file = path + "/server.js";
 	args = args.slice(2);
 	args.unshift(file);	
-	console.log("args: " + args);
+	//console.log("args: " + args);
 }
 
-
-var MAX = 10;
 var N = 0;
 
 start();
@@ -52,6 +55,8 @@ function start() {
 				console.log(N + " App crashed more than " + MAX + " times. Aborting.");
 				process.exit(1);
 			}
-		};
+		} else {
+			process.exit(0);
+		}
 	});
 }
