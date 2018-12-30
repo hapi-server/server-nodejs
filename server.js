@@ -11,6 +11,10 @@ if (ver < 6) {
 	process.exit(1);
 }
 
+process.on('SIGINT', function() {
+  process.exit(1);
+});
+
 var fs       = require('fs');
 var express  = require('express'); // Client/server library
 var app      = express();
@@ -72,11 +76,12 @@ env['PKG_EXECPATH'] = 'PKG_INVOKE_NODEJS';
 var FILE       = argv.file;
 var PORT       = argv.port;
 var FORCE      = argv.ignore || false;
-var VERIFIER   = "http://hapi-server.org/verify";
-var PLOTSERVER = "http://hapi-server.org/plot";
 var OPEN       = argv.open || false;
 var TEST       = argv.test || false;
 var VERIFY     = argv.verify || false;
+
+var VERIFIER   = "http://hapi-server.org/verify";
+var PLOTSERVER = "http://hapi-server.org/plot";
 
 if (typeof(FILE) == 'string') {
 	FILES = [FILE];	
@@ -114,13 +119,8 @@ if (CATALOGS.length > 1) {
 
 for (var i = 0;i < CATALOGS.length;i++) {
 	console.log(ds() + clc.green("Initializing http://localhost:" + argv.port + PREFIXES[i] + "/hapi"));
-	console.log(ds() + "Server can be tested/verified on the command line using");
-	console.log(ds() + "   node verify.js --url 'http://localhost:" + argv.port + PREFIXES[i] + "/hapi'");
-	console.log(ds() + "Server can be tested/verified on localhost page using");
-	console.log(ds() + "   node verify.js --port 9000 &");
-	console.log(ds() + "   node server.js " 
-					 + process.argv.slice(2).join(' ').replace(' --test','').replace(' -t','')
-					 + " --verifier 'http://localhost:9000/'");
+	console.log(ds() + "To run test URLS use the --test option");
+	console.log(ds() + "To run verification tests, use the --verify option");
 
 	// Initialize the REST API for each catalog.
 	apiInit(CATALOGS[i],PREFIXES[i],i == CATALOGS.length-1);	
@@ -601,7 +601,10 @@ function data(req,res,catalog,header,include) {
 		console.log(ds() + "Error message: " + clc.red(err.toString().trim()));
 	})
 
+	var writing = false;
+	var exited = false;
 	child.on('exit', function (code) {
+		exited = true;
 
 		if (code != 0) {
 			dataErrorMessage();
@@ -613,7 +616,9 @@ function data(req,res,catalog,header,include) {
 				// Convert accumulated data and send it.
 				res.send(csvTo(outstr,true,true,header,include));
 			} else {
-				res.end();
+				if (!writing) {
+					res.end();
+				}
 			}
 		} else { // No data returned and normal exit.
 			res.statusMessage = "HAPI 1201: No data in interval";
@@ -666,7 +671,10 @@ function data(req,res,catalog,header,include) {
 		}
 		if (header["format"] === "json") {
 			if (!convert) {
+				var writing = true;
 				res.write(buffer.toString());
+				var writing = false;
+				if (exited) {res.end();}
 				return;			
 			} else {
 				// JSON requested and CL program cannot produce it.
