@@ -4,16 +4,5 @@
   "devDependencies": {
     "pkg": "^4.3.5"
   },
-  "bin": "main.js",
-  "scripts": {
-    "files": "rm -rf dist/hapi-server-v$npm_package_version; mkdir -p dist/hapi-server-v$npm_package_version; rsync -av --exclude pkg --exclude .git ../ dist/hapi-server-v$npm_package_version/; rm -f dist/hapi-server-v$npm_package_version/*.md; rm -f dist/hapi-server-v$npm_package_version/package*; rm -rf dist/hapi-server-v$npm_package_version/.git*",
-    "bin": "mkdir node_modules; pkg . -t ${dist} --out-path dist/hapi-server-v$npm_package_version/",
-    "zip": "cd dist; zip -qr hapi-server-${dist}-v$npm_package_version.zip hapi-server-v$npm_package_version",
-    "pkg": "npm run files; dist=${dist} npm run bin; dist=${dist} npm run zip",
-    "linux": "dist=node6-linux-x64 npm run pkg",
-    "alpine": "dist=node6-alpine-x64 npm run pkg",
-    "osx": "dist=node6-osx-x64 npm run pkg",
-    "all": "dist=node6-osx-x64 npm run pkg; dist=node6-linux-x64 npm run pkg;dist=node6-alpine-x64 npm run pkg",
-    "clean": "rm -rf dist"
-  }
+  "bin": "main.js"
 }
