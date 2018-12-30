@@ -26,13 +26,20 @@ startp = convert(startp)
 stopp = convert(stopp)
 
 # Save file locally if not found
-filename = './public/data/QinDenton/WGhour.d'
-if not os.path.exists('./public/data/QinDenton/WGhour.d'):
-    import urllib.request
-    os.makedirs('./public/data/QinDenton/')
+base = os.path.dirname(os.path.abspath(__file__))
+base = os.path.join(base,'../public/data/QinDenton')
+filename = os.path.join(base,'WGhour.d')
+#print(filename)
+if not os.path.exists(filename):
+    if sys.version_info[0] > 2:
+        from urllib.request import urlretrieve
+    else:
+        from urllib import urlretrieve
+    if not os.path.isdir(base):
+        os.makedirs(base)
     url = 'http://mag.gmu.edu/ftp/QinDenton/hour/merged/latest/WGhour-latest.d'
     #print('QinDenton.py: Downloading %s' % url)
-    urllib.request.urlretrieve(url, filename)
+    urlretrieve(url, filename)
 
 file = open(filename, "r")
 
