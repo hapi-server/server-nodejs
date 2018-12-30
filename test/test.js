@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require("path");
-var clc  = require('cli-color');
+var clc  = require('chalk');
 var spawnSync = require('child_process').spawnSync;
 
 const excludes = 
