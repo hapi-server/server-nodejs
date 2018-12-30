@@ -1,6 +1,6 @@
 {
   "name": "hapi-server",
-  "version": "0.9.1-beta.2",
+  "version": "0.9.1-beta",
   "license": "MIT",
   "engine-strict": true,
   "engines": {
@@ -25,13 +25,11 @@
     "yargs": "^8.0.1",
     "hapi-server-verifier": "git+https://github.com/hapi-server/verifier-nodejs.git"
   },
-  "devDependencies": {
-    "pkg": "^4.3.5"
-  },
   "scripts": {
     "clean": "rm -rf node_modules/; rm -rf public/data/QinDenton/",
     "test": "node test/test.js",
-    "start": "node server.js --port 8999"
+    "start": "node server.js --port 8999",
+    "release": "rm -rf node_modules; npm install --production; release-it $npm_package_version --preRelease=beta --no-git.requireCleanWorkingDir"
   },
   "bin": "server.js",
   "release-it": {
