@@ -1041,7 +1041,8 @@ function exceptions() {
 }
 
 function logreq(req,extra) {
+	//console.log(req);
 	var extra = extra || "";
 	var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-	console.log(ds() + "Request from " + addr + ": " + req.originalUrl + " " + extra);
+	console.log(ds() + "Request from " + addr + ": " + "http://" + req.headers.host + req.originalUrl + " " + extra);
 }
