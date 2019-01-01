@@ -1,2 +1,2 @@
 #!/bin/sh
-node server.js $@
+$(dirname "$SCRIPT")/bin/node server.js $@
