@@ -1,6 +1,6 @@
 {
 	"data": {
-		"command": "node bin/TestData.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
+		"command": "$(NODE_EXE) $(HAPISERVER_BIN_DIR)/TestData.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
 		"testurls": [
