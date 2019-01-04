@@ -7,7 +7,7 @@ var clc  = require('chalk'); // Colorize command line output
 
 var ver  = parseInt(process.version.slice(1).split('.')[0]);
 if (ver < 6) {
-	console.log(clc.red("!!! node.js version >= 6 required.!!! node.js -v returns " + process.version + ".\nConsider installing https://github.com/creationix/nvm and then 'nvm use 6'.\n"));
+	console.log(clc.red("!!! node.js version >= 6 required.!!! node.js -v returns " + process.version + ".\nConsider installing https://github.com/creationix/nvm and then 'nvm install 6'.\n"));
 	process.exit(1);
 }
 
@@ -49,6 +49,8 @@ var argv = yargs
 			.alias('file','f')
 			.describe('port','Server port')
 			.alias('port','p')
+			.describe('conf','Server configuration file')
+			.alias('conf','c')
 			.describe('ignore','Ignore metadata errors')
 			.alias('ignore','i')
 			.describe('open','Open web page on start')
@@ -62,13 +64,19 @@ var argv = yargs
 			.option('test')
 			.option('verify')
 			.option('help', {alias: 'h'})
-			.epilog('For more details, see README at https://github.com/hapi-server/server-nodejs/')
+			.epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
 			.usage('Usage: ' + usage + ' [options]')
 			.default({
 				'file': __dirname + '/metadata/TestData.json',
-				'port': 8999 
+				'port': 8999,
+				'conf': __dirname + '/conf/server.json'
 			})
 			.argv
+
+var config = require("./lib/metadata.js").configVars();
+for (key in config) {
+	console.log(ds() + key + " = " + configd[key]);
+}
 
 const env = process.env;
 env['PKG_EXECPATH'] = 'PKG_INVOKE_NODEJS';
@@ -771,7 +779,7 @@ function csvTo(records,first,last,header,include) {
 			}		
 		}
 
-		console.log(types,lengths,sizes,Nr,Nb,recordsarr);
+		//console.log(types,lengths,sizes,Nr,Nb,recordsarr);
 
 		var recordbuff = new Buffer.alloc(Nr*Nb);
 		var pos = 0;
