@@ -5,6 +5,11 @@ if sys.version_info[0] > 2:
 else:
 	from urllib2 import urlopen
 
+# Read before implementing binary subsetting
+# https://stackoverflow.com/questions/2872381/how-to-read-a-file-byte-by-byte-in-python-and-how-to-print-a-bytelist-as-a-binar
+# https://stackoverflow.com/questions/48725405/how-to-read-binary-data-over-a-pipe-from-another-process-in-python
+# https://stackoverflow.com/questions/2850893/reading-binary-data-from-stdin
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--columns', default=None)
 parser.add_argument('--start', default='0001-01-01T00:00:00.000000000Z')
