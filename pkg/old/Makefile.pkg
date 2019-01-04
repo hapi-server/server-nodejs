@@ -1,0 +1,51 @@
+files:
+	rm -rf dist/hapi-server-v$(VERSION)
+	mkdir -p dist/hapi-server-v$(VERSION)
+	rsync -aq \
+		--exclude pkg \
+		--exclude .git \
+		--exclude public/data/QinDenton \
+		../ dist/hapi-server-v$(VERSION)/
+	cd dist/hapi-server-v$(VERSION); \
+		rm -f *.md \
+		rm -f package* \
+		rm -rf .git* \
+		rm -rf node_modules/src \
+		rm -rf node_modules/min
+
+bin: main.js
+	- mkdir node_modules
+	pkg . -t $(NODE)-$(DIST) -o dist/bin/hapi-server-$(DIST)
+	#--out-path dist/hapi-server-v$npm_package_version/
+
+zip:
+	cd dist; zip -qr \
+		hapi-server-$(NODE)-$(DIST)-v$(VERSION).zip \
+		hapi-server-v$(VERSION)
+
+pkg:
+	make files DIST=$(DIST)
+	make bin DIST=$(DIST)
+	cp dist/bin/hapi-server-$(DIST) dist/hapi-server-v$(VERSION)
+	make zip DIST=$(DIST)
+
+linux:
+	make pkg DIST=linux-x64
+
+alpine:
+	make pkg DIST=alpine-x64
+
+osx:
+	make pkg DIST=osx-x64
+
+win:
+	make pkg DIST=win-x64
+
+all:
+	make linux
+	make alpine
+	make osx
+	make win
+
+clean:
+	rm -rf dist/

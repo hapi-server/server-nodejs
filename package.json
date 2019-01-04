@@ -24,7 +24,7 @@
     "sync-request": "^4.1.0",
     "yargs": "^8.0.1",
     "hapi-server-verifier": "git+https://github.com/hapi-server/verifier-nodejs.git"
-  },
+  },  
   "scripts": {
     "clean": "rm -rf node_modules/; rm -rf public/data/QinDenton/",
     "test": "node test/test.js",
