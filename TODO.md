@@ -1,7 +1,6 @@
 = TODO =
 
 1. Refuse to start if contact is not given (unless --force)?
-2. Convert test/test.sh to Node.js
 
 TestData
 
