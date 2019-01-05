@@ -162,7 +162,7 @@ app.listen(argv.port, function () {
 function apiInit(CATALOG,PREFIX,last) {
 
 	// Serve static files in ./public
-	app.use(PREFIX, express.static('public'));
+	app.use(PREFIX, express.static(__dirname + '/public'));
 
 	// Serve landing web page
 	app.get(PREFIX + '/hapi', function (req, res) {
