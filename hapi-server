@@ -3,11 +3,13 @@
 # https://unix.stackexchange.com/a/76518
 path=$(exec 2>/dev/null;cd -- $(dirname "$0"); unset PWD; /usr/bin/pwd || /bin/pwd || pwd)
 
-if type $path"/bin/node" &> /dev/null; then
+#echo $(type $path"/bin/node")
+
+if command -v $path"/bin/node" > /dev/null 2>&1; then
 	$path"/bin/node" $path"/server.js" $@	
-elif type node &> /dev/null; then
+elif command -v node > /dev/null 2>&1; then
 	node $path"/server.js" $@	
-elif type nodejs &> /dev/null; then
+elif command -v nodejs > /dev/null 2>&1; then
 	nodejs $path"/server.js" $@
 else
 	echo "Did not find "$(dirname "$SCRIPT")"/bin/node, node, or nodejs"
