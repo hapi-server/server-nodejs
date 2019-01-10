@@ -602,8 +602,6 @@ function data(req,res,catalog,header,include) {
 		}
 	});
 
-	child.stdout.on('end', function() {})
-
 	// TODO: Write this to log file
 	child.stderr.on('data', function (err) {
 		console.log(ds() + "Error message: " + clc.red(err.toString().trim()));
@@ -611,7 +609,8 @@ function data(req,res,catalog,header,include) {
 
 	var writing = false;
 	var exited = false;
-	child.on('exit', function (code) {
+
+	child.on('close', function (code) {
 		exited = true;
 
 		if (code != 0) {
@@ -679,10 +678,10 @@ function data(req,res,catalog,header,include) {
 		}
 		if (header["format"] === "json") {
 			if (!convert) {
-				var writing = true;
+				//var writing = 	true;
 				res.write(buffer.toString());
-				var writing = false;
-				if (exited) {res.end();}
+				//var writing = false;
+				//if (exited) {res.end();}
 				return;			
 			} else {
 				// JSON requested and CL program cannot produce it.

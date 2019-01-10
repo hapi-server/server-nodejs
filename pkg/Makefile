@@ -7,6 +7,11 @@ DIST=darwin-x64
 #DIST=linux-armv7l # Did this on Pi 3+
 #DIST=win-x64
 
+release:
+	cd ..; rm -rf node_modules; npm install --production; 
+	make update VERSION=$(VERSION);
+	cd ..; source pkg/GITHUB_TOKEN && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
+
 # When node and python binaries do not need to be updated.
 update:
 	make package OS=darwin-x64
@@ -81,14 +86,12 @@ files:
 		--exclude pkg \
 		--exclude .git \
 		--exclude public/data/QinDenton \
-		../ dist/hapi-server-$(VERSION)/
-	cd dist/hapi-server-$(VERSION); \
-		rm -f *.md \
-		rm -f package* \
-		rm -rf .git* \
-		rm -rf node_modules/moment/src \
-		rm -rf node_modules/moment/min \ 
-		rm -rf node_modules/moment/locale \ 
+		../ dist/hapi-server-$(VERSION)
+	rm -f dist/hapi-server-$(VERSION)/*.md
+	rm -rf dist/hapi-server-$(VERSION)/.git*
+	rm -rf dist/hapi-server-$(VERSION)/node_modules/moment/src
+	rm -rf dist/hapi-server-$(VERSION)/node_modules/moment/min
+	rm -rf dist/hapi-server-$(VERSION)/node_modules/moment/locale
 
 clean:
 	rm -rf dist/

@@ -8,7 +8,7 @@ if type $path"/bin/node" &> /dev/null; then
 elif type node &> /dev/null; then
 	node $path"/server.js" $@	
 elif type nodejs &> /dev/null; then
-	node $path"/server.js" $@
+	nodejs $path"/server.js" $@
 else
 	echo "Did not find "$(dirname "$SCRIPT")"/bin/node, node, or nodejs"
 fi

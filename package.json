@@ -1,6 +1,6 @@
 {
   "name": "hapi-server",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "license": "MIT",
   "engine-strict": true,
   "engines": {
@@ -29,7 +29,7 @@
     "clean": "rm -rf node_modules/; rm -rf public/data/QinDenton/",
     "test": "node test/test.js",
     "start": "node server.js --port 8999",
-    "release": "rm -rf node_modules; npm install --production; source pkg/GITHUB_TOKEN && release-it $npm_package_version --preRelease=beta --no-git.requireCleanWorkingDir"
+    "release": "cd pkg; make release VERSION=v$npm_package_version"
   },
   "bin": "server.js",
   "release-it": {
