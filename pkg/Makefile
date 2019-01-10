@@ -1,7 +1,8 @@
 NODEV=v6.16.0
 NODED=https://nodejs.org/dist/latest-v6.x
 VERSION=v0.9.2
-DIST=darwin-x64 # Did this on High Sierra
+DIST=darwin-x64
+# Did this on High Sierra
 #DIST=linux-x64 # Did this on Alpine 3.8
 #DIST=linux-armv7l # Did this on Pi 3+
 #DIST=win-x64
@@ -11,14 +12,15 @@ update:
 	make package OS=darwin-x64
 	make package OS=linux-x64
 	make package OS=linux-armv7l
-	make package OS=win-x64
+	rm -rf dist/hapi-server-$(VERSION)/
+	#make package OS=win-x64
 
 package:
 	make files
 	cp bin/node-$(NODEV)-$(OS) dist/hapi-server-$(VERSION)/bin/node
-	- cp bin/python-$(OS) dist/hapi-server-$(VERSION)/bin/python
+	# cp bin/python-$(OS) dist/hapi-server-$(VERSION)/bin/python
 	make targz OS=$(OS)
-	make zip OS=$(OS)
+	#make zip OS=$(OS)
 
 darwin-x64: 
 	make node0 OS=darwin-x64
@@ -43,10 +45,10 @@ win-x64:
 	make package OS=win-x64
 
 zip:
-	cd dist; zip -r hapi-server-$(VERSION)-$(DIST).zip hapi-server-$(VERSION)
+	cd dist; zip -r hapi-server-$(VERSION)-$(OS).zip hapi-server-$(VERSION)
 
 targz:
-	cd dist; tar zcvf hapi-server-$(VERSION)-$(DIST).tgz hapi-server-$(VERSION)
+	cd dist; tar zcvf hapi-server-$(VERSION)-$(OS).tgz hapi-server-$(VERSION)
 
 node0:
 	cd tgz; curl -O $(NODED)/node-$(NODEV)-$(OS).tar.gz;
@@ -84,8 +86,9 @@ files:
 		rm -f *.md \
 		rm -f package* \
 		rm -rf .git* \
-		rm -rf node_modules/src \
-		rm -rf node_modules/min
+		rm -rf node_modules/moment/src \
+		rm -rf node_modules/moment/min \ 
+		rm -rf node_modules/moment/locale \ 
 
 clean:
 	rm -rf dist/

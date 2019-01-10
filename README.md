@@ -32,7 +32,7 @@ A list of datasets that are served using this sofware is given at [http://hapi-s
 <a name="Installation"></a>
 ## 2. Installation
 
-[Download](https://github.com/hapi-server/server-nodejs/releases) a binary packages are available for Windows 10 x64, OS-X x64, Linux x64, and Linux ARM7l (e.g., Rasberry Pi).
+[Download](https://github.com/hapi-server/server-nodejs/releases) a binary packages are available for Windows 10 x64, OS-X x64, Linux x64, and Linux ARMv7l (e.g., Rasberry Pi).
 
 The server is started by executing the file `hapi-server` on a command line.
 
