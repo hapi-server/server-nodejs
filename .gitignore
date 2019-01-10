@@ -1,6 +1,5 @@
 tmp/
 node_modules/*
 *~
-pkg/dist
-pkg/bin
+pkg/
 public/data/QinDenton/
