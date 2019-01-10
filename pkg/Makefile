@@ -10,13 +10,13 @@ DIST=darwin-x64
 release:
 	cd ..; rm -rf node_modules; npm install --production; 
 	make update VERSION=$(VERSION);
-	cd ..; source pkg/GITHUB_TOKEN && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
+	cd .. && source pkg/GITHUB_TOKEN && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
 
 # When node and python binaries do not need to be updated.
 update:
-	make package OS=darwin-x64
-	make package OS=linux-x64
-	make package OS=linux-armv7l
+	make package VERSION=$(VERSION) OS=darwin-x64
+	make package VERSION=$(VERSION) OS=linux-x64
+	make package VERSION=$(VERSION) OS=linux-armv7l
 	rm -rf dist/hapi-server-$(VERSION)/
 	#make package OS=win-x64
 
