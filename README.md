@@ -32,9 +32,34 @@ A list of datasets that are served using this sofware is given at [http://hapi-s
 <a name="Installation"></a>
 ## 2. Installation
 
-[Download](https://github.com/hapi-server/server-nodejs/releases) a binary packages are available for Windows 10 x64, OS-X x64, Linux x64, and Linux ARMv7l (e.g., Rasberry Pi).
+[Binary packages](https://github.com/hapi-server/server-nodejs/releases) are available for Windows 10 x64, OS-X x64, Linux x64, and Linux ARMv7l (e.g., Rasberry Pi). Installation and startup commands are given below. See the [Development](#Development) section for instructions on installing from source.
 
-The server is started by executing the file `hapi-server` on a command line.
+OS-X:
+
+```bash
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2-darwin-x64.tgz
+ tar zxvf hapi-server-v0.9.2-darwin-x64.tgz
+ cd hapi-server-v0.9.2
+ ./hapi-server
+```
+
+Linux x64:
+
+```bash
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2-linux-x64.tgz
+ tar zxvf hapi-server-v0.9.2-linux-x64.tgz
+ cd hapi-server-v0.9.2
+ ./hapi-server
+```
+
+Linux ARMv7l:
+
+```bash
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2-linux-armv7l.tgz
+ tar zxvf hapi-server-v0.9.2-linux-armv7l.tgz
+ cd hapi-server-v0.9.2
+ ./hapi-server
+```
 
 <a name="Examples"></a>
 ## 2. Examples
@@ -443,31 +468,6 @@ cd server-nodejs; npm install
 
 # Run tests
 node test/test.js
-```
-
-<a name="Plot_Server"></a>
-### 6.2 Plot Server Configuration
-
-The default landing pages have links to plots; the links send a HAPI data URL to the plot server running at http://hapi-server.org/plot and the server returns an image. These links will not work if a HAPI server is not visible to http://hapi-server.org/.
-
-To allow use of the plot links on the `/hapi` landing pages when testing a server with a localhost URL,
-
-Install `hapiclient` package
-
-```
-pip install hapiclient
-```
-
-Start a plot server
-
-```
-hapiplotserver --port 5000
-```
-
-Start the server and specify the plot server location
-
-```
-./hapi-server --plotserver 'http://localhost:5000/'
 ```
 
 <a name="Contact"></a>
