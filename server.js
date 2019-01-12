@@ -78,9 +78,6 @@ for (key in config) {
 	console.log(ds() + key + " = " + configd[key]);
 }
 
-const env = process.env;
-env['PKG_EXECPATH'] = 'PKG_INVOKE_NODEJS';
-
 var FILE       = argv.file;
 var PORT       = argv.port;
 var FORCE      = argv.ignore || false;
@@ -589,7 +586,7 @@ function data(req,res,catalog,header,include) {
 	// This method leads to issues with escaping quotes.
 	//var child = require('child_process').spawn(coms0,coms,{"encoding":"buffer"})
 	var child = require('child_process')
-					.spawn('sh',['-c',com],{"encoding":"buffer", "env": env})
+					.spawn('sh',['-c',com],{"encoding":"buffer"})
 
 	var wroteheader = false; // If header already sent.
 	var gotdata = false; // First chunk of data received.
