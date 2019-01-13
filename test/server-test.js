@@ -12,12 +12,7 @@ const excludes =
 		"TestDataBad"
 	];
 
-var env = process.env;
 var exe = process.execPath + " server.js";
-if (/server$/.test(process.execPath)) {
-	//env['PKG_EXECPATH'] = 'PKG_INVOKE_NODEJS';
-	//var exe = process.execPath;
-}
 
 const metadir = __dirname + '/../metadata';
 files = [];
@@ -33,13 +28,14 @@ var fails = 0;
 for (var i = 0; i < files.length; i++) {
 	var com = exe + " --test --ignore -f " + metadir + "/" + files[i];
 	process.stdout.write(clc.blue("Testing: ") + com);
-	var child = spawnSync('bash', ['-c', com], {stdio: 'pipe', env: env});
+	var child = spawnSync('bash', ['-c', com], {stdio: 'pipe'});
 	if (child.status == 0) {
 		console.log(clc.green(" PASS"));
 	} else {
 		fails = fails + 1;
-		console.log(child.stdout.toString());
-		console.log(child.stderr.toString());
+		console.log(clc.red(" FAIL"));
+		console.log("\n" + child.stdout.toString());
+		console.log("\n" + child.stderr.toString());
 	}
 }
 if (fails == 0) {

@@ -3,8 +3,6 @@
 # https://unix.stackexchange.com/a/76518
 path=$(exec 2>/dev/null;cd -- $(dirname "$0"); unset PWD; /usr/bin/pwd || /bin/pwd || pwd)
 
-#echo $(type $path"/bin/node")
-
 if command -v $path"/bin/node" > /dev/null 2>&1; then
 	$path"/bin/node" $path"/server.js" $@	
 elif command -v node > /dev/null 2>&1; then

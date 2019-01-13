@@ -19,7 +19,7 @@
 							"stopDate" : "1970-01-01T01:00:00Z",
 							"sampleStartDate": "1970-01-01Z",
 							"sampleStopDate" : "1970-01-01T00:10:00Z",
-							"cadence": "PT1M",
+							"cadence": "PT1S",
 							"parameters":
 								[
 									{ 

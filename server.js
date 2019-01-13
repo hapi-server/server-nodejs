@@ -55,7 +55,7 @@ var argv = yargs
 			.alias('ignore','i')
 			.describe('open','Open web page on start')
 			.alias('open','o')
-			.describe('test','Exit after test URL tests complete')
+			.describe('test','Exit after URL tests complete')
 			.alias('test','t')
 			.describe('verify','Run verification tests')
 			.alias('verify','v')
@@ -540,7 +540,8 @@ function data(req,res,catalog,header,include) {
 		subsettime = true;
 	}
 	if (subsetcols || subsettime) {
-		com = com + " | python lib/subset.py";
+		//com = com + " | " + config.PYTHON_EXE + " " + __dirname + "/lib/subset.py";
+		com = com + " | " + config.NODE_EXE + " " + __dirname + "/lib/subset.js";
 		if (subsettime) {
 			com = com + " --start " + start;
 			com = com + " --stop " + stop;
