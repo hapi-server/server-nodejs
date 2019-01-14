@@ -132,7 +132,8 @@ for (var i = 0;i < CATALOGS.length;i++) {
 }
 
 app.listen(argv.port, function () {
-	// Show messages after server started.
+
+	// Show messages after server started
 	if (CATALOGS.length == 1) {
 		var url = 'http://localhost:' + argv.port + PREFIXES[0] + "/hapi";
 	} else {
@@ -142,16 +143,21 @@ app.listen(argv.port, function () {
 			console.log(ds() + "  http://localhost:" + argv.port + PREFIXES[i] + "/hapi");
 		}
 	}
+
 	if (OPEN) {
+		// Open browser window
 		var start = (process.platform == 'darwin'? 'open': process.platform == 'win32'? 'start': 'xdg-open');
 		require('child_process').exec(start + ' ' + url);
 	}
+
 	console.log(ds() + clc.blue("Listening on port " + argv.port));
 
 	if (TEST) {
+		// Exits with signal 0 or 1
 		test.urls(CATALOGS,PREFIXES,url,TEST);
 	}
 	if (VERIFY) {
+		// Exits with signal 0 or 1
 		verify(url);
 	}
 });
@@ -465,11 +471,10 @@ function info(catalog,req,res) {
 
 function data(req,res,catalog,header,include) {
 
-	//console.log(header.parameters)
 	var start = normalizeTime(req.query["time.min"]);
 	var stop = normalizeTime(req.query["time.max"]);
 
-	// Extract command line (CL) command and replace placeholders.
+	// Extract command line command and replace placeholders.
 	var d = metadata(catalog,'data');
 
 	function replacevars(com) {
@@ -485,84 +490,100 @@ function data(req,res,catalog,header,include) {
 		com = com.replace("${server}","http://localhost:" + argv.port);
 		return com;	
 	}
-	if (d.command) {
-		var com = replacevars(d.command); 
-	}
 
-	// See if CL program supports requested format
-	var formats = d.formats; // CL formats supported
-	var convert = true; // true if conversion is needed here
-	if (formats) {
-		if (formats.includes(req.query["format"])) {
-			// CL program can create requested format
-			var convert = false;
-		}
-	}
-
-	// If command does not contain ${parameters}, assume CL program
-	// always outputs all variables. Subset the output using subset.py.
-	var fieldstr = "";
-	var subsetcols = false;
-	if (req.query["parameters"] && !/\$\{parameters\}/.test(d.command)) {
-		subsetcols = true;
-		var params = req.query["parameters"].split(",");
-		var headerfull = metadata(catalog,'info',req.query.id);
-		//console.log(headerfull)
-		if (params[0] !== headerfull.parameters[0].name) {
-			// If time variable was not requested, add it so first column
-			// is always output.
-			params.unshift(headerfull.parameters[0].name);
-		}
-
-		var fields = {};
-		var col = 1;
-		var df = 0;
-
-		// Generate comma separated list of columns to output, e.g.,
-		// 1,2-4,7
-		for (var i = 0;i < headerfull.parameters.length;i++) {
-			df = prod(headerfull.parameters[i].size || [1]);
-			if (df > 1) {
-				fields[headerfull.parameters[i].name] = col + "-" + (col+df-1);
-			} else {
-				fields[headerfull.parameters[i].name] = col;
+	function columnsstr() {
+		// If command does not contain ${parameters}, assume CL program
+		// always outputs all variables. Subset the output using subset.js.
+		
+		let fieldstr = "";
+		if (req.query["parameters"] && !/\$\{parameters\}/.test(d.command)) {
+			var params = req.query["parameters"].split(",");
+			var headerfull = metadata(catalog,'info',req.query.id);
+			if (params[0] !== headerfull.parameters[0].name) {
+				// If time variable was not requested, add it 
+				// so first column is always output.
+				params.unshift(headerfull.parameters[0].name);
 			}
-			col = col+df;
+
+			var fields = {};
+			var col = 1;
+			var df = 0;
+
+			// Generate comma separated list of columns to output, e.g.,
+			// 1,2-4,7
+			for (var i = 0;i < headerfull.parameters.length;i++) {
+				df = prod(headerfull.parameters[i].size || [1]);
+				if (df > 1) {
+					fields[headerfull.parameters[i].name] = col + "-" + (col+df-1);
+				} else {
+					fields[headerfull.parameters[i].name] = col;
+				}
+				col = col + df;
+			}
+			for (var i = 0;i < params.length;i++) {
+				fieldstr = fieldstr + fields[params[i]] + ",";
+			}
+			fieldstr = fieldstr.slice(0, -1); // Remove last comma.
 		}
-		var fieldstr = "";
-		for (var i = 0;i < params.length;i++) {
-			fieldstr = fieldstr + fields[params[i]] + ",";
-		}
-		fieldstr = fieldstr.slice(0, -1)
+		return fieldstr;
 	}
-	var subsettime = false;
-	if (!/\$\{start\}/.test(d.command) && !/\$\{stop\}/.test(d.command)) {
-		subsettime = true;
-	}
-	if (subsetcols || subsettime) {
-		//com = com + " | " + config.PYTHON_EXE + " " + __dirname + "/lib/subset.py";
-		com = com + " | " + config.NODE_EXE + " " + __dirname + "/lib/subset.js";
-		if (subsettime) {
-			com = com + " --start " + start;
-			com = com + " --stop " + stop;
-		}
-		if (subsetcols) {
-			com = com + " --columns " + fieldstr;	
-		}
-	}
+
+	// TODO: Check that d.file or d.url or d.command exists
+	// when metadata loaded.
+	let com = "";
 	if (d.file || d.url) {
-		com = "python lib/subset.py"
+		// Will always need to subset in this case
+		// (unless request is for all variables over
+		// full range of response, which is not addressed)
+		com = "python lib/subset.py";
+		com = config.NODE_EXE + " " + __dirname + "/lib/subset.js";
 		if (d.file) com = com + " --file '" + replacevars(d.file) + "'";
 		if (d.url)  com = com + " --url '" + replacevars(d.url) + "'";
 		com = com + " --start " + start;
 		com = com + " --stop " + stop;
-		if (d.file && !/\$\{parameters\}/.test(d.file)) {
-			com = com + " --columns " + fieldstr;
+		let columns = columnsstr();
+		if (columns !== "" && d.file && !/\$\{parameters\}/.test(d.file)) {
+			com = com + " --columns " + columns;
 		}
-		if (d.url && !/\$\{parameters\}/.test(d.url)) {
-			com = com + " --columns " + fieldstr;
+		if (columns !== "" && d.url && !/\$\{parameters\}/.test(d.url)) {
+			com = com + " --columns " + columns;
 		}
 		com = com + " --format " + header["format"];
+	} else {
+
+		com = replacevars(d.command); 
+
+		// See if CL program supports requested format
+		var formats = d.formats; // CL formats supported
+		var convert = true; // true if conversion is needed
+		if (formats) {
+			if (formats.includes(req.query["format"])) {
+				// CL program can create requested format
+				var convert = false;
+			}
+		}
+		let columns = columnsstr();
+
+		var subsetcols = false;
+		if (columns !== "") {
+			subsetcols = true;
+		}		
+		var subsettime = false;
+		if (!/\$\{start\}/.test(d.command) && !/\$\{stop\}/.test(d.command)) {
+			subsettime = true;
+		}
+
+		if (subsetcols || subsettime) {
+			//com = com + " | " + config.PYTHON_EXE + " " + __dirname + "/lib/subset.py";
+			com = com + " | " + config.NODE_EXE + " " + __dirname + "/lib/subset.js";
+			if (subsettime) {
+				com = com + " --start " + start;
+				com = com + " --stop " + stop;
+			}
+			if (subsetcols) {
+				com = com + " --columns " + columns;	
+			}
+		}
 	}
 
 	function dataErrorMessage() {
@@ -584,16 +605,19 @@ function data(req,res,catalog,header,include) {
 	var coms  = com.split(/\s+/);
 	var coms0 = coms.shift();
 
-	// This method leads to issues with escaping quotes.
-	//var child = require('child_process').spawn(coms0,coms,{"encoding":"buffer"})
+	// This method, which avoids need to use sh,
+	// leads to issues with escaping quotes.
+	// var child = require('child_process').spawn(coms0,coms,{"encoding":"buffer"})
+	// Instead use sh:
 	var child = require('child_process')
 					.spawn('sh',['-c',com],{"encoding":"buffer"})
 
 	var wroteheader = false; // If header already sent.
 	var gotdata = false; // First chunk of data received.
-	var outstr = ""; // output string.
+	var outstr = ""; // Output string.
 
 	req.connection.on('close',function () {
+		// If request closes and child has not exited, kill child.
 		if (child.exitCode == null) {
 			console.log(ds() + 'HTTP Connection closed. Killing ' + com);
 			child.kill('SIGINT');
@@ -605,11 +629,7 @@ function data(req,res,catalog,header,include) {
 		console.log(ds() + "Error message: " + clc.red(err.toString().trim()));
 	})
 
-	var writing = false;
-	var exited = false;
-
 	child.on('close', function (code) {
-		exited = true;
 
 		if (code != 0) {
 			dataErrorMessage();
@@ -621,9 +641,7 @@ function data(req,res,catalog,header,include) {
 				// Convert accumulated data and send it.
 				res.send(csvTo(outstr,true,true,header,include));
 			} else {
-				if (!writing) {
-					res.end();
-				}
+				res.end(); // Data was being sent incrementally.
 			}
 		} else { // No data returned and normal exit.
 			res.statusMessage = "HAPI 1201: No data in interval";
@@ -672,14 +690,9 @@ function data(req,res,catalog,header,include) {
 
 		if (header["format"] === "csv") {
 			res.write(buffer.toString());
-			return;	
-		}
-		if (header["format"] === "json") {
+		} else if (header["format"] === "json") {
 			if (!convert) {
-				//var writing = 	true;
 				res.write(buffer.toString());
-				//var writing = false;
-				//if (exited) {res.end();}
 				return;			
 			} else {
 				// JSON requested and CL program cannot produce it.
@@ -689,8 +702,7 @@ function data(req,res,catalog,header,include) {
 				// along with saving part of string that was not written.
 				outstr = outstr + buffer.toString();
 			}
-		}
-		if (header["format"] === "binary") {
+		} else {
 			if (!convert) {
 				res.write(buffer,'binary');
 				return;
@@ -702,6 +714,7 @@ function data(req,res,catalog,header,include) {
 	})
 }
 
+// Multiply all elements in array
 function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
 
 function csvTo(records,first,last,header,include) {
