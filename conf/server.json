@@ -1,6 +1,6 @@
 {
-	"HAPISERVER_BIN_DIR":"__ absolute path",
-	"HAPISERVER_META_DIR":"__ absolute path",
-	"NODE_EXE":"__ enter shell command (e.g., 'node') or absolute path",
-	"PYTHON_EXE":"__ enter shell command (e.g., 'python2.7') or absolute path"
+	"HAPISERVERPATH": "",
+	"HAPISERVERHOME": "",
+	"NODE_EXE": "",
+	"PYTHON_EXE": ""
 }

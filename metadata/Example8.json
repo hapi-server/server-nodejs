@@ -1,6 +1,6 @@
 {
 	"data": {
-		"file": "public/data/Example/Example.csv",
+		"file": "$HAPISERVERPATH/public/data/Example/Example.csv",
 		"fileformat": "csv",
 		"contact": "rweigel@gmu.edu",
 		"testurls": [

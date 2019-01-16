@@ -1,8 +1,8 @@
 {
 	"data": {
-		"command": "python ./bin/QinDenton.py --start ${start} --stop ${stop}",
+		"command": "$PYTHONEXE $HAPISERVERPATH/bin/QinDenton.py --start ${start} --stop ${stop}",
 		"contact": "rweigel@gmu.edu",
-		"test": "python ./bin/QinDenton.py",
+		"test": "$PYTHONEXE $HAPISERVERPATH/bin/QinDenton.py",
 		"testurls": [
 			{"url": "${server}/data?id=hourly&parameters=ByIMF&time.min=1964-001T00Z&time.max=1964-002T00Z", "Nlines": 24}
 		]

@@ -1,10 +1,10 @@
 {
 	"data": {
-		"command": "bash ./bin/AutoplotExample2.sh ${parameters} ${start} ${stop} ${cwd}",
+		"command": "bash $(HAPISERVER_BIN_DIR)/AutoplotExample2.sh ${parameters} ${start} ${stop} ${cwd}",
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
 		"testcommands": [
-			{"command": "bash ./bin/AutoplotExample2.sh Temperature 2018-01-06T00:00:00.000Z 2018-01-07T00:00:00.000Z ${cwd}", "Nlines": 1423}
+			{"command": "bash $(HAPISERVER_BIN_DIR)/AutoplotExample2.sh Temperature 2018-01-06T00:00:00.000Z 2018-01-07T00:00:00.000Z ${cwd}", "Nlines": 1423}
 		],
 		"testurls": [
 			{"url": "http://localhost:8999/AutoplotExample2/hapi/data?id=10.CF3744000800&parameters=Temperature&time.min=2018-01-06Z&time.max=2018-01-07T00:00:00.000Z", "Nlines": 1423}

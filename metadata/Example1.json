@@ -1,9 +1,9 @@
 {
 	"data": {
-		"command": "python ./bin/Example.py --start ${start} --stop ${stop}",
+		"command": "$PYTHONEXE $HAPISERVERPATH/bin/Example.py --start ${start} --stop ${stop}",
 		"contact": "rweigel@gmu.edu",
 		"testcommands": [
-			{"command": "python ./bin/Example.py --params scalar --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:10:00.000000000Z","Nlines": 10}
+			{"command": "$PYTHONEXE $HAPISERVERPATH/bin/Example.py --params scalar --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:10:00.000000000Z","Nlines": 10}
 		],
 		"testurls": [
 			{"url": "${server}/data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00Z&time.max=1970-01-01T00:10Z", "Nlines": 10},

@@ -251,7 +251,64 @@ And the page at `http://localhost:8999/` will point to these two URLs.
 <a name="Server_Configuration"></a>
 ## 4. Server Configuration
 
-### Apache
+### 4.1 `conf/config.json`
+
+The variables `$HAPISERVERPATH`, `HAPISERVERHOME`, `$NODEEXE`, and `$PYTHONEXE` can be set in `conf/config.json` or as environment variables. These variables can be used in commands, files, and URLs in the server metadata. 
+
+The default configuration file is `conf/config.json` and this location changed using a command line argument, e.g.,
+
+```
+./hapiserver -c /tmp/config.json
+```
+
+To set variables using environment variables, use, e.g.,
+
+```
+PYTHONEXE=/opt/python/bin/python ./hapiserver
+```
+
+Variables set as environment variable take precendence over those set in `conf/config.json`.
+
+**`$HAPISERVERPATH`** and **`$HAPISERVERHOME`**
+
+These two variables can be used in metadata to reference a directory. For example,
+
+```
+"catalog": "$HAPISERVERHOME/mymetadata/Data.json"
+```
+
+By default, `$HAPISERVERPATH` is the installation directory (the directory containing the shell launch script `hapi-server`) and should not be changed as it is referenced in the demonstration metadata files. Modify `$HAPISERVERHOME` in `conf/config.json` to use a custom path.
+
+All relative paths in commands in metadata files are relative to the directory where `hapi-server` was executed.
+
+For example, if
+
+```
+/tmp/hapi-server-v0.9.2/hapi-server -f metadata/TestData.json
+```
+
+is executed from `/home/username`, the file
+
+```
+/home/username/metadata/TestData.json`
+```
+
+is read and relative paths in `TestData.json` have `/home/username/` prepended.
+
+**`$PYTHONEXE`**
+
+This is the command used to call Python. By default, it is `python`. If `python` is not in the path, this can be set using a relative or absolute path. Python is used by several of the demonstration catalogs.
+
+```
+"command": "$PYTHONEXE $HAPISERVERHOME/mybin/Data.py"
+```
+
+**`$NODEEXE`**
+
+This is the command used to call NodeJS. By default, it is the command used to start the server. The start-up script looks for a NodeJS executable in `$HAPISERVERPATH/bin` and then tries `node` and then `nodejs`.
+
+
+### 4.2 Apache
 
 To expose a URL through Apache, (1) enable `mod_proxy` and `mod_proxy_http`, (2) add the following in a `<VirtualHost>` node in a [Apache Virtual Hosts](https://httpd.apache.org/docs/2.4/vhosts/examples.html) file
 
@@ -273,7 +330,7 @@ If serving multiple catalogs, use
 </VirtualHost>
 ```
 
-## Nginx
+### 4.3 Nginx
 
 For Nginx, add the following to `nginx.conf`
 

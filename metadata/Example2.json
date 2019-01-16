@@ -1,10 +1,10 @@
 {
 	"data": {
-		"command": "python ./bin/Example.py --params ${parameters} --start ${start} --stop ${stop} --fmt ${format}",
+		"command": "$PYTHONEXE $HAPISERVERPATH/bin/Example.py --params ${parameters} --start ${start} --stop ${stop} --fmt ${format}",
 		"contact": "rweigel@gmu.edu",
 		"formats": ["csv","binary"],
 		"testcommands": [
-			{"command": "python ./bin/Example.py --params scalar --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:10:00.000000000Z","Nlines": 10}
+			{"command": "$PYTHONEXE $HAPISERVERPATH/bin/Example.py --params scalar --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:10:00.000000000Z","Nlines": 10}
 		],
 		"testurls": [
 			{"url": "${server}/data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00Z&time.max=1970-01-01T00:10Z", "Nlines": 10},

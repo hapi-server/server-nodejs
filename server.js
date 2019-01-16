@@ -2,7 +2,6 @@
 var HAPIVERSION = "2.0"; // Spec version implemented
 var SCHEMAVERSION = "2.0-1";
 
-//var clc  = require('cli-color'); // Colorize command line output
 var clc  = require('chalk'); // Colorize command line output
 
 var ver  = parseInt(process.version.slice(1).split('.')[0]);
@@ -12,7 +11,7 @@ if (ver < 6) {
 }
 
 process.on('SIGINT', function() {
-  process.exit(1);
+	process.exit(1);
 });
 
 var fs       = require('fs');
@@ -45,19 +44,19 @@ if (/server$/.test(process.execPath)) {
 var argv = yargs
 			.strict()
 			.help()
-			.describe('file','Server configuration file')
+			.describe('file','Catalog configuration file')
 			.alias('file','f')
 			.describe('port','Server port')
 			.alias('port','p')
 			.describe('conf','Server configuration file')
 			.alias('conf','c')
-			.describe('ignore','Ignore metadata errors')
+			.describe('ignore','Start server even if metadata errors')
 			.alias('ignore','i')
 			.describe('open','Open web page on start')
 			.alias('open','o')
-			.describe('test','Exit after URL tests complete')
+			.describe('test','Run URL tests and exit')
 			.alias('test','t')
-			.describe('verify','Run verification tests')
+			.describe('verify','Run verification tests and exit')
 			.alias('verify','v')
 			.option('ignore')
 			.option('open')
@@ -73,7 +72,7 @@ var argv = yargs
 			})
 			.argv
 
-var config = require("./lib/metadata.js").configVars();
+var config = require("./lib/metadata.js").configVars(argv.conf);
 for (key in config) {
 	console.log(ds() + key + " = " + configd[key]);
 }
@@ -124,7 +123,7 @@ if (CATALOGS.length > 1) {
 
 for (var i = 0;i < CATALOGS.length;i++) {
 	console.log(ds() + clc.green("Initializing http://localhost:" + argv.port + PREFIXES[i] + "/hapi"));
-	console.log(ds() + "To run test URLS use the --test option");
+	console.log(ds() + "To run test URLs, use the --test option");
 	console.log(ds() + "To run verification tests, use the --verify option");
 
 	// Initialize the REST API for each catalog.
@@ -535,8 +534,8 @@ function data(req,res,catalog,header,include) {
 		// Will always need to subset in this case
 		// (unless request is for all variables over
 		// full range of response, which is not addressed)
-		com = "python lib/subset.py";
-		com = config.NODE_EXE + " " + __dirname + "/lib/subset.js";
+		//com = config.PYTHONEXE + " " + __dirname + "/lib/subset.py";
+		com = config.NODEEXE + " " + __dirname + "/lib/subset.js";
 		if (d.file) com = com + " --file '" + replacevars(d.file) + "'";
 		if (d.url)  com = com + " --url '" + replacevars(d.url) + "'";
 		com = com + " --start " + start;
@@ -574,8 +573,8 @@ function data(req,res,catalog,header,include) {
 		}
 
 		if (subsetcols || subsettime) {
-			//com = com + " | " + config.PYTHON_EXE + " " + __dirname + "/lib/subset.py";
-			com = com + " | " + config.NODE_EXE + " " + __dirname + "/lib/subset.js";
+			//com = com + " | " + config.PYTHONEXE + " " + __dirname + "/lib/subset.py";
+			com = com + " | " + config.NODEEXE + " " + __dirname + "/lib/subset.js";
 			if (subsettime) {
 				com = com + " --start " + start;
 				com = com + " --stop " + stop;
@@ -626,7 +625,7 @@ function data(req,res,catalog,header,include) {
 
 	// TODO: Write this to log file
 	child.stderr.on('data', function (err) {
-		console.log(ds() + "Error message: " + clc.red(err.toString().trim()));
+		console.log(ds() + "Command line program error message: " + clc.red(err.toString().trim()));
 	})
 
 	child.on('close', function (code) {
