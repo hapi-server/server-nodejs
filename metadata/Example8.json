@@ -4,8 +4,8 @@
 		"fileformat": "csv",
 		"contact": "rweigel@gmu.edu",
 		"testurls": [
-			{"url": "${server}/data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:10:00Z", "length": 4190, "Nlines": 50},
-			{"url": "${server}/data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00:50Z&time.max=1970-01-01T00:01:00Z", "length": 834, "Nlines": 10}
+			{"url": "${server}/data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:10:00Z", "Nbytes": 4190, "Nlines": 50},
+			{"url": "${server}/data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00:50Z&time.max=1970-01-01T00:01:00Z", "Nbytes": 834, "Nlines": 10}
 		]
 	},
 	"catalog":

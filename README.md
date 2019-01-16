@@ -373,24 +373,24 @@ The top-level structure of the configuration file is
 	    "file": "HAPI CSV file"
 	    "fileformat": "one of 'csv', 'binary', 'json'"
 	     or
-	    "url": "URL that returns HAPI CSV"
+	    "url": "URL that returns HAPI data"
 	    "urlformat": "one of 'csv', 'binary', 'json'"
 	    "contact": "Email address if error in command line program",
 	    "testcommands": [
 	    		{
 		    		"command": string,  
-		    		"lines": integer,
-		    		"bytes": integer,
-		    		"md5", string
+		    		"Nlines": integer,
+		    		"Nbytes": integer,
+		    		"Ncommas", integer
 	    		},
 	    		...
 	    	]
 	    "testurls": [
 	    		{
 		    		"url": string,  
-		    		"lines": integer, 
-		    		"length": integer,  
-		    		"md5", string
+		    		"Nlines": integer, 
+		    		"Nbytes": integer,  
+		    		"Ncommas": integer
 	    		},
 	    		...
 	    	]
