@@ -17,7 +17,7 @@ const excludes =
 
 function execute(com) {
 	process.stdout.write(clc.blue("Testing: ") + com);
-	let child = spawnSync('bash', ['-c', com], {stdio: 'pipe'});
+	let child = spawnSync('sh', ['-c', com], {stdio: 'pipe'});
 	let status = 0;
 	if (child.status == 0) {
 		status = 0;

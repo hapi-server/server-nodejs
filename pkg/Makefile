@@ -6,9 +6,12 @@ DIST=darwin-x64
 #DIST=linux-x64 # Did this on Alpine 3.8
 #DIST=linux-armv7l # Did this on Pi 3+
 #DIST=win-x64
+x:
+	cd ..; sed -i '' 's/hapi-server-v[0-9].*\.[0-9].*\.[0-9].*/hapi-server-$(VERSION)/g' README.md	
+	cd ..; sed -i '' 's/\/v[0-9].*\.[0-9].*\.[0-9].*\//\/$(VERSION)\//g' README.md	
 
 release:
-	cd ..; rm -rf node_modules; npm install --production; 
+	cd ..; rm -rf node_modules; npm install --production;
 	make update VERSION=$(VERSION);
 	cd .. && source pkg/GITHUB_TOKEN && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
 
@@ -88,6 +91,7 @@ files:
 		--exclude public/data/QinDenton \
 		../ dist/hapi-server-$(VERSION)
 	rm -f dist/hapi-server-$(VERSION)/*.md
+	rm -rf dist/hapi-server-$(VERSION)/package*
 	rm -rf dist/hapi-server-$(VERSION)/.git*
 	rm -rf dist/hapi-server-$(VERSION)/node_modules/moment/src
 	rm -rf dist/hapi-server-$(VERSION)/node_modules/moment/min

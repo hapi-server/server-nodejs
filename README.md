@@ -37,8 +37,10 @@ A list of datasets that are served using this sofware is given at [http://hapi-s
 OS-X:
 
 ```bash
- curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2-darwin-x64.tgz
- tar zxvf hapi-server-v0.9.2-darwin-x64.tgz
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2
+ tar zxvf hapi-server-v0.9.2
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2
+ tar zxvf hapi-server-v0.9.2
  cd hapi-server-v0.9.2
  ./hapi-server
 ```
@@ -46,8 +48,8 @@ OS-X:
 Linux x64:
 
 ```bash
- curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2-linux-x64.tgz
- tar zxvf hapi-server-v0.9.2-linux-x64.tgz
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2
+ tar zxvf hapi-server-v0.9.2
  cd hapi-server-v0.9.2
  ./hapi-server
 ```
@@ -55,8 +57,8 @@ Linux x64:
 Linux ARMv7l:
 
 ```bash
- curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2-linux-armv7l.tgz
- tar zxvf hapi-server-v0.9.2-linux-armv7l.tgz
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2
+ tar zxvf hapi-server-v0.9.2
  cd hapi-server-v0.9.2
  ./hapi-server
 ```
@@ -284,7 +286,7 @@ All relative paths in commands in metadata files are relative to the directory w
 For example, if
 
 ```
-/tmp/hapi-server-v0.9.2/hapi-server -f metadata/TestData.json
+/tmp/hapi-server-0.9.4
 ```
 
 is executed from `/home/username`, the file
@@ -362,12 +364,13 @@ The top-level structure of the configuration file is
 
 ```
 {
-	"catalog": [See 5.1: Combined HAPI /catalog and /info object],
-	// or
-	"catalog": [See 5.2: HAPI /catalog response with file or command line template for info object],
-	// or
-	"catalog": "See 5.3: Command line template or file",
-	"data": {
+	"server": { // See section 5.1
+		"id": "",
+		"prefix": "",
+		"landing": ""
+	},
+	"catalog": array or string // See section 5.2 
+	"data": { // See section 5.3
 	    "command": "Command line template",
 	     or
 	    "file": "HAPI CSV file"
@@ -408,7 +411,47 @@ python ./bin/Example.py --dataset ${id} --parameters \
 	${parameters} --start ${start} --stop ${stop} --format ${format}"`
 ```
 
-### 5.1 Combined HAPI `/catalog` and `/info` object
+### 5.1 `server`
+
+The server node has the form
+
+```
+"server": {
+	"id": "",
+	"prefix": "",
+	"landing": ""
+}
+```
+
+The `id` is by default the name of the server configuration file, e.g.,
+
+```
+./hapiserver --file metadata/TestData.json
+```
+
+then `id=TestData` and `prefix=TestData`.
+
+By default, this catalog would be served from
+
+```
+http://localhost:8999/TestData/hapi
+```
+
+The `TestData` can be changed to `TestData2` by using `prefix=TestData2`.
+
+`landing` is the path of the page to serve at
+
+```
+http://localhost:8999/TestData/hapi
+```
+
+By default, the page served is [`./public/default.htm`](https://github.com/hapi-server/server-nodejs/blob/master/public/default.htm).
+
+### 5.2 `catalog`
+
+The `catalog` node can be either a string or an array. In the case that it is a string (5.2.3), the string is either a file containing a catalog array or a command line template that returns a catalog array. In the case that it is an array, it should contain either the combined HAPI `/catalog` and `/info` response (5.2.1) or a `/catalog` response with references to the `\info` response (5.2.1).
+
+#### 5.2.1 Combined HAPI `/catalog` and `/info` object
 
 If `catalog` is an array, it should have the same format as a HAPI `/catalog` response (each object in the array has an `id` property and and optional `title` property) **with the addition** of an `info` property that is the HAPI response for that `id`, e.g., `/info?id=dataset1`. 
 
@@ -443,7 +486,7 @@ Examples of this type of catalog include
 * [Example1.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example1.json)
 * [TestData.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestData.json)
 
-### 5.2 `/catalog` response with file or command template for `info` object
+#### 5.2.2 `/catalog` response with file or command template for `info` object
 
 
 The `info` value can be a path to a `info` JSON file
@@ -484,7 +527,7 @@ Alternatively, the metadata for each dataset may be produced by execution of a c
 ```
 See also [Example4.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example4.json).
 
-### 5.3 References to a command line template or file
+#### 5.2.3 References to a command line template or file
 
 The `catalog` value can be a command line program that generates a fully resolved catalog, e.g.,
 
@@ -495,6 +538,8 @@ The `catalog` value can be a command line program that generates a fully resolve
 The command line command should return the response of an `/info` query (with no `id` argument). 
 
 The path to a fully resolved catalog can also be given. See also [Example5.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example4.json).
+
+### 5.3 `data`
 
 <a name="Development"></a>
 ## 6. Development
@@ -507,7 +552,7 @@ Install [nodejs](https://nodejs.org/en/download/) (tested with v6) using either 
   
 ```bash
 # Install Node Version Manager
-curl https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
+curl https://raw.githubusercontent.com/creationix/nvm/v0.9.2/install.sh | bash
 
 # Open new shell (see displayed instructions from above command)
 
