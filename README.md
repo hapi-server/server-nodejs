@@ -47,7 +47,7 @@ Linux x64:
 
 ```bash
  curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3-linux-x64.tgz
- tar zxvf hapi-server-v0.9.3
+ tar zxvf hapi-server-v0.9.3-linux-x64.tgz
  cd hapi-server-v0.9.3
  ./hapi-server
 ```
