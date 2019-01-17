@@ -37,8 +37,6 @@ A list of datasets that are served using this sofware is given at [http://hapi-s
 OS-X:
 
 ```bash
- curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3
- tar zxvf hapi-server-v0.9.3
  curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3-darwin-x64.tgz
  tar zxvf hapi-server-v0.9.3
  cd hapi-server-v0.9.3
