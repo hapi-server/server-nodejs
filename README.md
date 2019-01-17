@@ -37,29 +37,29 @@ A list of datasets that are served using this sofware is given at [http://hapi-s
 OS-X:
 
 ```bash
- curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2
- tar zxvf hapi-server-v0.9.2
- curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2
- tar zxvf hapi-server-v0.9.2
- cd hapi-server-v0.9.2
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3
+ tar zxvf hapi-server-v0.9.3
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3
+ tar zxvf hapi-server-v0.9.3
+ cd hapi-server-v0.9.3
  ./hapi-server
 ```
 
 Linux x64:
 
 ```bash
- curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2
- tar zxvf hapi-server-v0.9.2
- cd hapi-server-v0.9.2
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3
+ tar zxvf hapi-server-v0.9.3
+ cd hapi-server-v0.9.3
  ./hapi-server
 ```
 
 Linux ARMv7l:
 
 ```bash
- curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.2/hapi-server-v0.9.2
- tar zxvf hapi-server-v0.9.2
- cd hapi-server-v0.9.2
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3
+ tar zxvf hapi-server-v0.9.3
+ cd hapi-server-v0.9.3
  ./hapi-server
 ```
 
@@ -552,7 +552,7 @@ Install [nodejs](https://nodejs.org/en/download/) (tested with v6) using either 
   
 ```bash
 # Install Node Version Manager
-curl https://raw.githubusercontent.com/creationix/nvm/v0.9.2/install.sh | bash
+curl https://raw.githubusercontent.com/creationix/nvm/v0.9.3/install.sh | bash
 
 # Open new shell (see displayed instructions from above command)
 
