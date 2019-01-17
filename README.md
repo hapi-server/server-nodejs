@@ -39,7 +39,7 @@ OS-X:
 ```bash
  curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3
  tar zxvf hapi-server-v0.9.3
- curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3-darwin-x64.tgz
  tar zxvf hapi-server-v0.9.3
  cd hapi-server-v0.9.3
  ./hapi-server
@@ -48,7 +48,7 @@ OS-X:
 Linux x64:
 
 ```bash
- curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3-linux-x64.tgz
  tar zxvf hapi-server-v0.9.3
  cd hapi-server-v0.9.3
  ./hapi-server
@@ -57,7 +57,7 @@ Linux x64:
 Linux ARMv7l:
 
 ```bash
- curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3
+ curl -L -O https://github.com/hapi-server/server-nodejs/releases/download/v0.9.3/hapi-server-v0.9.3-linux-armv7l.tgz
  tar zxvf hapi-server-v0.9.3
  cd hapi-server-v0.9.3
  ./hapi-server
