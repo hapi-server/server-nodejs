@@ -1,14 +1,29 @@
 #!/bin/sh
 
-# https://unix.stackexchange.com/a/76518
+versionmin="v6.0.0"
+
+# From https://unix.stackexchange.com/a/76518
 path=$(exec 2>/dev/null;cd -- $(dirname "$0"); unset PWD; /usr/bin/pwd || /bin/pwd || pwd)
 
-if command -v $path"/bin/node" > /dev/null 2>&1; then
-	$path"/bin/node" $path"/server.js" $@	
-elif command -v node > /dev/null 2>&1; then
-	node $path"/server.js" $@	
+# Use node in path if version > versionmin
+if command -v node > /dev/null 2>&1; then
+	version=$(node -v)
+	if [[ $version > $versionmin ]]; then
+		node $path"/server.js" $@
+		exit 0
+	fi
 elif command -v nodejs > /dev/null 2>&1; then
-	nodejs $path"/server.js" $@
+	version=$(nodejs -v)
+	if [[ $version > $versionmin ]]; then
+		nodejs $path"/server.js" $@
+		exit 0
+	fi
+fi
+
+# Use node in package
+if command -v path"/bin/node" > /dev/null 2>&1; then
+	path"/bin/node" $path"/server.js" $@
 else
 	echo "Did not find "$(dirname "$SCRIPT")"/bin/node, node, or nodejs"
+	exit 1
 fi
