@@ -1,34 +1,53 @@
 NODEV=v6.16.0
 NODED=https://nodejs.org/dist/latest-v6.x
-VERSION=v0.9.2
-DIST=darwin-x64
-# Did this on High Sierra
-#DIST=linux-x64 # Did this on Alpine 3.8
-#DIST=linux-armv7l # Did this on Pi 3+
-#DIST=win-x64
-x:
-	cd ..; sed -i '' 's/hapi-server-v[0-9].*\.[0-9].*\.[0-9].*/hapi-server-$(VERSION)/g' README.md	
-	cd ..; sed -i '' 's/\/v[0-9].*\.[0-9].*\.[0-9].*\//\/$(VERSION)\//g' README.md	
+VERSION=v0.0.0
+OS=darwin-x64 # Did this on High Sierra
+#OS=linux-x64 # Did this on Alpine 3.8
+#OS=linux-armv7l # Did this on Pi 3+
+#OS=win-x64
+
+# To set OS name in OS-X with router, change name of mac to MACBOOK001
+# sudo scutil --set HostName MACBOOK001
+# (also rebooted; not sure if needed)
+# For Linux,
+# /etc/init.d/hostname restart
+# For both, modify /etc/hostname and /etc/hosts
+ifeq ($(OS),linux-x64)
+	SERVER=alpine3o
+endif
+ifeq ($(OS),linux-armv7l)
+	SERVER=pi3
+endif
+ifeq ($(OS),darwin-x64)
+	SERVER=osx-el-capitan
+endif
 
 release:
 	cd ..; rm -rf node_modules; npm install --production;
 	make update VERSION=$(VERSION);
 	cd .. && source pkg/GITHUB_TOKEN && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
 
-# When node and python binaries do not need to be updated.
+# When NodeJS and Python binaries do not need to be updated.
 update:
+	cd ..; sed -i '' 's/hapi-server-v[0-9].*\.[0-9].*\.[0-9].*/hapi-server-$(VERSION)/g' README.md	
+	cd ..; sed -i '' 's/\/v[0-9].*\.[0-9].*\.[0-9].*\//\/$(VERSION)\//g' README.md	
 	make package VERSION=$(VERSION) OS=darwin-x64
 	make package VERSION=$(VERSION) OS=linux-x64
 	make package VERSION=$(VERSION) OS=linux-armv7l
 	rm -rf dist/hapi-server-$(VERSION)/
-	#make package OS=win-x64
+
+update-test:
+	scp dist/hapi-server-$(VERSION)-$(OS).tgz weigel@$(SERVER):
+	ssh weigel@$(SERVER) 'tar zxf hapi-server-$(VERSION)-$(OS).tgz; cd hapi-server-$(VERSION); ./hapi-server test'
 
 package:
 	make files
 	cp bin/node-$(NODEV)-$(OS) dist/hapi-server-$(VERSION)/bin/node
-	# cp bin/python-$(OS) dist/hapi-server-$(VERSION)/bin/python
+ifeq ($(OS),win-x64)
+	make zip OS=$(OS)
+else
 	make targz OS=$(OS)
-	#make zip OS=$(OS)
+endif
 
 darwin-x64: 
 	make node0 OS=darwin-x64
@@ -65,9 +84,14 @@ node0:
 
 # Did this on Alpine Linux 3.8 and executable worked on
 # Mint 18/19 and Ubuntu 10.04. Will not work for OS-X (as per
-# note in configure file in node tarball). 
+# note in configure file in node tarball). Compile also worked on
+# Raspberry Pi 3+, but the apt install command below had to be modified.
+# (Some packages were not available and apparently were not needed. Need to document
+# the working command)
 node:
-	sudo apt install curl python build-base gcc abuild binutils binutils-doc gcc-doc linux-headers
+	# apk add is for Apline Linux
+	sudo apk add curl python build-base gcc abuild binutils binutils-doc gcc-doc linux-headers
+	#sudo apt install curl python build-base gcc abuild binutils binutils-doc gcc-doc linux-headers
 	cd tgz; curl -O $(NODED)/node-$(NODEV).tar.gz;
 	cd tgz; tar zxvf node-$(NODEV).tar.gz
 	cd node-$(NODEV); ./configure --fully-static
@@ -77,10 +101,11 @@ node:
 # Use old Linux system to compile.
 # Don't need to do for OS-X as it ships with OS. Smaller Linux
 # distros don't include Python, so have it in case needed.
-python:
+# TODO: Finish python.py.
+python: python.py
 	cp python.py python/
 	cd python/; pyinstaller python.py --onefile
-	cp python/dist/python bin/python-$(OS)
+	#cp python/dist/python bin/python-$(OS)
 
 files:
 	rm -rf dist/hapi-server-$(VERSION)
@@ -90,7 +115,6 @@ files:
 		--exclude .git \
 		--exclude public/data/QinDenton \
 		../ dist/hapi-server-$(VERSION)
-	rm -f dist/hapi-server-$(VERSION)/*.md
 	rm -rf dist/hapi-server-$(VERSION)/package*
 	rm -rf dist/hapi-server-$(VERSION)/.git*
 	rm -rf dist/hapi-server-$(VERSION)/node_modules/moment/src
