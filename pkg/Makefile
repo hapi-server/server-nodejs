@@ -36,7 +36,12 @@ update:
 	make package VERSION=$(VERSION) OS=linux-armv7l
 	rm -rf dist/hapi-server-$(VERSION)/
 
-update-test:
+test-packages:
+	make package-test VERSION=$(VERSION) OS=darwin-x64
+	make package-test VERSION=$(VERSION) OS=linux-x64
+	make package-test VERSION=$(VERSION) OS=linux-armv7l
+
+package-test:
 	scp dist/hapi-server-$(VERSION)-$(OS).tgz weigel@$(SERVER):
 	ssh weigel@$(SERVER) 'tar zxf hapi-server-$(VERSION)-$(OS).tgz; cd hapi-server-$(VERSION); ./hapi-server test'
 

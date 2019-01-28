@@ -30,6 +30,7 @@
     "test": "node test/server-test.js; node test/subset-test.js",
     "start": "node server.js --port 8999",
     "package": "cd pkg; make update VERSION=v$npm_package_version",
+    "test-packages": "cd pkg; make test-packages VERSION=v$npm_package_version",
     "release": "cd pkg; make release VERSION=v$npm_package_version"
   },
   "bin": "server.js",
