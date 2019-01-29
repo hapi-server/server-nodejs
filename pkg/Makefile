@@ -27,10 +27,14 @@ release:
 	make update VERSION=$(VERSION);
 	cd .. && source pkg/GITHUB_TOKEN && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
 
+zz:
+	sed -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' tmp.md	
+	sed -i '' 's/\/v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}\//\/$(VERSION)\//g' tmp.md	
+
 # When NodeJS and Python binaries do not need to be updated.
 update:
-	cd ..; sed -i '' 's/hapi-server-v[0-9].*\.[0-9].*\.[0-9].*/hapi-server-$(VERSION)/g' README.md	
-	cd ..; sed -i '' 's/\/v[0-9].*\.[0-9].*\.[0-9].*\//\/$(VERSION)\//g' README.md	
+	cd ..; sed -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' README.md	
+	cd ..; sed -i '' 's/\/v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}\//\/$(VERSION)\//g' README.md	
 	make package VERSION=$(VERSION) OS=darwin-x64
 	make package VERSION=$(VERSION) OS=linux-x64
 	make package VERSION=$(VERSION) OS=linux-armv7l

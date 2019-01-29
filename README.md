@@ -37,7 +37,7 @@ A list of catalogs that are served using this sofware is given at [http://hapi-s
 OS-X x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-darwin-x64.tgz
  cd hapi-server-v0.9.4
  ./hapi-server --open
 ```
@@ -45,7 +45,7 @@ OS-X x64:
 Linux x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-linux-x64.tgz
  cd hapi-server-v0.9.4
  ./hapi-server --open
 ```
@@ -53,7 +53,7 @@ Linux x64:
 Linux ARMv7l:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-linux-armv7l.tgz
  cd hapi-server-v0.9.4
  ./hapi-server --open
 ```
