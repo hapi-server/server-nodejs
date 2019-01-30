@@ -22,19 +22,31 @@ ifeq ($(OS),darwin-x64)
 	SERVER=osx-el-capitan
 endif
 
+# docker system prune -af
+docker-build:
+	- docker stop hapi-server
+	- docker rm hapi-server
+	docker build --file Dockerfile -t rweigel/hapi-server:$(VERSION) ../
+	docker run -dit --name hapi-server --expose 8999 -p 8999:8999 rweigel/hapi-server:$(VERSION)
+
+docker-release:
+	docker login
+	docker push rweigel/hapi-server:$(VERSION)
+
+# docker run --name hapiserver --expose 8999 -p 8999:8999 hapiserver
+docker-test:
+	docker exec -it hapi-server ./hapi-server test
+	docker stop hapi-server
+
 release:
 	cd ..; rm -rf node_modules; npm install --production;
 	make update VERSION=$(VERSION);
 	cd .. && source pkg/GITHUB_TOKEN && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
 
-zz:
-	sed -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' tmp.md	
-	sed -i '' 's/\/v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}\//\/$(VERSION)\//g' tmp.md	
-
 # When NodeJS and Python binaries do not need to be updated.
 update:
-	cd ..; sed -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' README.md	
-	cd ..; sed -i '' 's/\/v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}\//\/$(VERSION)\//g' README.md	
+	sed -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' tmp.md	
+	sed -i '' 's/\/v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}\//\/$(VERSION)\//g' tmp.md	
 	make package VERSION=$(VERSION) OS=darwin-x64
 	make package VERSION=$(VERSION) OS=linux-x64
 	make package VERSION=$(VERSION) OS=linux-armv7l
