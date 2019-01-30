@@ -1,6 +1,6 @@
 NODEV=v6.16.0
 NODED=https://nodejs.org/dist/latest-v6.x
-VERSION=v0.0.0
+VERSION=v0.9.4
 OS=darwin-x64 # Did this on High Sierra
 #OS=linux-x64 # Did this on Alpine 3.8
 #OS=linux-armv7l # Did this on Pi 3+
@@ -22,21 +22,29 @@ ifeq ($(OS),darwin-x64)
 	SERVER=osx-el-capitan
 endif
 
-# docker system prune -af
-docker-build:
+docker:
 	- docker stop hapi-server
 	- docker rm hapi-server
 	docker build --file Dockerfile -t rweigel/hapi-server:$(VERSION) ../
-	docker run -dit --name hapi-server --expose 8999 -p 8999:8999 rweigel/hapi-server:$(VERSION)
+	docker run -dit --name hapi-server-$(VERSION) --expose 8999 -p 8999:8999 rweigel/hapi-server:$(VERSION)
+
+docker-test:
+	docker exec -it hapi-server-$(VERSION) ./hapi-server test
+	docker stop hapi-server-$(VERSION)
 
 docker-release:
 	docker login
+	docker tag rweigel/hapi-server:$(VERSION) rweigel/hapi-server:$(VERSION)
 	docker push rweigel/hapi-server:$(VERSION)
+	#make docker-release-test VERSION=$(VERSION)
 
-# docker run --name hapiserver --expose 8999 -p 8999:8999 hapiserver
-docker-test:
-	docker exec -it hapi-server ./hapi-server test
-	docker stop hapi-server
+docker-release-test:
+	- docker stop hapi-server-release-$(VERSION)
+	- docker rm hapi-server-release-$(VERSION)
+	docker system prune -af
+	docker pull rweigel/hapi-server:$(VERSION)
+	docker run -dit --name hapi-server-release-$(VERSION) --expose 8998 -p 8998:8998 rweigel/hapi-server:$(VERSION)
+	docker exec -it hapi-server-release-$(VERSION) ./hapi-server test
 
 release:
 	cd ..; rm -rf node_modules; npm install --production;

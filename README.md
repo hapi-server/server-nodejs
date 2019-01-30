@@ -32,7 +32,17 @@ A list of catalogs that are served using this sofware is given at [http://hapi-s
 <a name="Installation"></a>
 ## 2. Installation
 
-[Binary packages](https://github.com/hapi-server/server-nodejs/releases) are available for Windows 10 x64, OS-X x64, Linux x64, and Linux ARMv7l (e.g., Rasberry Pi). Installation and startup commands are given below. See the [Development](#Development) section for instructions on installing from source.
+A [Docker image](https://cloud.docker.com/repository/docker/rweigel/hapi-server) as well as [Binary packages](https://github.com/hapi-server/server-nodejs/releases) are available for OS-X x64, Linux x64, and Linux ARMv7l (e.g., Rasberry Pi).
+
+Installation and startup commands are given below the binary packages and docker image. See the [Development](#Development) section for instructions on installing from source.
+
+Docker:
+
+```
+docker pull rweigel/hapi-server:v0.9.4
+docker run -dit --name hapi-server-0.9.4 --expose 8999 -p 8999:8999 rweigel/hapi-server:v0.9.4
+docker exec -it hapi-server-v0.9.4 ./hapi-server
+```
 
 OS-X x64:
 
