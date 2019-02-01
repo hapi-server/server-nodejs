@@ -131,10 +131,12 @@ node:
 # Don't need to do for OS-X as it ships with OS. Smaller Linux
 # distros don't include Python, so have it in case needed.
 # TODO: Finish python.py.
-python: python.py
-	cp python.py python/
-	cd python/; pyinstaller python.py --onefile
-	#cp python/dist/python bin/python-$(OS)
+
+pv=`python --version 2>&1 | cut -d' ' -f2`
+python:
+	cd python/; mkdir tmp; cp python.py tmp/
+	cd python/tmp; pyinstaller python.py --onefile
+	cp python/tmp/dist/python bin/python-$(pv)-$(OS)
 
 files:
 	rm -rf dist/hapi-server-$(VERSION)

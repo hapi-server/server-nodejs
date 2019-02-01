@@ -32,17 +32,11 @@ A list of catalogs that are served using this sofware is given at [http://hapi-s
 <a name="Installation"></a>
 ## 2. Installation
 
-A [Docker image](https://cloud.docker.com/repository/docker/rweigel/hapi-server) as well as [Binary packages](https://github.com/hapi-server/server-nodejs/releases) are available for OS-X x64, Linux x64, and Linux ARMv7l (e.g., Rasberry Pi).
+[Binary packages](https://github.com/hapi-server/server-nodejs/releases) are available for OS-X x64, Linux x64, and Linux ARMv7l (e.g., Rasberry Pi). 
+
+A [Docker image](https://cloud.docker.com/repository/docker/rweigel/hapi-server) is also available.
 
 Installation and startup commands are given below the binary packages and docker image. See the [Development](#Development) section for instructions on installing from source.
-
-Docker:
-
-```
-docker pull rweigel/hapi-server:v0.9.4
-docker run -dit --name hapi-server-0.9.4 --expose 8999 -p 8999:8999 rweigel/hapi-server:v0.9.4
-docker exec -it hapi-server-v0.9.4 ./hapi-server
-```
 
 OS-X x64:
 
@@ -66,6 +60,14 @@ Linux ARMv7l:
  curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-linux-armv7l.tgz
  cd hapi-server-v0.9.4
  ./hapi-server --open
+```
+
+Docker:
+
+```
+docker pull rweigel/hapi-server:v0.9.4
+docker run -dit --name hapi-server-0.9.4 --expose 8999 -p 8999:8999 rweigel/hapi-server:v0.9.4
+docker exec -it hapi-server-v0.9.4 ./hapi-server
 ```
 
 <a name="Examples"></a>
@@ -279,7 +281,7 @@ The default configuration file is `conf/config.json` and this location changed u
 To set variables using environment variables, use, e.g.,
 
 ```
-PYTHONEXE=/opt/python/bin/python ./hapiserver
+PYTHONEXE=/opt/python/bin/python ./hapi-server
 ```
 
 Variables set as environment variable take precendence over those set in `conf/config.json`.
@@ -299,7 +301,7 @@ All relative paths in commands in metadata files are relative to the directory w
 For example, if
 
 ```
-/tmp/hapi-server-0.9.4
+/tmp/hapi-server
 ```
 
 is executed from `/home/username`, the file
@@ -441,7 +443,7 @@ The server node has the form
 The `id` is by default the name of the server configuration file, e.g.,
 
 ```
-./hapiserver --file metadata/TestData.json
+./hapi-server --file metadata/TestData.json
 ```
 
 then `id=TestData` and `prefix=TestData`.
@@ -586,6 +588,9 @@ git clone https://github.com/hapi-server/server-nodejs
 
 # Install dependencies
 cd server-nodejs; npm install
+
+# Start server
+node server.js
 
 # Run tests
 node test/test.js

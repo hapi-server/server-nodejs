@@ -1,5 +1,9 @@
 tmp/
 node_modules/*
 *~
-pkg/
+pkg/bin
+pkg/dist
+pkg/python
+pkg/tgz
+pkg/GITHUB_TOKEN
 public/data/QinDenton/
