@@ -127,16 +127,32 @@ node:
 	cd node-$(NODEV); make -j4
 	cp node-$(NODEV)/bin/node bin/node-$(NODEV)-$(OS)
 
+
+#### Below not yet used.
+
 # Use old Linux system to compile.
 # Don't need to do for OS-X as it ships with OS. Smaller Linux
 # distros don't include Python, so have it in case needed.
 # TODO: Finish python.py.
+
+# Works, but no easy way to copy binary to local ...
+pythoni:
+	docker pull six8/pyinstaller-alpine
+	docker run --rm \
+		-v "${PWD}:/src" \
+		six8/pyinstaller-alpine \
+		--noconfirm \
+		--onefile \
+		--log-level DEBUG \
+		--clean \
+		python/python.py
 
 pv=`python --version 2>&1 | cut -d' ' -f2`
 python:
 	cd python/; mkdir tmp; cp python.py tmp/
 	cd python/tmp; pyinstaller python.py --onefile
 	cp python/tmp/dist/python bin/python-$(pv)-$(OS)
+	ln -s bin/python-$(pv)-$(OS) bin/python
 
 files:
 	rm -rf dist/hapi-server-$(VERSION)
