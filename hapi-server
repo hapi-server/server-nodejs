@@ -1,6 +1,8 @@
 #!/bin/sh
 
-versionmin="v6.0.0"
+# Note that code can only test major version.
+# Also note that assuming posix shell.
+versionmin="6"
 
 # From https://unix.stackexchange.com/a/76518
 path=$(exec 2>/dev/null;cd -- $(dirname "$0"); unset PWD; /usr/bin/pwd || /bin/pwd || pwd)
@@ -15,16 +17,26 @@ fi
 
 # Use node in path if version > versionmin
 if command -v node > /dev/null 2>&1; then
-    version=$(node -v)
-    if test $version > $versionmin; then
-	node $com
-	exit 0
+	version=$(node -v)
+	version=${version//v/}
+	version="${version%%.*}"
+    if test $version -gt $(($versionmin-1)); then
+    	echo "Using system node binary with version = $version."
+		node $com
+		exit 0
+	else
+		echo "System node binary version = $version. Version $versionmin+ required."
     fi
 elif command -v nodejs > /dev/null 2>&1; then
-    version=$(nodejs -v)
-    if test $version > $versionmin; then
-	nodejs $com
-	exit 0
+	version=$(node -v)
+	version=${version//v/}
+	version="${version%%.*}"
+    if test $version -gt $(($versionmin-1)); then
+    	echo "Using system nodejs binary with version = $version."
+		nodejs $com
+		exit 0
+	else
+		echo "System nodejs binary version = $version. Version $versionmin+ required."
     fi
 fi
 
@@ -32,6 +44,6 @@ fi
 if command -v $path"/bin/node" > /dev/null 2>&1; then
     $path"/bin/node" $com
 else
-    echo "Did not find "$(dirname "$SCRIPT")"/bin/node, node, or nodejs"
+    echo "Did not find $path/bin/node, node, or nodejs."
     exit 1
 fi
