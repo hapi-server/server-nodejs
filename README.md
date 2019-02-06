@@ -41,33 +41,33 @@ Installation and startup commands are given below the binary packages and docker
 OS-X x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-darwin-x64.tgz | tar zxf -
- cd hapi-server-v0.9.4
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.5/hapi-server-v0.9.5-darwin-x64.tgz | tar zxf -
+ cd hapi-server-v0.9.5
  ./hapi-server --open
 ```
 
 Linux x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-linux-x64.tgz | tar zxf -
- cd hapi-server-v0.9.4
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.5/hapi-server-v0.9.5-linux-x64.tgz | tar zxf -
+ cd hapi-server-v0.9.5
  ./hapi-server --open
 ```
 
 Linux ARMv7l:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-linux-armv7l.tgz | tar zxf -
- cd hapi-server-v0.9.4
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.5/hapi-server-v0.9.5-linux-armv7l.tgz | tar zxf -
+ cd hapi-server-v0.9.5
  ./hapi-server --open
 ```
 
 Docker:
 
 ```
-docker pull rweigel/hapi-server:v0.9.4
-docker run -dit --name hapi-server-0.9.4 --expose 8999 -p 8999:8999 rweigel/hapi-server:v0.9.4
-docker exec -it hapi-server-v0.9.4 ./hapi-server
+docker pull rweigel/hapi-server:v0.9.5
+docker run -dit --name hapi-server-v0.9.5 --expose 8999 -p 8999:8999 rweigel/hapi-server:v0.9.5
+docker exec -it hapi-server-v0.9.5 ./hapi-server
 ```
 
 <a name="Examples"></a>
@@ -573,7 +573,7 @@ Install [nodejs](https://nodejs.org/en/download/) (tested with v6) using either 
   
 ```bash
 # Install Node Version Manager
-curl https://raw.githubusercontent.com/creationix/nvm/v0.9.4/install.sh | bash
+curl https://raw.githubusercontent.com/creationix/nvm/v0.9.5/install.sh | bash
 
 # Open new shell (see displayed instructions from above command)
 

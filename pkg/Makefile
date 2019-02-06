@@ -53,8 +53,9 @@ release:
 
 # When NodeJS and Python binaries do not need to be updated.
 update:
-	sed -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' tmp.md	
-	sed -i '' 's/\/v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}\//\/$(VERSION)\//g' tmp.md	
+	sed -E -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' ../README.md	
+	sed -E -i '' 's/hapi-server:v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server:$(VERSION)/g' ../README.md	
+	sed -E -i '' 's/\/v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}\//\/$(VERSION)\//g' ../README.md	
 	make package VERSION=$(VERSION) OS=darwin-x64
 	make package VERSION=$(VERSION) OS=linux-x64
 	make package VERSION=$(VERSION) OS=linux-armv7l
