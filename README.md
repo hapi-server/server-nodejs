@@ -41,7 +41,7 @@ Installation and startup commands are given below the binary packages and docker
 OS-X x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-darwin-x64.tgz
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-darwin-x64.tgz | tar zxf -
  cd hapi-server-v0.9.4
  ./hapi-server --open
 ```
@@ -49,7 +49,7 @@ OS-X x64:
 Linux x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-linux-x64.tgz
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-linux-x64.tgz | tar zxf -
  cd hapi-server-v0.9.4
  ./hapi-server --open
 ```
@@ -57,7 +57,7 @@ Linux x64:
 Linux ARMv7l:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-linux-armv7l.tgz
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.4/hapi-server-v0.9.4-linux-armv7l.tgz | tar zxf -
  cd hapi-server-v0.9.4
  ./hapi-server --open
 ```
