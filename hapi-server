@@ -25,7 +25,7 @@ if command -v node > /dev/null 2>&1; then
 		node $com
 		exit 0
 	else
-		echo "System node binary version = $version. Version $versionmin+ required."
+		echo "System node binary version = $version. Version $versionmin+ required. Using package node binary."
     fi
 elif command -v nodejs > /dev/null 2>&1; then
 	version=$(node -v)
@@ -36,7 +36,7 @@ elif command -v nodejs > /dev/null 2>&1; then
 		nodejs $com
 		exit 0
 	else
-		echo "System nodejs binary version = $version. Version $versionmin+ required."
+		echo "System node binary version = $version. Version $versionmin+ required. Using package node binary."
     fi
 fi
 
