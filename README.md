@@ -592,8 +592,8 @@ cd server-nodejs; npm install
 # Start server
 node server.js
 
-# Run tests
-node test/test.js
+# Run tests; Python 2.7+ required for certain tests.
+npm test
 ```
 
 <a name="Contact"></a>
