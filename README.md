@@ -68,7 +68,7 @@ Docker:
 docker pull rweigel/hapi-server:v0.9.5
 docker run -dit --name hapi-server-v0.9.5 --expose 8999 -p 8999:8999 rweigel/hapi-server:v0.9.5
 docker exec -it hapi-server-v0.9.5 ./hapi-server
-# Open http://localhost:8999/ in a web browser
+# Open http://localhost:8999/TestData/hapi in a web browser
 ```
 
 <a name="Examples"></a>
