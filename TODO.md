@@ -1,6 +1,7 @@
 = TODO =
 
 1. Refuse to start if contact is not given (unless --force)?
+2. Interface for running in Docker: https://www.totaljs.com/code/ and https://www.totaljs.com/superadmin/
 
 TestData
 
