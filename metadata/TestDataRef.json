@@ -1,0 +1,84 @@
+{
+	"data": {
+		"command": "$NODEEXE $HAPISERVERPATH/bin/TestDataRef.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
+		"formats": ["csv"],
+		"contact": "rweigel@gmu.edu",
+		"testurls": [
+			{"url": "${server}/data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10}
+		]
+	},
+	"catalog" :
+		[
+			{
+				"id": "dataset1",
+				"title": "Dataset w/ proposed HAPI 3.0 references",
+				"definitions": {
+					"fill": "1e-31",
+					"centers1": [0,1,2,3,4,5,6,7,8,9],
+					"centers2": [10,11,12,13,14,15,16,17,18,19]
+				},
+				"info": 
+						{
+							"startDate": "1970-01-01Z",
+							"stopDate" : "2016-12-31Z",
+							"sampleStartDate": "1970-01-01Z",
+							"sampleStopDate" : "1970-01-01T00:00:11Z",
+							"cadence": "PT1S",
+							"parameters":
+								[
+									{ 
+										"name": "Time",
+										"type": "isotime",
+										"units": "UTC",
+										"fill": null,
+										"length": 24
+									},
+									{ 
+										"name": "scalar",
+										"type": "double",
+										"units": "m",
+										"fill": {"$ref": "#/definitions/fill"},
+										"description": "Sine wave with 600 s period"
+									},
+									{ 
+										"name": "spectra",
+										"type": "double",
+										"units": "m",
+										"fill": "-1e31",
+										"size" : [10],
+										"bins": [{"name": "frequency", "units": "Hz","centers": {"$ref": "#/definitions/centers1"}}],
+										"description": "A time independent 1/f spectra."
+									},
+									{
+										"name": "spectra-bin-centers",
+										"type": "double",
+										"units": "Hz",
+										"size": [10],
+										"description": "Bin centers for spectra parameter"
+									},
+									{ 
+										"name": "spectramulti",
+										"type": "double",
+										"units": "m",
+										"fill": "-1e31",
+										"size" : [10,2],
+										"bins": [
+													{"name": "frequency", "units": "Hz","centers": {"$ref": "#/definitions/centers1"}},
+													{"name": "frequency", "units": "MHz","centers": {"$ref": "#/definitions/centers2"}}
+												],
+										"description": "Two time independent 1/f spectra."
+									},
+									{ 
+										"name": "spectra-time-dependent-bin-centers",
+										"type": "double",
+										"units": "m",
+										"fill": "-1e31",
+										"size" : [10],
+										"bins": [{"name": "frequency", "units": "Hz","centers": {"$paramref": "#/spectra-bin-centers"}}],
+										"description": "A time independent 1/f spectra."
+									}
+								]
+						}				
+			}
+		]
+}
