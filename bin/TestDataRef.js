@@ -79,29 +79,59 @@ for (var i = startsec; i < stopsec; i++) {
 			// Records with even-numbered minute
 			offset = 10;
 		}
-		if (record[17] == "0" && record[18] == "2") {
-			record = record + ",-1e31,-1e31"; // f = 0 bin.
-		} else {
-			record = record + "," + (-0.5+offset) + "," + (+0.5+offset); // f = 0 bin.
+		var ranges = [[0,2],[2,4],[4,6],[6,8],[8,10],[10,12],[12,14],[14,16],[16,18],[18,20]];
+		for (var k = 0;k < ranges.length;k++) {
+			for (var j = 0;j < 2;j++) {
+				if (k == 0 && record[17] == "0" && record[18] == "2") {
+					// first bin when second = 02.
+					record = record + ",-1e31";	
+				} else if (k == 1 && j == 1 && record[17] == "0" && record[18] == "5") {
+					record = record + ",-1e31";	
+				} else {
+					record = record + "," + (ranges[k][j] + offset);
+				}
+			}
 		}
-		for (var j = 1;j < 10;j++) {
-			record = record + "," + (j-0.5+offset) + "," + (j+0.5+offset);
+		if (0) {
+			if (record[17] == "0" && record[18] == "2") {
+				record = record + ",-1e31,-1e31"; // f = 0 bin when second = 02.
+			} else {
+				record = record + "," + (-0.5+offset) + "," + (+0.5+offset); // f = 0 bin.
+			}
+			for (var j = 1;j < 10;j++) {
+				record = record + "," + (j-0.5+offset) + "," + (j+0.5+offset);
+			}
 		}
 	}
 
 	if (all || parameters.includes('pitch_angle_centers')) {
 		offset = 0;
 		if (parseInt(record[15]) % 2 == 0) {
-			// Records with odd-numbered minute
-			offset = 1;
+			// Records with even-numbered minute
+			offset = 10;
 		}
-		if (record[17] == "0" && record[18] == "1") {
-			record = record + ",-1e31"; // f = 0 bin.
-		} else {
-			record = record + "," + (10 + offset); // f = 0 bin.
+		var ranges = [[0,22.5],[22.5,67.5],[67.5,90]];
+		for (var k = 0;k < ranges.length;k++) {
+			for (var j = 0;j < 2;j++) {
+				if (k == 0 && record[17] == "0" && record[18] == "2") {
+					// first bin when second = 02.
+					record = record + ",-1e31";	
+				} else if (k == 1 && j == 1 && record[17] == "0" && record[18] == "5") {
+					record = record + ",-1e31";	
+				} else {
+					record = record + "," + (ranges[k][j] + offset);
+				}
+			}
 		}
-		for (var j = 1;j < 3;j++) {
-			record = record + "," + ((j+1)*10 + offset);
+		if (0) {
+			if (record[17] == "0" && record[18] == "1") {
+				record = record + ",-1e31"; // f = 0 bin.
+			} else {
+				record = record + "," + (10 + offset); // f = 0 bin.
+			}
+			for (var j = 1;j < 3;j++) {
+				record = record + "," + ((j+1)*10 + offset);
+			}
 		}
 	}
 
