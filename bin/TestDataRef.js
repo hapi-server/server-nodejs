@@ -50,22 +50,74 @@ for (var i = startsec; i < stopsec; i++) {
 		record = record + "," + Math.sin(Math.PI*i/600);
 	}
 
-	if (all || parameters.includes('spectra')) {
+	if (all || parameters.includes('spectra') || parameters.includes('spectra_time_dependent_bins')) {
 		record = record + "," + 0; // f = 0 bin.
 		for (var j = 1;j < 10;j++) {
 			record = record + "," + 1/j;
 		}
 	}
 
-	if (all || parameters.includes('spectra-bin-centers')) {
+	if (all || parameters.includes('frequency_centers')) {
 		offset = 0;
 		if (parseInt(record[15]) % 2 == 0) {
 			// Records with even-numbered minute
 			offset = 10;
 		}
-		record = record + "," + (0+offset); // f = 0 bin.
+		if (record[17] == "0" && record[18] == "2") {
+			record = record + ",-1e31"; // f = 0 bin.
+		} else {
+			record = record + "," + (0+offset); // f = 0 bin.
+		}
 		for (var j = 1;j < 10;j++) {
 			record = record + "," + (j+offset);
+		}
+	}
+
+	if (all || parameters.includes('frequency_ranges')) {
+		offset = 0;
+		if (parseInt(record[15]) % 2 == 0) {
+			// Records with even-numbered minute
+			offset = 10;
+		}
+		if (record[17] == "0" && record[18] == "2") {
+			record = record + ",-1e31,-1e31"; // f = 0 bin.
+		} else {
+			record = record + "," + (-0.5+offset) + "," + (+0.5+offset); // f = 0 bin.
+		}
+		for (var j = 1;j < 10;j++) {
+			record = record + "," + (j-0.5+offset) + "," + (j+0.5+offset);
+		}
+	}
+
+	if (all || parameters.includes('pitch_angle_centers')) {
+		offset = 0;
+		if (parseInt(record[15]) % 2 == 0) {
+			// Records with odd-numbered minute
+			offset = 1;
+		}
+		if (record[17] == "0" && record[18] == "1") {
+			record = record + ",-1e31"; // f = 0 bin.
+		} else {
+			record = record + "," + (10 + offset); // f = 0 bin.
+		}
+		for (var j = 1;j < 3;j++) {
+			record = record + "," + ((j+1)*10 + offset);
+		}
+	}
+
+	if (all || parameters.includes('pitch_angle_ranges')) {
+		offset = 0;
+		if (parseInt(record[15]) % 2 == 0) {
+			// Records with odd-numbered minute
+			offset = 1;
+		}
+		if (record[17] == "0" && record[18] == "1") {
+			record = record + ",-1e31,-1e31"; // f = 0 bin.
+		} else {
+			record = record + "," + (10-1+offset)+ "," + (10+1+offset); // f = 0 bin.
+		}
+		for (var j = 1;j < 3;j++) {
+			record = record + "," + ((j+1)*10-1+offset) + "," + ((j+1)*10+1+offset);
 		}
 	}
 
@@ -75,7 +127,7 @@ for (var i = startsec; i < stopsec; i++) {
 			record = record + "," + 1/j;
 		}
 		record = record + "," + 0; // f = 0 bin.
-		for (var j = 1;j < 10;j++) {
+		for (var j = 1;j < 3;j++) {
 			record = record + "," + 2/j;
 		}
 	}
