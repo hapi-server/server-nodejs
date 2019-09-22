@@ -100,6 +100,7 @@
 										"name": "frequency_centers",
 										"type": "double",
 										"units": "Hz",
+										"fill": "-1e31",
 										"size": [10],
 										"description": "Bin centers for spectra frequencies"
 									},
@@ -107,6 +108,7 @@
 										"name": "frequency_ranges",
 										"type": "double",
 										"units": "Hz",
+										"fill": "-1e31",
 										"size": [10,2],
 										"description": "Bin centers for spectra frequencies"
 									},
@@ -114,6 +116,7 @@
 										"name": "pitch_angle_centers",
 										"type": "double",
 										"units": "degrees",
+										"fill": "-1e31",
 										"size": [3],
 										"description": "Bin centers for spectra pitch angles"
 									},
@@ -121,6 +124,7 @@
 										"name": "pitch_angle_ranges",
 										"type": "double",
 										"units": "degrees",
+										"fill": "-1e31",
 										"size": [3,2],
 										"description": "Bin ranges spectra pitch angles"
 									}
