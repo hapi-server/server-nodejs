@@ -1,5 +1,6 @@
 = TODO =
 
+0. HAPI version should be specified in input metadata. Will need to switch API based on HAPI version.
 1. Refuse to start if contact is not given (unless --force)?
 2. Interface for running in Docker: https://www.totaljs.com/code/ and https://www.totaljs.com/superadmin/
 
