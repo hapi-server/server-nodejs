@@ -110,7 +110,7 @@
 										"units": "Hz",
 										"fill": "-1e31",
 										"size": [10,2],
-										"description": "Bin centers for spectra frequencies"
+										"description": "Bin ranges for spectra frequencies"
 									},
 									{
 										"name": "pitch_angle_centers",
