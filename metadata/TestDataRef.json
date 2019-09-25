@@ -96,6 +96,28 @@
 													}
 												]
 									},
+									{ 
+										"name": "spectramulti_time_dependent_bins",
+										"type": "double",
+										"units": "m",
+										"fill": "-1e31",
+										"size" : [10,3],
+										"description": "A 10x3 element with time-independent bins",
+										"bins": [
+													{
+														"name": "frequency",
+														"units": "Hz",
+														"ranges": "frequency_ranges",
+														"centers": "frequency_centers"
+													},
+													{
+														"name": "pitch_angle",
+													 	"units": "degrees",
+														"ranges": "pitch_angle_ranges",
+													 	"centers": "pitch_angle_centers"
+													}
+												]
+									},
 									{
 										"name": "frequency_centers",
 										"type": "double",

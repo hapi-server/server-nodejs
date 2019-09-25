@@ -57,19 +57,23 @@ for (var i = startsec; i < stopsec; i++) {
 		}
 	}
 
+	var frequency_ranges = [[0,2],[2,4],[4,6],[6,8],[8,10],[10,12],[12,14],[14,16],[16,18],[18,20]];
+
 	if (all || parameters.includes('frequency_centers')) {
 		offset = 0;
 		if (parseInt(record[15]) % 2 == 0) {
 			// Records with even-numbered minute
 			offset = 10;
 		}
-		if (record[17] == "0" && record[18] == "2") {
-			record = record + ",-1e31"; // f = 0 bin.
-		} else {
-			record = record + "," + (0+offset); // f = 0 bin.
-		}
-		for (var j = 1;j < 10;j++) {
-			record = record + "," + (j+offset);
+		for (var k = 0;k < frequency_ranges.length;k++) {
+			if (k == 0 && record[17] == "0" && record[18] == "2") {
+				// first bin when second = 02.
+				record = record + ",-1e31";	
+			} else if (k == 1 && j == 1 && record[17] == "0" && record[18] == "5") {
+				record = record + ",-1e31";	
+			} else {
+				record = record + "," + ((frequency_ranges[k][0]+frequency_ranges[k][1])/2.0 + offset);
+			}
 		}
 	}
 
@@ -79,8 +83,7 @@ for (var i = startsec; i < stopsec; i++) {
 			// Records with even-numbered minute
 			offset = 10;
 		}
-		var ranges = [[0,2],[2,4],[4,6],[6,8],[8,10],[10,12],[12,14],[14,16],[16,18],[18,20]];
-		for (var k = 0;k < ranges.length;k++) {
+		for (var k = 0;k < frequency_ranges.length;k++) {
 			for (var j = 0;j < 2;j++) {
 				if (k == 0 && record[17] == "0" && record[18] == "2") {
 					// first bin when second = 02.
@@ -88,21 +91,13 @@ for (var i = startsec; i < stopsec; i++) {
 				} else if (k == 1 && j == 1 && record[17] == "0" && record[18] == "5") {
 					record = record + ",-1e31";	
 				} else {
-					record = record + "," + (ranges[k][j] + offset);
+					record = record + "," + (frequency_ranges[k][j] + offset);
 				}
 			}
 		}
-		if (0) {
-			if (record[17] == "0" && record[18] == "2") {
-				record = record + ",-1e31,-1e31"; // f = 0 bin when second = 02.
-			} else {
-				record = record + "," + (-0.5+offset) + "," + (+0.5+offset); // f = 0 bin.
-			}
-			for (var j = 1;j < 10;j++) {
-				record = record + "," + (j-0.5+offset) + "," + (j+0.5+offset);
-			}
-		}
 	}
+
+	var pitch_angle_ranges = [[0,22.5],[22.5,67.5],[67.5,90]];
 
 	if (all || parameters.includes('pitch_angle_centers')) {
 		offset = 0;
@@ -110,27 +105,14 @@ for (var i = startsec; i < stopsec; i++) {
 			// Records with even-numbered minute
 			offset = 10;
 		}
-		var ranges = [[0,22.5],[22.5,67.5],[67.5,90]];
-		for (var k = 0;k < ranges.length;k++) {
-			for (var j = 0;j < 2;j++) {
-				if (k == 0 && record[17] == "0" && record[18] == "2") {
-					// first bin when second = 02.
-					record = record + ",-1e31";	
-				} else if (k == 1 && j == 1 && record[17] == "0" && record[18] == "5") {
-					record = record + ",-1e31";	
-				} else {
-					record = record + "," + (ranges[k][j] + offset);
-				}
-			}
-		}
-		if (0) {
-			if (record[17] == "0" && record[18] == "1") {
-				record = record + ",-1e31"; // f = 0 bin.
+		for (var k = 0;k < pitch_angle_ranges.length;k++) {
+			if (k == 0 && record[17] == "0" && record[18] == "2") {
+				// first bin when second = 02.
+				record = record + ",-1e31";	
+			} else if (k == 1 && j == 1 && record[17] == "0" && record[18] == "5") {
+				record = record + ",-1e31";	
 			} else {
-				record = record + "," + (10 + offset); // f = 0 bin.
-			}
-			for (var j = 1;j < 3;j++) {
-				record = record + "," + ((j+1)*10 + offset);
+				record = record + "," + ((pitch_angle_ranges[k][0]+pitch_angle_ranges[k][1])/2.0 + offset);
 			}
 		}
 	}
@@ -138,27 +120,28 @@ for (var i = startsec; i < stopsec; i++) {
 	if (all || parameters.includes('pitch_angle_ranges')) {
 		offset = 0;
 		if (parseInt(record[15]) % 2 == 0) {
-			// Records with odd-numbered minute
-			offset = 1;
+			// Records with even-numbered minute
+			offset = 10;
 		}
-		if (record[17] == "0" && record[18] == "1") {
-			record = record + ",-1e31,-1e31"; // f = 0 bin.
-		} else {
-			record = record + "," + (10-1+offset)+ "," + (10+1+offset); // f = 0 bin.
-		}
-		for (var j = 1;j < 3;j++) {
-			record = record + "," + ((j+1)*10-1+offset) + "," + ((j+1)*10+1+offset);
+		for (var k = 0;k < pitch_angle_ranges.length;k++) {
+			for (var j = 0;j < 2;j++) {
+				if (k == 0 && record[17] == "0" && record[18] == "2") {
+					// first bin when second = 02.
+					record = record + ",-1e31";	
+				} else if (k == 1 && j == 1 && record[17] == "0" && record[18] == "5") {
+					record = record + ",-1e31";	
+				} else {
+					record = record + "," + (pitch_angle_ranges[k][j] + offset);
+				}
+			}
 		}
 	}
 
-	if (all || parameters.includes('spectramulti')) {
-		record = record + "," + 0; // f = 0 bin.
-		for (var j = 1;j < 10;j++) {
-			record = record + "," + 1/j;
-		}
-		record = record + "," + 0; // f = 0 bin.
-		for (var j = 1;j < 3;j++) {
-			record = record + "," + 2/j;
+	if (all || parameters.includes('spectramulti') || parameters.includes('spectramulti_time_dependent_bins')) {
+		for (var k = 0;k < 3;k++) {
+			for (var j = 0;j < 10;j++) {
+				record = record + "," + (k+j);
+			}
 		}
 	}
 
