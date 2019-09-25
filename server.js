@@ -5,8 +5,8 @@ var SCHEMAVERSION = "2.0-1";
 var clc  = require('chalk'); // Colorize command line output
 
 var ver  = parseInt(process.version.slice(1).split('.')[0]);
-if (ver < 6) {
-	console.log(clc.red("!!! node.js version >= 6 required.!!! node.js -v returns " + process.version + ".\nConsider installing https://github.com/creationix/nvm and then 'nvm install 6'.\n"));
+if (ver < 8) {
+	console.log(clc.red("!!! node.js version >= 8 required.!!! node.js -v returns " + process.version + ".\nConsider installing https://github.com/creationix/nvm and then 'nvm install 8'.\n"));
 	process.exit(1);
 }
 
