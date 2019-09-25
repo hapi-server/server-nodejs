@@ -175,9 +175,9 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		// Any requests not matching set app.get() patterns will see error response.
 		app.get('*', function(req, res) {
 			if (PREFIXES.length == 1) {
-				res.send("Invalid URL. See <a href='"+PREFIXES[0]+"/hapi'>"+PREFIXES[0].substr(1)+"/hapi</a>");
+				res.status(404).send("Invalid URL. See <a href='"+PREFIXES[0]+"/hapi'>"+PREFIXES[0].substr(1)+"/hapi</a>");
 			} else {
-				res.send("Invalid URL. See <a href='/'>start page</a>");
+				res.status(404).send("Invalid URL. See <a href='/'>start page</a>");
 			}
 		});
 
@@ -334,6 +334,11 @@ function apiInit(CATALOGS,PREFIXES,i) {
 
 		// Send the data
 		data(req,res,CATALOG,header,include);
+	})
+
+	// Anything that does not match PREFIX + {/hapi,/hapi/capabilities,/hapi/info,/hapi/data}
+	app.get(PREFIX + '*', function (req, res) {
+		res.status(404).send("Invalid URL. See <a href='"+PREFIX+"/hapi'>"+PREFIX.substr(1)+"/hapi</a>");
 	})
 
 	apiInit(CATALOGS,PREFIXES,++i);
