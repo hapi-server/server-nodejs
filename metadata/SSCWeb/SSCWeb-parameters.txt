@@ -40,4 +40,4 @@
 "Radius","Radius","Distance spacecraft is from Earth for each given point in time","R_E","1e31",".2f"
 "MagneticFldStrth","MagneticFldStrth","Magnetic field magnitude at location of spacecraft (using IGRF + T89C with Kp: 3-, 3, 3+)","nT","1e31","%0.2f"
 "DipL-Val","DipL_Val","Dipole L-value at location of spacecraft","","1e31","%0.1f"
-"DipInv","DipInv","Dipole invariant latitude at location of spacecraft","deg","1e31","%d"
+"DipInv","DipInv","Dipole invariant latitude at location of spacecraft","deg","1e31","%0.1f"
