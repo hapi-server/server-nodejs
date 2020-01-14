@@ -58,10 +58,10 @@ var argv = yargs
 			.alias('test','t')
 			.describe('verify','Run verification tests and exit')
 			.alias('verify','v')
-			.option('ignore')
-			.option('open')
-			.option('test')
-			.option('verify')
+			.option('ignore',{'type': 'boolean'})
+			.option('open',{'type': 'boolean'})
+			.option('test',{'type': 'boolean'})
+			.option('verify',{'type': 'boolean'})
 			.option('help', {alias: 'h'})
 			.epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
 			.usage('Usage: ' + usage + ' [options]')
@@ -96,6 +96,7 @@ if (typeof(FILE) == 'string') {
 exceptions(); // Catch common start-up exceptions
 
 // Populate metadata.cache array, which has elements of catalog objects
+// main() is callback.
 prepmetadata(FILES,HAPIVERSION,FORCE,VERIFIER,PLOTSERVER,main);
 
 function main() {
@@ -337,7 +338,8 @@ function apiInit(CATALOGS,PREFIXES,i) {
 	})
 
 	// Anything that does not match PREFIX + {/hapi,/hapi/capabilities,/hapi/info,/hapi/data}
-	app.get(PREFIX + '*', function (req, res) {
+	app.get(PREFIX + '/*', function (req, res) {
+		console.log(req);
 		res.status(404).send("Invalid URL. See <a href='"+PREFIX+"/hapi'>"+PREFIX.substr(1)+"/hapi</a>");
 	})
 
