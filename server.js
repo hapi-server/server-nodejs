@@ -83,6 +83,7 @@ var FORCE      = argv.ignore || false;
 var OPEN       = argv.open || false;
 var TEST       = argv.test || false;
 var VERIFY     = argv.verify || false;
+var LOGDIR     = __dirname + "/log";
 
 var VERIFIER   = "http://hapi-server.org/verify";
 var PLOTSERVER = "http://hapi-server.org/plot";
@@ -94,6 +95,13 @@ if (typeof(FILE) == 'string') {
 }
 
 exceptions(); // Catch common start-up exceptions
+
+if (!fs.existsSync(LOGDIR)){
+	fs.mkdirSync(LOGDIR);
+	console.log(ds() + "Created " + LOGDIR);
+} else {
+	console.log(ds() + "Log directory = " + LOGDIR);
+}
 
 // Populate metadata.cache array, which has elements of catalog objects
 // main() is callback.
@@ -156,12 +164,16 @@ function main() {
 		if (TEST) {
 			// Exits with signal 0 or 1
 			test.urls(CATALOGS,PREFIXES,url,TEST);
+		} else {
+			console.log(ds() + "To run test URLs and exit, use the --test option");
 		}
 		if (VERIFY) {
 			// Exits with signal 0 or 1
 			verify(url);
+		} else {
+			console.log(ds() + "To run verification tests and exit, use the --verify option");
 		}
-	});
+	})
 }
 
 function apiInit(CATALOGS,PREFIXES,i) {
@@ -176,7 +188,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		// Any requests not matching set app.get() patterns will see error response.
 		app.get('*', function(req, res) {
 			if (PREFIXES.length == 1) {
-				res.status(404).send("Invalid URL. See <a href='"+PREFIXES[0]+"/hapi'>"+PREFIXES[0].substr(1)+"/hapi</a>");
+				res. status(404).send("Invalid URL. See <a href='"+PREFIXES[0]+"/hapi'>"+PREFIXES[0].substr(1)+"/hapi</a>");
 			} else {
 				res.status(404).send("Invalid URL. See <a href='/'>start page</a>");
 			}
@@ -1017,20 +1029,20 @@ function error(req,res,code,message) {
 
 	// TODO: Need to determine if headers and/or data were already sent.
 	var errs = {
-		"1400": {status: 400, "message": "HAPI 1400: user input error"},
-		"1401": {status: 400, "message": "HAPI 1401: unknown request field"},
-		"1402": {status: 400, "message": "HAPI 1402: error in time.min"},
-		"1403": {status: 400, "message": "HAPI 1403: error in time.max"},
-		"1404": {status: 400, "message": "HAPI 1404: time.min equal to or after time.max"},
-		"1405": {status: 400, "message": "HAPI 1405: time outside valid range"},
-		"1406": {status: 404, "message": "HAPI 1406: unknown dataset id"},
-		"1407": {status: 404, "message": "HAPI 1407: unknown dataset parameter"},
-		"1408": {status: 400, "message": "HAPI 1408: too much time or data requested"},
-		"1409": {status: 400, "message": "HAPI 1409: unsupported output format"},
-		"1410": {status: 400, "message": "HAPI 1410: unsupported include value"},
-		"1411": {status: 400, "message": "HAPI 1411: unsupported resolve_references value"},
-		"1500": {status: 500, "message": "HAPI 1500: internal server error"},
-		"1501": {status: 500, "message": "HAPI 1501: upstream request error"}
+		"1400": {status: 400, "message": "HAPI error 1400: user input error"},
+		"1401": {status: 400, "message": "HAPI error 1401: unknown request field"},
+		"1402": {status: 400, "message": "HAPI error 1402: error in time.min"},
+		"1403": {status: 400, "message": "HAPI error 1403: error in time.max"},
+		"1404": {status: 400, "message": "HAPI error 1404: time.min equal to or after time.max"},
+		"1405": {status: 400, "message": "HAPI error 1405: time outside valid range"},
+		"1406": {status: 404, "message": "HAPI error 1406: unknown dataset id"},
+		"1407": {status: 404, "message": "HAPI error 1407: unknown dataset parameter"},
+		"1408": {status: 400, "message": "HAPI error 1408: too much time or data requested"},
+		"1409": {status: 400, "message": "HAPI error 1409: unsupported output format"},
+		"1410": {status: 400, "message": "HAPI error 1410: unsupported include value"},
+		"1411": {status: 400, "message": "HAPI error 1411: unsupported resolve_references value"},
+		"1500": {status: 500, "message": "HAPI error 1500: internal server error"},
+		"1501": {status: 500, "message": "HAPI error 1501: upstream request error"}
 	}
 
 	// Defaults
@@ -1066,13 +1078,14 @@ function error(req,res,code,message) {
 
 // Uncaught errors in API request code.
 function errorHandler(err, req, res, next) {
+
 	var stack = err.stack.replace(new RegExp(__dirname + "/","g"),"").replace(/\n/g,"<br/>")
 	console.log(err);
 	error(req,res,"1500","Server error. Please post the following error message at https://github.com/hapi-server/server-nodejs/issues. <br/>" + req.originalUrl + "<br/> " + err + " " + stack);
 	var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
 	var msg = ds() + "Request from " + addr + ": " + req.originalUrl;
-	var tmps = ds().split("T")[0]
-	fs.appendFileSync('server-error-' + tmps + ".log",msg + "\n" + err.stack)
+	var tmps = ds().split("T")[0];
+	fs.appendFileSync(LOGDIR + '/server-error-' + tmps + ".log",msg + "\n" + err.stack);
 }
 
 // Errors in application
