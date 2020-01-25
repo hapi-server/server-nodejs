@@ -1,6 +1,5 @@
 // Global variables
 var HAPIVERSION = "2.0"; // Spec version implemented
-var SCHEMAVERSION = "2.0-1";
 
 var clc  = require('chalk'); // Colorize command line output
 
@@ -105,7 +104,7 @@ if (!fs.existsSync(LOGDIR)){
 
 // Populate metadata.cache array, which has elements of catalog objects
 // main() is callback.
-prepmetadata(FILES,HAPIVERSION,FORCE,VERIFIER,PLOTSERVER,main);
+prepmetadata(FILES,FORCE,VERIFIER,PLOTSERVER,main);
 
 function main() {
 
@@ -201,6 +200,9 @@ function apiInit(CATALOGS,PREFIXES,i) {
 
 	let CATALOG = CATALOGS[i];
 	let PREFIX = PREFIXES[i]
+	
+	let capabilities = metadata(CATALOG,"capabilities");
+	let hapiversion = capabilities["HAPI"];
 
 	console.log(ds() + clc.green("Initializing http://localhost:" + argv.port + PREFIX + "/hapi"));
 	console.log(ds() + "To run test URLs, use the --test option");
@@ -224,7 +226,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 
 		// Send error if query parameters given
 		if (Object.keys(req.query).length > 0) {
-			error(req,res,1401, "This endpoint takes no query string.");
+			error(req,res,hapiversion,1401,"This endpoint takes no query string.");
 			return;
 		}
 
@@ -239,7 +241,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 
 		// Send error if query parameters given
 		if (Object.keys(req.query).length > 0) {
-			error(req,res,1401,"This endpoint takes no query string.");
+			error(req,res,hapiversion,1401,"This endpoint takes no query string.");
 			return;
 		}
 
@@ -253,7 +255,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		res.contentType("application/json");
 
 		// Check query string and set defaults as needed.
-		if (!queryCheck(req,res,CATALOG,'info')) {
+		if (!queryCheck(req,res,hapiversion,CATALOG,'info')) {
 			return; // Error already sent, so return;
 		}
 
@@ -263,7 +265,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		// infoCheck() is more consistent with other code.
 		var header = info(req,res,CATALOG); 
 		if (typeof(header) === "number") {
-			error(req,res,header,"At least one parameter not found in dataset.");
+			error(req,res,hapiversion,1406,"At least one parameter not found in dataset.");
 			return;
 		} else {
 			res.send(header);
@@ -277,7 +279,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		cors(res);
 
 		// Check query string and set defaults as needed.
-		if (!queryCheck(req,res,CATALOG,'data')) {
+		if (!queryCheck(req,res,hapiversion,CATALOG,'data')) {
 			return; // Error already sent, so return;
 		}
 
@@ -285,7 +287,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		var header = info(req,res,CATALOG);
 		if (typeof(header) === "number") {
 			// One or more of the requested parameters are invalid.
-			error(req,res,header,"At least one parameter not found in dataset.");
+			error(req,res,hapiversion,1406,"At least one parameter not found in dataset.");
 			return;
 		};
 
@@ -299,14 +301,14 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		// timeCheck() returns integer error code if error or true if no error.
 		var timeOK = timeCheck(header)
 		if (timeOK !== true) {
-			error(req,res,timeOK);
+			error(req,res,hapiversion,timeOK);
 			return;
 		}
 
 		header["format"] = "csv"; // Set default format
 		if (req.query["format"]) {
 			if (!["csv","json","binary"].includes(req.query["format"])) {
-				error(req,res,1409,"Allowed values of 'format' are csv, json, and binary.");
+				error(req,res,hapiversion,1409,"Allowed values of 'format' are csv, json, and binary.");
 				return;
 			}
 			// Use requested format.
@@ -315,7 +317,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		
 		if (req.query["include"]) {
 			if (req.query["include"] !== "header") {
-				error(req,res,1410,"Allowed value of 'include' is 'header'.");
+				error(req,res,hapiversion,1410,"Allowed value of 'include' is 'header'.");
 				return;
 			}
 		}
@@ -593,9 +595,9 @@ function data(req,res,catalog,header,include) {
 			return;
 		}
 		if (d.contact) {
-			error(req,res,1500,"Problem with the data server. Please send URL to " + d.contact + ".");
+			error(req,res,hapiversion,1500,"Problem with the data server. Please send URL to " + d.contact + ".");
 		} else {
-			error(req,res,1500,"Problem with the data server.");
+			error(req,res,hapiversion,1500,"Problem with the data server.");
 		}
 	}
 
@@ -882,7 +884,7 @@ function csvTo(records,first,last,header,include) {
 	}
 }
 
-function queryCheck(req, res, catalog, type) {
+function queryCheck(req, res, hapiversion, catalog, type) {
 
 	// Check query parameters for query of type='info' or 'data'
 	// If invalid query parameter, send error and return false
@@ -890,13 +892,13 @@ function queryCheck(req, res, catalog, type) {
 
 	// Check for required id parameter
 	if (!req.query.id) {
-		error(req,res,1400,"A dataset id must be given.");
+		error(req,res,hapiversion,1400,"A dataset id must be given.");
 		return false;
 	}
 
 	let ids = metadata(catalog,'ids');
 	if (!ids.includes(req.query.id)) {
-		error(req,res,1406);
+		error(req,res,hapiversion,1406);
 		return false;
 	}
 
@@ -904,7 +906,7 @@ function queryCheck(req, res, catalog, type) {
 		// Check if extra parameters given
 		for (var key in req.query) {
 			if (!["id","parameters","resolve_references"].includes(key)) {
-				error(req,res,1401,"'id', 'parameters', and 'resolve_references' are the only valid query parameters.");
+				error(req,res,hapiversion,1401,"'id', 'parameters', and 'resolve_references' are the only valid query parameters.");
 				return false;
 			}
 		}
@@ -913,16 +915,16 @@ function queryCheck(req, res, catalog, type) {
 		var allowed = ["id","parameters","time.min","time.max","format","include","attach","resolve_references"];
 		for (var key in req.query) {
 			if (!allowed.includes(key)) {
-				error(req,res,1401,"The only allowed query parameters are " + allowed.join(", "));
+				error(req,res,hapiversion,1401,"The only allowed query parameters are " + allowed.join(", "));
 				return false;
 			}
 		}
 		if (!req.query["time.min"]) {
-			error(req,res,1402,"time.min is required");
+			error(req,res,hapiversion,1402);
 			return;
 		}
 		if (!req.query["time.max"]) {
-			error(req,res,1403,"time.max is required");
+			error(req,res,hapiversion,1403);
 			return;
 		}
 	}
@@ -934,7 +936,7 @@ function queryCheck(req, res, catalog, type) {
 
 	// If resolve_references given, check that it is "true" or "false".
 	if (!["true","false"].includes(req.query.resolve_references)) {
-		error(req,res,1411,"resolve_references must be 'true' or 'false'");
+		error(req,res,hapiversion,1411,"resolve_references must be 'true' or 'false'");
 		return false;
 	}
 
@@ -969,11 +971,11 @@ function timeCheck(header) {
 		times[i] = times[i].replace(/\.Z/,".0Z"); // moment.js says .Z is invalid.
 	}
 
-	var r = is.HAPITime(times[0],SCHEMAVERSION);
+	var r = is.HAPITime(times[0],header["HAPI"]);
 	if (r.error) {
 		return 1402;
 	}
-	var r = is.HAPITime(times[1],SCHEMAVERSION);
+	var r = is.HAPITime(times[1],header["HAPI"]);
 	if (r.error) {
 		return 1403;
 	}
@@ -1025,7 +1027,7 @@ function timeCheck(header) {
 }
 
 // HAPI errors
-function error(req,res,code,message) {
+function error(req,res,hapiversion,code,message) {
 
 	// TODO: Need to determine if headers and/or data were already sent.
 	var errs = {
@@ -1048,7 +1050,7 @@ function error(req,res,code,message) {
 	// Defaults
 	var json =
 			{
-				"HAPI" : HAPIVERSION,
+				"HAPI" : hapiversion,
 				"status": { "code": 1500, "message": "Internal server error"}
 			};
 	var httpcode = 500;
@@ -1081,7 +1083,7 @@ function errorHandler(err, req, res, next) {
 
 	var stack = err.stack.replace(new RegExp(__dirname + "/","g"),"").replace(/\n/g,"<br/>")
 	console.log(err);
-	error(req,res,"1500","Server error. Please post the following error message at https://github.com/hapi-server/server-nodejs/issues. <br/>" + req.originalUrl + "<br/> " + err + " " + stack);
+	error(req,res,"2.0","1500","Server error. Please post the following error message at https://github.com/hapi-server/server-nodejs/issues. <br/>" + req.originalUrl + "<br/> " + err + " " + stack);
 	var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
 	var msg = ds() + "Request from " + addr + ": " + req.originalUrl;
 	var tmps = ds().split("T")[0];
