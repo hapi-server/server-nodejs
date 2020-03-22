@@ -51,19 +51,25 @@ for (var i = startsec; i < stopsec; i++) {
 					+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
 					+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
 	}
-	if (all || parameters.includes('vector3units')) {
+	if (all || parameters.includes('vectormulti')) {
 		record = record 
+					+ "," + Math.sin(Math.PI*(i-startsec)/600) 
+					+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
+					+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
+					+ "," + Math.sin(Math.PI*(i-startsec)/600) 
+					+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
+					+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
+	}
+	if (all || parameters.includes('vectormultibins')) {
+		record = record 
+					+ "," + Math.sin(Math.PI*(i-startsec)/600) 
+					+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
+					+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
 					+ "," + Math.sin(Math.PI*(i-startsec)/600) 
 					+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
 					+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
 	}
 	if (all || parameters.includes('spectra')) {
-		record = record + "," + 0; // f = 0 bin.
-		for (var j = 1;j < 10;j++) {
-			record = record + "," + 1/j;
-		}
-	}
-	if (all || parameters.includes('spectra10units')) {
 		record = record + "," + 0; // f = 0 bin.
 		for (var j = 1;j < 10;j++) {
 			record = record + "," + 1/j;

@@ -37,35 +37,59 @@
 									{ 
 										"name": "vector",
 										"type": "double",
-										"units": "m",
-										"fill": "-1e31",
-										"size": [3],
-										"description": "Each component is a sine wave with a 600 s period with differing phases."
-									},
-									{ 
-										"name": "vector3units",
-										"type": "double",
 										"units": ["m","km","nm"],
 										"fill": "-1e31",
 										"size": [3],
-										"description": "Each vector component has a different unit."
+										"label": ["Bx","By","Bz"],
+										"description": "Each vector component has a different unit and label."
+									},
+									{ 
+										"name": "vectormulti",
+										"type": "double",
+										"units": [["m","km","nm"],["m","km"]],
+										"label": [["x","y","z"],["Vector 1","Vector 2"]],
+										"fill": "-1e31",
+										"size": [3,2],
+										"description": "Two vectors; Each component of each vector is a sine wave with a 600 s period with differing phases."
+									},
+									{ 
+										"name": "vectormultibins",
+										"type": "double",
+										"units": [["m","km","nm"],["m","km"]],
+										"label": [["x","y","z"],["Vector 1","Vector 2"]],
+										"fill": "-1e31",
+										"size": [3,2],
+										"description": "Two vectors; Each component of each vector is a sine wave with a 600 s period with differing phases.",
+										"bins": [
+													{
+														"name": "channel",
+														"label": ["c0","c1","c2"],
+														"units": ["c0","c1","c2"],
+														"centers":[0,1,2]
+													},
+													{
+														"name": "Sensor",
+														"label": ["s88","s99"],
+														"centers": null
+													}
+										]
 									},
 									{ 
 										"name": "spectra",
 										"type": "double",
-										"units": "m",
+										"units": ["m","m","m","m","m","km","km","km","km",null],
 										"fill": "-1e31",
 										"size" : [10],
-										"bins": [{"name": "frequency", "units": "Hz","centers":[0,1,2,3,4,5,6,7,8,9]}],
-										"description": "A time independent 1/f spectra."
-									},
-									{ 
-										"name": "spectra10units",
-										"type": "double",
-										"units": ["m","m","m","m","m","km","km","km","km","km"],
-										"fill": "-1e31",
-										"size" : [10],
-										"bins": [{"name": "frequency", "units": ["Hz","Hz","Hz","Hz","Hz","MHz","MHz","MHz","MHz","MHz"],"centers":[0,1,2,3,4,5,6,7,8,9],"ranges":[[-0.5,0.5],[0.5,1.5],[1.5,2.5],[2.5,3.5],[3.5,4.5],[4.5,5.5],[5.5,6.5],[6.5,7.5],[7.5,8.5],[8.5,9.5]]}],
+										"label": ["Channel A","Channel B","Channel C","Channel D","Channel E","Channel F","Channel G","Channel H","Channel I","Channel J"],
+										"bins": [
+													{
+														"name": "frequency",
+														"label": ["low f","low f","low f","low f","low f","high f","high f","high f","high f","high f"],
+														"units": ["Hz","Hz","Hz","Hz","Hz","Hz","MHz","MHz","MHz","MHz",null],
+														"centers":[0,1,2,3,4,5,6,7,8,null],
+														"ranges":[[-0.5,0.5],[0.5,1.5],[1.5,2.5],[2.5,3.5],[3.5,4.5],[4.5,5.5],[5.5,6.5],[6.5,7.5],[7.5,8.5],null]
+													}
+										],
 										"description": "A time independent 1/f spectra."
 									}
 								]

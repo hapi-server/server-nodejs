@@ -79,7 +79,7 @@
 										"type": "double",
 										"units": "m",
 										"fill": "-1e31",
-										"size" : [10,3],
+										"size" : [10,2],
 										"description": "A 10x3 element with time-independent bins",
 										"bins": [
 													{
@@ -101,7 +101,7 @@
 										"type": "double",
 										"units": "m",
 										"fill": "-1e31",
-										"size" : [10,3],
+										"size" : [10,2],
 										"description": "A 10x3 element with time-independent bins",
 										"bins": [
 													{
