@@ -1,37 +1,17 @@
-if (typeof(elem) == 'undefined') {
-	VERIFIER = "http://hapi-server.org/verify";
-	console.log('VERIFIER variable is not defined. Using ' + VERIFIER);
-}
-var src = VERIFIER+"?url="+window.location;
+$(document).ready(function () {
+	$("#verifier").attr("href",$("#verifier").attr("href") + "?url=" + window.location.href);
+	$("#viviz").attr("href",$("#viviz").attr("href") + "?server=" + window.location.href + "&format=gallery");
 
-if (window.location.hostname == 'localhost' && !VERIFIER.match('localhost')) {
-	$(document).ready(function () {
-		link = "<a href='https://github.com/hapi-server/server-nodejs/blob/master/README.md#Installation'>the documentation</a>"
-		$("#verifierurl").html("If HAPI server is run on localhost, verifier must be run on localhost. See " + link + " for instructions on starting a localhost verifier server.");
-
-		$("#showvalidation").click(function () {
-			$("#verifierurl").show();
-		})
-		$.ajax("./hapi/catalog").done(info);
-	})
-} else {
-	// When DOM is ready, set links.
-	$(document).ready(function () {
-		validation();
-		$.ajax("./hapi/catalog").done(info);
-	})
-}
-
-function validation() {
-	$("#showvalidation").attr("title",src);
-	$("#verifierurl").html(src);
-	$("#verifierurl").attr("href",src);
-	$("#showvalidation").click(function () {
-		$("#verifierurl").show();
-		$("#validationresults").show();
-		$('#iframe').attr("src",src);				
-	})
-}
+	if (window.location.hostname == 'localhost') {
+ 		if (!$("#viviz").attr("href").match('localhost')) {
+			$('#viviz').after(" <span style='background-color:yellow'>If HAPI server URL domain name is localhost, plot server must be run on localhost. See server startup message for instructions.</span>");
+		}
+ 		if (!$("#verifier").attr("href").match('localhost')) {
+			$('#verifier').after(" <span style='background-color:yellow'>If HAPI server URL domain name is localhost, verfifier server must be run on localhost. See server startup message for instructions.</span>");
+		}
+	}
+	$.ajax("./hapi/catalog").done(info);
+})
 
 function info(json) {
 	// Process output of /hapi/catalog

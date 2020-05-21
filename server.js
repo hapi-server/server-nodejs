@@ -55,19 +55,23 @@ var argv = yargs
 			.alias('open','o')
 			.describe('test','Run URL tests and exit')
 			.alias('test','t')
-			.describe('verify','Run verification tests and exit')
+			.describe('verify','Run verification tests on command line and exit')
 			.alias('verify','v')
 			.option('ignore',{'type': 'boolean'})
 			.option('open',{'type': 'boolean'})
 			.option('test',{'type': 'boolean'})
 			.option('verify',{'type': 'boolean'})
+			.option('verifier',{'description': 'Verifier server URL for landing page links'})
+			.option('plotserver',{'description': 'Plot server URL for landing page links'})
 			.option('help', {alias: 'h'})
 			.epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
 			.usage('Usage: ' + usage + ' [options]')
 			.default({
 				'file': __dirname + '/metadata/TestData.json',
 				'port': 8999,
-				'conf': __dirname + '/conf/server.json'
+				'conf': __dirname + '/conf/server.json',
+				'verifier': 'http://hapi-server.org/verify',
+				'plotserver': 'http://hapi-server.org/plotserver'
 			})
 			.argv
 
@@ -78,14 +82,13 @@ for (key in config) {
 
 var FILE       = argv.file;
 var PORT       = argv.port;
-var FORCE      = argv.ignore || false;
+var FORCE      = argv.ignore || false; 
 var OPEN       = argv.open || false;
 var TEST       = argv.test || false;
 var VERIFY     = argv.verify || false;
 var LOGDIR     = __dirname + "/log";
-
-var VERIFIER   = "http://hapi-server.org/verify";
-var PLOTSERVER = "http://hapi-server.org/plot";
+var VERIFIER   = argv.verifier;
+var PLOTSERVER = argv.plotserver;
 
 if (typeof(FILE) == 'string') {
 	FILES = [FILE];	
@@ -111,10 +114,34 @@ function main() {
 	let CATALOGS = [];
 	let PREFIXES = [];
 
+	function writeall(file) {
+		console.log(ds() + "Starting async creation of " + file);
+		fs.writeFile(file, all, "utf8", 
+			(err) => {
+				if (err) {
+					console.log(err);
+				} else {
+					console.log(ds() + "Finished async creation of " + file);
+				}
+		});
+	}
+
+	var METADIR = __dirname + "/public/meta";
+	if (!fs.existsSync(METADIR)){
+		fs.mkdirSync(METADIR);
+		console.log(ds() + "Created " + METADIR);
+	} else {
+		console.log(ds() + "-all.json directory = " + METADIR);
+	}
+
 	let i = 0;
 	for (let key in metadata.cache) {
 		CATALOGS[i] = metadata.cache[key]['server']['id'];
 		PREFIXES[i] = metadata.cache[key]['server']['prefix'];
+		
+		var all = JSON.stringify(metadata.cache[key]['info'],null,4);
+		var file = METADIR + PREFIXES[i] + "-all.json";
+		writeall(file);
 		i = i + 1;
 	}
 
@@ -164,13 +191,14 @@ function main() {
 			// Exits with signal 0 or 1
 			test.urls(CATALOGS,PREFIXES,url,TEST);
 		} else {
-			console.log(ds() + "To run test URLs and exit, use the --test option");
+			console.log(ds() + "To run test URLs and exit, use the --test option.");
 		}
 		if (VERIFY) {
 			// Exits with signal 0 or 1
 			verify(url);
 		} else {
-			console.log(ds() + "To run verification tests and exit, use the --verify option");
+			console.log(ds() + "To run verification tests and exit, use the --verify option.");
+			console.log(ds() + "To start verification server, execute 'node verify.js' on the command line.");
 		}
 	})
 }
@@ -208,8 +236,16 @@ function apiInit(CATALOGS,PREFIXES,i) {
 	console.log(ds() + "To run test URLs, use the --test option");
 	console.log(ds() + "To run verification tests, use the --verify option");
 
-	// Serve static files in ./public
+	// Serve static files in ./public/data (no directory listing provided)
 	app.use(PREFIX, express.static(__dirname + '/public'));
+
+	// Serve landing web page
+	app.get(PREFIX + '/hapi/all.json', function (req, res) {
+		cors(res);
+		res.contentType("application/json");
+		var file = __dirname + "/public/meta" + PREFIX + "-all.json";		
+		fs.createReadStream(file).pipe(res);
+	})
 
 	// Serve landing web page
 	app.get(PREFIX + '/hapi', function (req, res) {

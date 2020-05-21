@@ -1,6 +1,6 @@
 {
 	"data": {
-		"command": "$NODEEXE $HAPISERVERPATH/bin/TestData.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
+		"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.0.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
 		"testurls": [
@@ -8,8 +8,8 @@
 			{"url": "${server}/data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10Z&time.max=1970-01-01T00:00:20Z", "Nlines": 0}
 		],
 		"testcommands": [
-			{"command": "$NODEEXE $HAPISERVERPATH/bin/TestData.js --id dataset1 --parameters scalar --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:00:10.000000000Z", "Nlines": 10},
-			{"command": "$NODEEXE $HAPISERVERPATH/bin/TestData.js --id dataset1 --parameters scalar --start 1970-01-01T00:00:10.000000000Z --stop 1970-01-01T00:00:20.000000000Z", "Nlines": 0}
+			{"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.0.js --id dataset1 --parameters scalar --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:00:10.000000000Z", "Nlines": 10},
+			{"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.0.js --id dataset1 --parameters scalar --start 1970-01-01T00:00:10.000000000Z --stop 1970-01-01T00:00:20.000000000Z", "Nlines": 0}
 		]
 	},
 	"HAPI": "2.0",
@@ -120,7 +120,7 @@
 										"type": "double",
 										"units": "m",
 										"fill": "-1e31",
-										"size": [3,2],
+										"size": [2,3],
 										"description": "Two vectors; Each component of each vector is a sine wave with a 600 s period with differing phases."
 									},
 									{ 
@@ -129,7 +129,7 @@
 										"units": "m",
 										"fill": "-1e31",
 										"size" : [9],
-										"description": "Transformation matrix elements Txx, Txy, Txz, Tyx, Tyy, Tzz, Tzx, Tyy, Tzz."
+										"description": "Transformation matrix elements Txx=0, Txy=1, Txz=2, Tyx=3, Tyy=4, Tzz=5, Tzx=6, Tzy=7, Tzz=9."
 									},
 									{ 
 										"name": "transformmulti",
@@ -137,7 +137,7 @@
 										"units": "m",
 										"fill": "-1e31",
 										"size" : [3,3],
-										"description": "3-D transformation matrix"
+										"description": "3-D transformation matrix. Txx=0, Txy=1, Txz=2, Tyx=3, Tyy=4, Tzz=5, Tzx=6, Tzy=7, Tzz=9"
 									},
 									{ 
 										"name": "spectra",
@@ -145,7 +145,7 @@
 										"units": "m",
 										"fill": "-1e31",
 										"size" : [10],
-										"bins": [{"name": "frequency", "units": "Hz","centers":[0,1,2,3,4,5,6,7,8,9]}],
+										"bins": [{"name": "frequency", "units": "Hz","centers": [0,1,2,3,4,5,6,7,8,9]}],
 										"description": "A time independent 1/f spectra."
 									},
 									{ 
@@ -170,7 +170,7 @@
 										"type": "double",
 										"units": "m",
 										"fill": "-1e31",
-										"size" : [10,2],
+										"size" : [2,10],
 										"bins": [
 													{"name": "frequency", "units": "Hz","centers":[0,1,2,3,4,5,6,7,8,9]},
 													{"name": "frequency", "units": "MHz","centers":[10,11,12,13,14,15,16,17,18,19]}

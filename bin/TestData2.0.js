@@ -106,12 +106,12 @@ for (var i = startsec; i < stopsec; i++) {
 	}
 	if (all || parameters.includes('transform')) {
 		for (var j = 0;j < 9;j++) {
-			record = record + "," + Math.sin((Math.PI/300)*(i-startsec)/(j+1));
+			record = record + "," + (j);
 		}
 	}
 	if (all || parameters.includes('transformmulti')) {
 		for (var j = 0;j < 9;j++) {
-			record = record + "," + Math.sin((Math.PI/300)*(i-startsec)/(j+1));
+			record = record + "," + (j);
 		}
 	}
 	if (all || parameters.includes('spectra')) {

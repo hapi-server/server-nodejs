@@ -1,10 +1,11 @@
 {
 	"data": {
-		"command": "$NODEEXE $HAPISERVERPATH/bin/TestData.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
+		"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.0.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
 		"test": "$NODEEXE $HAPISERVERPATH/bin/TestData.js --id dataset0 --parameters Time,scalar --start 2001-01-01 --stop 2001-01-01T00:10:00"
 	},
+	"HAPI": "2.0",
 	"catalog" :
 		[
 			{

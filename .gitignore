@@ -1,4 +1,6 @@
-tmp/
+tmp/*
+log/*
+public/meta/*
 node_modules/*
 *~
 pkg/bin

@@ -8,7 +8,6 @@ import sys
 import gzip
 import json
 import pickle
-import ftputil
 import urllib.request
 import datetime as datetime
 
@@ -20,6 +19,8 @@ def createmanifest(server, fnametxt):
 	# du -a > manifest.txt
 
 	# This and the above take about an hour.
+	import ftputil
+
 	outfile = open(fnametxt, 'w')
 
 	host = ftputil.FTPHost(server,"anonymous", "anonymous")
@@ -47,13 +48,16 @@ def header(url, tmpdir):
 
 	tmpdir = os.path.join(tmpdir,'INTERMAGNET')
 	if not os.path.exists(tmpdir):
-		os.mkdirs(tmpdir)
+		os.makedirs(tmpdir)
 
 	filename = url.split("/")[-1][0:3]
 	filename = os.path.join(tmpdir,url.split("/")[-1])
 	if not os.path.exists(filename):
 		print("Downloading " + url)
-		urllib.request.urlretrieve(url, filename)
+		try:
+			urllib.request.urlretrieve(url, filename)
+		except:
+			return (False,False)
 
 	print("Reading " + filename)
 	try:
@@ -128,13 +132,13 @@ def writejson(fnamepkl, fnamejson, tmpdir):
 	catalog = []
 	problems = []
 	for id in s:
-		url = "ftp://" + server + s[id]['first']
+		url = "ftp://" + server + s[id]['last']
 		# TODO: Make sure header info is same for first and last file
 		(title, vars) = header(url, tmpdir) # Get header info for first file
 		if title == False: 
 			# Problem w/ first file; get header info for last file
 			problems.append(url)
-			url = "ftp://" + server + s[id]['last']
+			url = "ftp://" + server + s[id]['first']
 			(title, vars) = header(url, tmpdir)
 			if title == False:
 				problems.append(url)
@@ -153,7 +157,7 @@ def writejson(fnamepkl, fnamejson, tmpdir):
 		if re.search(r"second",id):
 			info["cadence"] = "PT1S"
 		info["resourceURL"] = "http://intermagnet.org/"
-		info["description"] = "See header in " + url
+		info["description"] = "Component names based on components reported in " + url + ". ** Coordinate system of data may not be the same for full time range of available data. In some cases, files initially report HDZ and later XYZ. Check header for files in range of request to determine if coordinate system is correct."
 
 		start = s[id]['first'].split("/")[-1][3:12]
 		stop = s[id]['last'].split("/")[-1][3:12]

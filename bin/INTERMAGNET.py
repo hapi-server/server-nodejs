@@ -33,7 +33,7 @@ def download(url, start, stop):
 	path = os.path.join(path,'..','metadata','INTERMAGNET','tmp')
 	path = os.path.realpath(path)
 	if not os.path.exists(path):
-		os.mkdirs(path)
+		os.makedirs(path)
 
 	filename = os.path.join(path, url.split("/")[-1])
 	if not os.path.exists(filename):

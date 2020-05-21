@@ -1,1 +1,1 @@
-node_modules/hapi-server-verifier/verify.js
+../verifier-nodejs/verify.js
