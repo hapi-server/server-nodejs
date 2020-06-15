@@ -13,7 +13,8 @@ else
 	-f metadata/TestData2.0.json \
 	-f metadata/TestData2.1.json \
 	-f metadata/TestData3.0.json \
-	--plotserver http://localhost:5000 \
-	--verifier http://localhost:9999 2>&1 &
+	-f metadata/SSCWeb.json \
+	-f metadata/INTERMAGNET.json \
+	2>&1 &
 	tail -f nohup.out
 fi
