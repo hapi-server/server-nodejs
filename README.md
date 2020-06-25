@@ -14,12 +14,12 @@ A generic HAPI front-end server.
 
 <a name="About"></a>
 ## 1. About
-The intended use case for this server is for a data provider that has
+The intended user for this server-side software is a data provider wants to serve data through a [HAPI API](https://github.com/hapi-server/data-specification). With this software, the data provider only needs
 
 1. [HAPI](https://github.com/hapi-server/data-specification) metadata, in one of a [variety of forms](#Metadata), for a collection of datasets and
 2. a command line program that returns at least [headerless HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) for all parameters in the dataset over the full timerange of available data. Optionally, the command line program can take inputs of a start and stop time, a list of one or more parameters to output, and an output format.
 
-This server handles
+to be able to serve data from a HAPI API from their server. This software handles
 
 1. HAPI metadata validation,
 2. request validation and error responses,

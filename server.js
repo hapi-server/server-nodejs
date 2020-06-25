@@ -239,7 +239,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 	// Serve static files in ./public/data (no directory listing provided)
 	app.use(PREFIX, express.static(__dirname + '/public'));
 
-	// Serve landing web page
+	// Serve all.json file
 	app.get(PREFIX + '/hapi/all.json', function (req, res) {
 		cors(res);
 		res.contentType("application/json");
