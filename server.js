@@ -71,7 +71,7 @@ var argv = yargs
 				'port': 8999,
 				'conf': __dirname + '/conf/server.json',
 				'verifier': 'http://hapi-server.org/verify',
-				'plotserver': 'http://hapi-server.org/plotserver'
+				'plotserver': 'http://hapi-server.org/plot'
 			})
 			.argv
 
