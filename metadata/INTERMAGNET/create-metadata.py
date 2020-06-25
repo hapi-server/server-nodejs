@@ -2,6 +2,8 @@
 #   python3 create-metadata.py
 #   python3 create-metadata.py TMPDIR
 
+update_manifest = False
+
 import os
 import re
 import sys
@@ -154,15 +156,16 @@ def writejson(fnamepkl, fnamejson, tmpdir):
     info = {}
     if re.search(r"minute",id):
         info["cadence"] = "PT1M"
-        if re.search(r"second",id):
-            info["cadence"] = "PT1S"
-            info["resourceURL"] = "http://intermagnet.org/"
-            info["description"] = "Component names based on components reported in " + url + ". ** Coordinate system of data may not be the same for full time range of available data. In some cases, files initially report HDZ and later XYZ. Check header for files in range of request to determine if coordinate system is correct."
-            info["_acknowledgement"] = "See https://intermagnet.github.io/data_conditions.html or https://intermagnet.org/data-donnee/data-eng.php#conditions"
-            start = s[id]['first'].split("/")[-1][3:12]
-            stop = s[id]['last'].split("/")[-1][3:12]
-            info["startDate"] = start[0:4] + "-" + start[4:6] + "-" + start[6:-1] + "Z"
-            info["stopDate"] = stop[0:4] + "-" + stop[4:6] + "-" + stop[6:-1] + "Z"
+    if re.search(r"second",id):
+        info["cadence"] = "PT1S"
+
+    info["resourceURL"] = "http://intermagnet.org/"
+    info["description"] = "Component names based on components reported in " + url + ". ** Coordinate system of data may not be the same for full time range of available data. In some cases, files initially report HDZ and later XYZ. Check header for files in range of request to determine if coordinate system is correct."
+    info["_acknowledgement"] = "See https://intermagnet.github.io/data_conditions.html or https://intermagnet.org/data-donnee/data-eng.php#conditions"
+    start = s[id]['first'].split("/")[-1][3:12]
+    stop = s[id]['last'].split("/")[-1][3:12]
+    info["startDate"] = start[0:4] + "-" + start[4:6] + "-" + start[6:-1] + "Z"
+    info["stopDate"] = stop[0:4] + "-" + stop[4:6] + "-" + stop[6:-1] + "Z"
 
     info["parameters"] = [{ 
                             "name": "Time", 
@@ -172,7 +175,7 @@ def writejson(fnamepkl, fnamejson, tmpdir):
                             "length": 24
                             }]
 
-    print(title, start, stop, vars)
+    #print(title, start, stop, vars)
 
     for v in vars:
         if len(v) != 4:
@@ -220,7 +223,8 @@ fnametxt = 'INTERMAGNET-manifest.txt'
 fnamepkl = 'INTERMAGNET-manifest.pkl'
 fnamejson = 'INTERMAGNET-catalog.json'
 
-createmanifest(server, fnametxt)
+if update_manifest:
+    createmanifest(server, fnametxt)
 parsemanifest(fnametxt, fnamepkl)
 writejson(fnamepkl, fnamejson, tmpdir)
 

@@ -15,5 +15,6 @@ else
 	-f metadata/TestData3.0.json \
 	-f metadata/SSCWeb.json \
 	2>&1 &
-	tail -f nohup.out
+	sleep 1
+	tail -f nohup.out &
 fi
