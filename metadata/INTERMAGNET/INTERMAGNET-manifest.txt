@@ -1,1 +1,0 @@
-/media/disk/git-data/server-nodejs/metadata/INTERMAGNET/INTERMAGNET-manifest.txt

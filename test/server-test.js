@@ -10,21 +10,26 @@ const excludes =
 	[
 		"INTERMAGNET",
 		"SSCWeb",
+		"SuperMAG",
 		"AutoplotExample1",
 		"AutoplotExample2",
+		"TestData3.0",
 		"TestDataBad"
 	];
 
-function execute(com) {
-	process.stdout.write(clc.blue("Testing: ") + com);
+files = filelist(metadir, excludes);
+
+function execute(com,i) {
+	let prefix = "Test " + (i+1) + "/" + (2*files.length) + ": ";
+	process.stdout.write(clc.blue(prefix) + com + "\n");
 	let child = spawnSync('sh', ['-c', com], {stdio: 'pipe'});
 	let status = 0;
 	if (child.status == 0) {
 		status = 0;
-		console.log(clc.green.bold(" PASS"));
+		console.log(clc.blue(prefix) + clc.green.bold("PASS") + "\n");
 	} else {
 		status = 1;
-		console.log(clc.red.bold(" FAIL"));
+		console.log(clc.blue(prefix) + clc.red.bold(" FAIL") + "\n");
 		console.log("\n" + child.stdout.toString());
 		console.log("\n" + child.stderr.toString());
 	}
@@ -43,18 +48,15 @@ function filelist(metadir, excludes) {
 	return files;
 }
 
-
-files = filelist(metadir, excludes);
-
 let fails = 0;
 for (var i = 0; i < files.length; i++) {
 	// Run node server.js --test -f metadata/CATALOG.json
 	let comt = nodeexe + " --test -f " + metadir + "/" + files[i];
-	fails = fails + execute(comt);
+	fails = fails + execute(comt,2*i);
 
 	// Run node server.js --verify -f metadata/CATALOG.json
 	let comv = nodeexe + " --verify -f " + metadir + "/" + files[i];
-	fails = fails + execute(comv);
+	fails = fails + execute(comv,2*i+1);
 }
 
 if (fails == 0) {

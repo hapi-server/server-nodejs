@@ -17,7 +17,7 @@ A generic HAPI front-end server.
 The intended user for this server-side software is a data provider wants to serve data through a [HAPI API](https://github.com/hapi-server/data-specification). With this software, the data provider only needs
 
 1. [HAPI](https://github.com/hapi-server/data-specification) metadata, in one of a [variety of forms](#Metadata), for a collection of datasets and
-2. a command line program that returns at least [headerless HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) for all parameters in the dataset over the full timerange of available data. Optionally, the command line program can take inputs of a start and stop time, a list of one or more parameters to output, and an output format.
+2. a command line program that returns at least [headerless HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) for all parameters in the dataset over the full timerange of available data. Optionally, the command line program can take inputs of a start and stop time, a list of one or more parameters to output, and an output format
 
 to be able to serve data from a HAPI API from their server. This software handles
 
@@ -567,14 +567,16 @@ The path to a fully resolved catalog can also be given. See also [Example5.json]
 ## 6. Development
 
 ### 6.1 Installation
-Install [nodejs](https://nodejs.org/en/download/) (tested with v6) using either the [standard installer](https://nodejs.org/en/download/) or [NVM](https://github.com/creationix/nvm).
+Install [nodejs](https://nodejs.org/en/download/) (tested with v6) using either the [standard installer](https://nodejs.org/en/download/) or [NVM](https://github.com/creationix/nvm#install--update-script).
 
 <details> 
   <summary>Show NVM installation notes</summary>
-  
+ 
+See also https://github.com/nvm-sh/nvm#install--update-script
+
 ```bash
 # Install Node Version Manager
-curl https://raw.githubusercontent.com/creationix/nvm/v0.9.5/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
 
 # Open new shell (see displayed instructions from above command)
 
@@ -600,6 +602,4 @@ npm test
 <a name="Contact"></a>
 ## 7. Contact
 
-Bob Weigel <rweigel@gmu.edu>
-
-Please submit bugs and feature requests to the [issue tracker](https://github.com/hapi-server/server-nodejs/issues)
+Please submit questions, bug reports, and feature requests to the [issue tracker](https://github.com/hapi-server/server-nodejs/issues).

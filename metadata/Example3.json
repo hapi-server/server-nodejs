@@ -1,6 +1,6 @@
 {
 	"data": {
-		"command": "$PYTHONEXE $HAPISERVERPATH/bin/Example.py --id ${id} --params ${parameters} --start ${start} --stop ${stop} --fmt ${format}",
+		"command": "$PYTHONEXE $HAPISERVERPATH/bin/Example.py --id ${id} --params '${parameters}' --start ${start} --stop ${stop} --fmt ${format}",
 		"formats": ["csv","binary"],
 		"contact": "rweigel@gmu.edu",
 		"testcommands": [

@@ -1,1 +1,0 @@
-../verifier-nodejs/verify.js

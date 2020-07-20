@@ -1,11 +1,11 @@
 {
 	"data": {
-		"url": "http://hapi-server.org/servers/TestData/hapi/data?id=${id}&parameters=${parameters}&time.min=${start}&time.max=${stop}",
+		"url": "http://hapi-server.org/servers/TestData2.0/hapi/data?id=${id}&parameters=${parameters}&time.min=${start}&time.max=${stop}",
 		"urlformat": "csv",
 		"contact": "rweigel@gmu.edu",
 		"testurls": [
 			{"url": "${server}/data/?id=dataset1&parameters=scalar,vector&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nbytes": 1003, "Nlines": 10}
 		]
 	},
-	"catalog": "http://hapi-server.org/servers/TestData/hapi/catalog"
+	"catalog": "http://hapi-server.org/servers/TestData2.0/hapi/catalog"
 }
