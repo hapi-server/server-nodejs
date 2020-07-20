@@ -67,7 +67,7 @@ var argv = yargs
 			.epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
 			.usage('Usage: ' + usage + ' [options]')
 			.default({
-				'file': __dirname + '/metadata/TestData.json',
+				'file': __dirname + '/metadata/TestData2.0.json',
 				'port': 8999,
 				'conf': __dirname + '/conf/server.json',
 				'verifier': 'http://hapi-server.org/verify',
@@ -154,13 +154,46 @@ function main() {
 	})
 
 	if (CATALOGS.length > 1) {
-		// TODO: Move file read to metadata?
-		html = fs
-				.readFileSync(__dirname + "/public/multiple.htm","utf8")
-				.toString()
-				.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
 
+		let serverlist = "";
+		if (fs.existsSync(METADIR + "/all.txt")) {
+			let serverlist = fs
+					.readFileSync(METADIR + "/all.txt")
+					.toString()
+		} else {
+			console.log(ds() + "Did not find " + METADIR + "/all.txt. Will generate.");
+			let d;
+			for (let i = 0; i < CATALOGS.length; i++) {
+				d = metadata(CATALOGS[i],'data');
+				serverlist = serverlist 
+								+ CATALOGS[i] + "/hapi," 
+								+ PREFIXES[i].substr(1) + "," 
+								+ d.contact + "," 
+								+ d.contact + "\n";
+			}
+		}
+
+		app.get('/all.txt', function (req,res) {res.send(serverlist);});
+
+		let html = fs
+					.readFileSync(__dirname + "/node_modules/hapi-server-ui/index.htm","utf8")
+					.toString()
+					.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
+
+		// TODO: If index.htm changes, re-read it.
 		app.get('/', function (req,res) {res.send(html);});
+
+		// Serve static files in ./public/data (no directory listing provided)
+		app.use("/data", express.static(__dirname + '/public/data'));
+
+		// Serve content needed in index.htm (no directory listing provided)
+		app.use("/css",
+			express.static(__dirname + '/node_modules/hapi-server-ui/css'));
+		app.use("/js",
+			express.static(__dirname + '/node_modules/hapi-server-ui/js'));
+		app.use("/scripts",
+			express.static(__dirname + '/node_modules/hapi-server-ui/scripts'));
+
 	}
 
 	apiInit(CATALOGS,PREFIXES);
@@ -173,7 +206,9 @@ function main() {
 			var url = 'http://localhost:' + argv.port + PREFIXES[0] + "/hapi";
 		} else {
 			var url = 'http://localhost:' + argv.port;
-			console.log(ds() + "HAPI server list at http://localhost:" + argv.port);
+			console.log(ds() + "HAPI server list is at");
+			console.log(ds() + "   http://localhost:" + argv.port);
+			console.log(ds() + "Listed datasets are at");
 			for (var i = 0;i < CATALOGS.length;i++) {
 				console.log(ds() + "  http://localhost:" + argv.port + PREFIXES[i] + "/hapi");
 			}
@@ -237,7 +272,13 @@ function apiInit(CATALOGS,PREFIXES,i) {
 	console.log(ds() + "To run verification tests, use the --verify option");
 
 	// Serve static files in ./public/data (no directory listing provided)
-	app.use(PREFIX, express.static(__dirname + '/public'));
+	app.use(PREFIX + "/data", express.static(__dirname + '/public/data'));
+
+	// Serve content needed in index.htm (no directory listing provided)
+	app.use(PREFIX + "/css",
+		express.static(__dirname + '/node_modules/hapi-server-ui/css'));
+	app.use(PREFIX + "/js",
+		express.static(__dirname + '/node_modules/hapi-server-ui/js'));
 
 	// Serve all.json file
 	app.get(PREFIX + '/hapi/all.json', function (req, res) {
