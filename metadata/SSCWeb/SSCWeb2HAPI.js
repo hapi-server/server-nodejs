@@ -70,8 +70,7 @@ function makeHAPI(jsonraw,cb) {
 	makeHAPI.writing = makeHAPI.writing || false;
 
 	var params = fs.readFileSync("SSCWeb-parameters.txt").toString();
-	params = params.replace(/\n\s*\n/g, '\n').split(/\n/);
-
+	params = params.replace(/\n\s*\n/g, '\n').replace(/\n$/,'').split(/\n/);
 	var catalog = [];
 	var obs = jsonraw.ObservatoryResponse.Observatory;
 	for (var i = 0; i < obs.length; i++) {
@@ -92,9 +91,8 @@ function makeHAPI(jsonraw,cb) {
 			catalog[i]["info"]["parameters"][j]["description"] = paraminfo[2].replace(/"/g,"");
 			catalog[i]["info"]["parameters"][j]["units"] = paraminfo[3].replace(/"/g,"");
 			catalog[i]["info"]["parameters"][j]["fill"] = paraminfo[4].replace(/"/g,"");
-			catalog[i]["info"]["parameters"][j]["type"] = paraminfo[5].replace(/"/g,"");
 			var type = paraminfo[5].replace(/"/g,"");
-			console.log(paraminfo[0].replace(/"/g,"") + " " + type);
+			//console.log(catalog[i]["info"]["parameters"][j]["name"],type)
 			if (/f$/.test(type)) {
 				catalog[i]["info"]["parameters"][j]["type"] = "double";
 			}
@@ -102,8 +100,9 @@ function makeHAPI(jsonraw,cb) {
 				catalog[i]["info"]["parameters"][j]["type"] = "integer";
 			}
 			if (/s$/.test(type)) {
+				let len = type.replace(/%|s/,"").length
 				catalog[i]["info"]["parameters"][j]["type"] = "string";
-				catalog[i]["info"]["parameters"][j]["length"] = catalog[i]["info"]["parameters"][j]["fill"].length;
+				catalog[i]["info"]["parameters"][j]["length"] = len;
 			}
 		}
 

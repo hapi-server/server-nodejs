@@ -1,6 +1,3 @@
-// Global variables
-var HAPIVERSION = "2.0"; // Spec version implemented
-
 var clc  = require('chalk'); // Colorize command line output
 
 var ver  = parseInt(process.version.slice(1).split('.')[0]);
@@ -673,9 +670,9 @@ function data(req,res,catalog,header,include) {
 			return;
 		}
 		if (d.contact) {
-			error(req,res,hapiversion,1500,"Problem with the data server. Please send URL to " + d.contact + ".");
+			error(req,res,header["HAPI"],1500,"Problem with the data server. Please send URL to " + d.contact + ".");
 		} else {
-			error(req,res,hapiversion,1500,"Problem with the data server.");
+			error(req,res,header["HAPI"],1500,"Problem with the data server.");
 		}
 	}
 
@@ -706,7 +703,9 @@ function data(req,res,catalog,header,include) {
 
 	// TODO: Write this to log file
 	child.stderr.on('data', function (err) {
-		console.log(ds() + "Command line program error message: " + clc.red(err.toString().trim()));
+		console.log(ds() 
+					+ "Command line program error message: "
+					+ clc.red(err.toString().trim()));
 	})
 
 	child.on('close', function (code) {
