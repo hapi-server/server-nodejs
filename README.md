@@ -567,7 +567,7 @@ The path to a fully resolved catalog can also be given. See also [Example5.json]
 ## 6. Development
 
 ### 6.1 Installation
-Install [nodejs](https://nodejs.org/en/download/) (tested with v6) using either the [standard installer](https://nodejs.org/en/download/) or [NVM](https://github.com/creationix/nvm#install--update-script).
+Install [nodejs](https://nodejs.org/en/download/) (tested with v8) using either the [standard installer](https://nodejs.org/en/download/) or [NVM](https://github.com/creationix/nvm#install--update-script).
 
 <details> 
   <summary>Show NVM installation notes</summary>
@@ -580,8 +580,8 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
 
 # Open new shell (see displayed instructions from above command)
 
-# Install and use node.js version 6
-nvm install 6
+# Install and use node.js version 8
+nvm install 8
 ```
 </details>
 
