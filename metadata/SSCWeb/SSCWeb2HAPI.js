@@ -1,4 +1,3 @@
-//var fs      = require('fs');
 var request = require("request");
 var xml2js  = require('xml2js');
 
@@ -6,6 +5,8 @@ const fs = require('fs-extra');
 
 var urlo = "https://sscweb.sci.gsfc.nasa.gov/WS/sscr/2/observatories";
 var cfile = "SSCWeb-catalog.json";
+
+const force = true; // Force update if last update was < 24 hours ago.
 
 SSCWeb2HAPI(
 	function (err,catalog) {
@@ -27,15 +28,15 @@ function SSCWeb2HAPI(cb) {
 	if (fs.existsSync(cfile)) {
 		age = new Date().getTime() - fs.statSync(cfile).mtime;
 		age = age/(86400*1000);
-		if (age < 1) { 
+		if (!force && age < 1) { 
 			// Cache file less than one day old
 			console.log("Returning cache file because it is less than one day old.")
 			return fs.readFileSync(cfile);
 		} else {
 			// Save current version
-			ymd = new Date().toISOString().substring(0,10);
-			cfilec = cfile.replace(/\.json/,"-"+ymd+".json");
-			fs.copySync(__dirname+"/"+cfile,__dirname+"/old/"+cfilec);
+			ymd = new Date().toISOString().substring(0, 10);
+			cfilec = cfile.replace(/\.json/, "-" + ymd + ".json");
+			fs.copySync(__dirname + "/" + cfile, __dirname + "/old/" + cfilec);
 			console.error("Moved " + cfile + " to ./old/" + cfilec); 
 		}
 	}
@@ -45,10 +46,10 @@ function SSCWeb2HAPI(cb) {
 		function (error, response, body) {
 			if (error) {
 				if (fs.existsSync(cfile)) {
-					console.log("Could not get "+urlo+". Returning cached metadata.")
+					console.log("Could not get " +urlo + ". Returning cached metadata.")
 					cb(null,fs.readFileSync(cfile));
 				} else {
-					cb(Error ("Could not get "+urlo+" and no cached metadata."));
+					cb(Error ("Could not get " +urlo + " and no cached metadata."));
 				}
 			}
 			var parser = new xml2js.Parser();
@@ -69,7 +70,7 @@ function makeHAPI(jsonraw,cb) {
 	makeHAPI.writing = makeHAPI.writing || false;
 
 	var params = fs.readFileSync("SSCWeb-parameters.txt").toString();
-	params = params.split(/\n/);
+	params = params.replace(/\n\s*\n/g, '\n').split(/\n/);
 
 	var catalog = [];
 	var obs = jsonraw.ObservatoryResponse.Observatory;
@@ -86,7 +87,6 @@ function makeHAPI(jsonraw,cb) {
 		catalog[i]["info"]["parameters"] = [];
 		for (var j = 0;j < params.length;j++) {
 			paraminfo = params[j].split("\",");
-			if (params[j] === '') {continue} // Skip blank lines
 			catalog[i]["info"]["parameters"][j] = {};
 			catalog[i]["info"]["parameters"][j]["name"] = paraminfo[0].replace(/"/g,"");
 			catalog[i]["info"]["parameters"][j]["description"] = paraminfo[2].replace(/"/g,"");

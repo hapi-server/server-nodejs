@@ -153,27 +153,28 @@ function main() {
 		next();
 	})
 
-	if (CATALOGS.length > 1) {
-
-		let serverlist = "";
-		if (fs.existsSync(METADIR + "/all.txt")) {
-			let serverlist = fs
-					.readFileSync(METADIR + "/all.txt")
-					.toString()
-		} else {
-			console.log(ds() + "Did not find " + METADIR + "/all.txt. Will generate.");
-			let d;
-			for (let i = 0; i < CATALOGS.length; i++) {
-				d = metadata(CATALOGS[i],'data');
-				serverlist = serverlist 
-								+ CATALOGS[i] + "/hapi," 
-								+ PREFIXES[i].substr(1) + "," 
-								+ d.contact + "," 
-								+ d.contact + "\n";
-			}
+	let serverlist = "";
+	if (fs.existsSync(METADIR + "/all.txt")) {
+		let serverlist = fs
+				.readFileSync(METADIR + "/all.txt")
+				.toString()
+	} else {
+		console.log(ds() + "Did not find " + METADIR + "/all.txt. Will generate.");
+		let d;
+		for (let i = 0; i < CATALOGS.length; i++) {
+			d = metadata(CATALOGS[i],'data');
+			serverlist = serverlist 
+							+ CATALOGS[i] + "/hapi," 
+							+ PREFIXES[i].substr(1) + "," 
+							+ PREFIXES[i].substr(1) + "," 
+							+ d.contact + "," 
+							+ d.contact + "\n";
 		}
+	}
 
-		app.get('/all.txt', function (req,res) {res.send(serverlist);});
+	app.get('/all.txt', function (req,res) {res.send(serverlist);});
+
+	if (CATALOGS.length > 1) {
 
 		let html = fs
 					.readFileSync(__dirname + "/node_modules/hapi-server-ui/index.htm","utf8")
