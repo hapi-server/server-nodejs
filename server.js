@@ -50,6 +50,8 @@ var argv = yargs
 			.alias('conf','c')
 			.describe('ignore','Start server even if metadata errors')
 			.alias('ignore','i')
+			.describe('logdir','Log directory')
+			.alias('logdir','l')
 			.describe('open','Open web page on start')
 			.alias('open','o')
 			.describe('test','Run URL tests and exit')
@@ -66,6 +68,11 @@ var argv = yargs
 			.epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
 			.usage('Usage: ' + usage + ' [options]')
 			.default({
+				'ignore': false,
+				'open': false,
+				'test': false,
+				'verify': false,
+				'logdir': __dirname + "/log",
 				'file': __dirname + '/metadata/TestData2.0.json',
 				'port': 8999,
 				'conf': __dirname + '/conf/server.json',
@@ -79,15 +86,15 @@ for (key in config) {
 	console.log(ds() + key + " = " + configd[key]);
 }
 
-var FILE       = argv.file;
-var PORT       = argv.port;
-var FORCE      = argv.ignore || false; 
-var OPEN       = argv.open || false;
-var TEST       = argv.test || false;
-var VERIFY     = argv.verify || false;
-var LOGDIR     = __dirname + "/log";
-var VERIFIER   = argv.verifier;
-var PLOTSERVER = argv.plotserver;
+var FILE        = argv.file;
+var PORT        = argv.port;
+var FORCE_START = !argv.ignore; 
+var OPEN        = argv.open;
+var TEST        = argv.test;
+var VERIFY      = argv.verify;
+var LOGDIR      = argv.logdir;
+var VERIFIER    = argv.verifier;
+var PLOTSERVER  = argv.plotserver;
 
 if (typeof(FILE) == 'string') {
 	FILES = [FILE];	
@@ -106,7 +113,7 @@ if (!fs.existsSync(LOGDIR)){
 
 // Populate metadata.cache array, which has elements of catalog objects
 // main() is callback.
-prepmetadata(FILES,FORCE,VERIFIER,PLOTSERVER,main);
+prepmetadata(FILES,FORCE_START,VERIFIER,PLOTSERVER,main);
 
 function main() {
 
@@ -225,15 +232,10 @@ function main() {
 		if (TEST) {
 			// Exits with signal 0 or 1
 			test.urls(CATALOGS,PREFIXES,url,TEST);
-		} else {
-			console.log(ds() + "To run test URLs and exit, use the --test option.");
 		}
 		if (VERIFY) {
 			// Exits with signal 0 or 1
 			verify(url);
-		} else {
-			console.log(ds() + "To run verification tests and exit, use the --verify option.");
-			console.log(ds() + "To start verification server, execute 'node verify.js' on the command line.");
 		}
 	})
 }
@@ -267,9 +269,10 @@ function apiInit(CATALOGS,PREFIXES,i) {
 	let capabilities = metadata(CATALOG,"capabilities");
 	let hapiversion = capabilities["HAPI"];
 
-	console.log(ds() + clc.green("Initializing http://localhost:" + argv.port + PREFIX + "/hapi"));
-	console.log(ds() + "To run test URLs, use the --test option");
-	console.log(ds() + "To run verification tests, use the --verify option");
+	console.log(ds() + "To run test URLs and exit, use the --test option.");
+	console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
+	//console.log(ds() + "To run web-based verification tests, execute 'node verify.js' on the command line.");
+	console.log(ds() + clc.green("Initializing endpoints for http://localhost:" + argv.port + PREFIX + "/hapi"));
 
 	// Serve static files in ./public/data (no directory listing provided)
 	app.use(PREFIX + "/data", express.static(__dirname + '/public/data'));
