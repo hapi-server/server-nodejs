@@ -21,6 +21,7 @@
     "compression": "^1.6.2",
     "express": "^4.15.3",
     "hapi-server-verifier": "git+https://github.com/hapi-server/verifier-nodejs.git",
+    "hapi-server-ui": "git+https://github.com/hapi-server/server-ui.git",
     "json-ref-resolver": "^1.0.1",
     "moment": "^2.18.1",
     "nodemon": "^2.0.4",
