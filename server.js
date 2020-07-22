@@ -27,6 +27,7 @@ var test = require('./lib/test.js');
 // HAPI schema tests
 var is = require('hapi-server-verifier').is;
 
+// Verify function
 var verify = require('hapi-server-verifier').tests.run;
 
 // Date string for logging.
@@ -34,6 +35,7 @@ function ds() {return (new Date()).toISOString() + " [server] ";};
 
 var usage = "node server.js";
 if (/server$/.test(process.execPath)) {
+	// Binary executable caled.
 	var usage = "server";
 }
 
@@ -58,8 +60,8 @@ var argv = yargs
 			.option('open',{'type': 'boolean'})
 			.option('test',{'type': 'boolean'})
 			.option('verify',{'type': 'boolean'})
-			.option('verifier',{'description': 'Verifier server URL for landing page links'})
-			.option('plotserver',{'description': 'Plot server URL for landing page links'})
+			.option('verifier',{'description': 'Verifier server URL on landing page'})
+			.option('plotserver',{'description': 'Plot server URL on landing page'})
 			.option('help', {alias: 'h'})
 			.epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
 			.usage('Usage: ' + usage + ' [options]')
