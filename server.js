@@ -161,8 +161,9 @@ function main() {
 
 	let serverlist = "";
 	if (fs.existsSync(METADIR + "/all.txt")) {
-		let serverlist = fs
-				.readFileSync(METADIR + "/all.txt")
+		console.log(ds() + "Reading " + METADIR + "/all.txt.");
+		serverlist = fs
+		                .readFileSync(METADIR + "/all.txt")
 				.toString()
 	} else {
 		console.log(ds() + "Did not find " + METADIR + "/all.txt. Will generate.");
