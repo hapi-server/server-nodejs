@@ -88,7 +88,7 @@ for (key in config) {
 
 var FILE        = argv.file;
 var PORT        = argv.port;
-var FORCE_START = !argv.ignore; 
+var FORCE_START = argv.ignore; 
 var OPEN        = argv.open;
 var TEST        = argv.test;
 var VERIFY      = argv.verify;
