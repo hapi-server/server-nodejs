@@ -184,14 +184,14 @@ function main() {
 	app.get('/all-dev.txt', function (req,res) {
 	    // TODO: Should be async.
 	    if (fs.existsSync(METADIR + "/all-dev.txt")) {
-		console.log(ds() + "Reading " + METADIR + "/all-dev.txt.");
-		let serverlist_dev = fs
-		    .readFileSync(METADIR + "/all-dev.txt")
-		    .toString()
-		res.send(serverlist_dev);
+			console.log(ds() + "Reading " + METADIR + "/all-dev.txt.");
+			let serverlist_dev = fs
+									.readFileSync(METADIR + "/all-dev.txt")
+									.toString()
+			res.send(serverlist_dev);
 	    } else {
-		console.log(ds() + "Did not find " + METADIR + "/all-dev.txt.");
-		res.status(404).send("");
+			console.log(ds() + "Did not find " + METADIR + "/all-dev.txt.");
+			res.status(404).send("");
 	    }
 	});
 
