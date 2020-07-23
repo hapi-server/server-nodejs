@@ -76,39 +76,39 @@
 
 "LT_SM","LT_SM","Local time in the Solar Magnetic coordinate system","$H:$M","99:99","%5s"
 
-"Lat_N_Btrace_GEO","Lat_N_Btrace_GEO","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's northern magnetic hemisphere. North B traced footpoint region assignments are the same as the 'North' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","N/A",%0.2f"
+"Lat_N_Btrace_GEO","Lat_N_Btrace_GEO","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's northern magnetic hemisphere. North B traced footpoint region assignments are the same as the 'North' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","1e31",%0.2f"
 
-"Lon_N_Btrace_GEO","Lon_N_Btrace_GEO","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's northern magnetic hemisphere. North B traced footpoint region assignments are the same as the 'North' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","N/A","%0.2f"
+"Lon_N_Btrace_GEO","Lon_N_Btrace_GEO","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's northern magnetic hemisphere. North B traced footpoint region assignments are the same as the 'North' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","1e31","%0.2f"
 
-"ArcLen_N_Btrace_GEO","ArcLen_N_Btrace_GEO","","R_E","N/A","%0.2f"
+"ArcLen_N_Btrace_GEO","ArcLen_N_Btrace_GEO","","R_E","1e31","%0.2f"
 
-"Lat_S_Btrace_GEO","Lat_S_Btrace_GEO","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's southern magnetic hemisphere. South B traced footpoint region assignments are the same as the 'South' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","N/A","%0.2f"
+"Lat_S_Btrace_GEO","Lat_S_Btrace_GEO","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's southern magnetic hemisphere. South B traced footpoint region assignments are the same as the 'South' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","1e31","%0.2f"
 
-"Lon_S_Btrace_GEO","Lon_S_Btrace_GEO","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's southern magnetic hemisphere. South B traced footpoint region assignments are the same as the 'South' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","N/A","%0.2f"
+"Lon_S_Btrace_GEO","Lon_S_Btrace_GEO","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's southern magnetic hemisphere. South B traced footpoint region assignments are the same as the 'South' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","1e31","%0.2f"
 
-"ArcLen_S_Btrace_GEO","ArcLen_S_Btrace_GEO","","R_E","N/A","%0.2f"
+"ArcLen_S_Btrace_GEO","ArcLen_S_Btrace_GEO","","R_E","1e31","%0.2f"
 
-"Lat_N_Btrace_GM","Lat_N_Btrace_GM","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's northern magnetic hemisphere. North B traced footpoint region assignments are the same as the 'North' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","N/A","%0.2f"
+"Lat_N_Btrace_GM","Lat_N_Btrace_GM","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's northern magnetic hemisphere. North B traced footpoint region assignments are the same as the 'North' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","1e31","%0.2f"
 
-"Lon_N_Btrace_GM","Lon_N_Btrace_GM","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's northern magnetic hemisphere. North B traced footpoint region assignments are the same as the 'North' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","N/A","%0.2f"
+"Lon_N_Btrace_GM","Lon_N_Btrace_GM","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's northern magnetic hemisphere. North B traced footpoint region assignments are the same as the 'North' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","1e31","%0.2f"
 
-"ArcLen_N_Btrace_GM","ArcLen_N_Btrace_GM","","R_E","N/A","%0.2f"
+"ArcLen_N_Btrace_GM","ArcLen_N_Btrace_GM","","R_E","1e31","%0.2f"
 
-"Lat_S_Btrace_GM","Lat_S_Btrace_GM","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's southern magnetic hemisphere. South B traced footpoint region assignments are the same as the 'South' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","N/A","%0.2f"
+"Lat_S_Btrace_GM","Lat_S_Btrace_GM","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's southern magnetic hemisphere. South B traced footpoint region assignments are the same as the 'South' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","1e31","%0.2f"
 
-"Lon_S_Btrace_GM","Lon_S_Btrace_GM","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's southern magnetic hemisphere. South B traced footpoint region assignments are the same as the 'South' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","N/A","%0.2f"
+"Lon_S_Btrace_GM","Lon_S_Btrace_GM","Where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's southern magnetic hemisphere. South B traced footpoint region assignments are the same as the 'South' regions and the Low Latitude region used for assigning a radial traced footpoint region. Lat (-90,+90), Long (0,360). Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","deg","1e31","%0.2f"
 
-"ArcLen_S_Btrace_GM","ArcLen_S_Btrace_GM","","R_E","N/A","%0.2f"
+"ArcLen_S_Btrace_GM","ArcLen_S_Btrace_GM","","R_E","1e31","%0.2f"
 
 "Radius","Radius","Distance spacecraft is from Earth for each given point in time","R_E","1e31","%0.2f"
 
-"MagneticFldStrth","MagneticFldStrth","Magnetic field magnitude at location of spacecraft (using IGRF + T89C with Kp: 3-, 3, 3+)","nT","N/A","%0.2f"
+"MagneticFldStrth","MagneticFldStrth","Magnetic field magnitude at location of spacecraft (using IGRF + T89C with Kp: 3-, 3, 3+)","nT","1e31","%0.2f"
 
-"dNeutS","dNeutS","The distance a spacecraft is from the neutral sheet for each given point in time. (The employed model of the neutral sheet is that which was provided by Tsyganenko (1995)). See also https://sscweb.gsfc.nasa.gov/users_guide/ssc_reg_doc.shtml","R_E","NA",%0.2f"
+"dNeutS","dNeutS","The distance a spacecraft is from the neutral sheet for each given point in time. (The employed model of the neutral sheet is that which was provided by Tsyganenko (1995)). See also https://sscweb.gsfc.nasa.gov/users_guide/ssc_reg_doc.shtml","R_E","1e31",%0.2f"
 
-"dBowShk","dBowShk","The distance a spacecraft is from the bow shock for each given point in time. See also https://sscweb.gsfc.nasa.gov/users_guide/ssc_reg_doc.shtml","R_E","NA",%0.2f"
+"dBowShk","dBowShk","The distance a spacecraft is from the bow shock for each given point in time. See also https://sscweb.gsfc.nasa.gov/users_guide/ssc_reg_doc.shtml","R_E","1e31",%0.2f"
 
-"dMpause","dMpause","The distance a spacecraft is from the magnetopause for each given point in time. See also https://sscweb.gsfc.nasa.gov/users_guide/ssc_reg_doc.shtml","R_E","NA",%0.2f"
+"dMpause","dMpause","The distance a spacecraft is from the magnetopause for each given point in time. See also https://sscweb.gsfc.nasa.gov/users_guide/ssc_reg_doc.shtml","R_E","1e31",%0.2f"
 
 "DipL-V","DipL_V","Dipole L-value at location of spacecraft. Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+.","","1e31","%0.1f"
 
@@ -122,8 +122,8 @@
 
 "S_BTraced_Region","S_BTraced_Region","Such a region (2-dimensional zone) is based on where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's southern magnetic hemisphere. South B traced footpoint region assignments are the same as the 'South' regions and the Low Latitude region used for assigning a radial traced footpoint region. Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+. See also https://sscweb.gsfc.nasa.gov/users_guide/ssc_reg_doc.shtml","","None",%32s"
 
-"GSE_Magnetic_Vector_X","GSE_Magnetic_Vector_X","?","R_E","N/A",%0.2f"
+"GSE_Magnetic_Vector_X","GSE_Magnetic_Vector_X","?","R_E","1e31",%0.2f"
 
-"GSE_Magnetic_Vector_Y","GSE_Magnetic_Vector_Y","?","R_E","N/A",%0.2f"
+"GSE_Magnetic_Vector_Y","GSE_Magnetic_Vector_Y","?","R_E","1e31",%0.2f"
 
-"GSE_Magnetic_Vector_Z","GSE_Magnetic_Vector_Z","?","R_E","N/A",%0.2f"
+"GSE_Magnetic_Vector_Z","GSE_Magnetic_Vector_Z","?","R_E","1e31",%0.2f"

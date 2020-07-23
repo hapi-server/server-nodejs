@@ -92,7 +92,7 @@ function makeHAPI(jsonraw,cb) {
 			catalog[i]["info"]["parameters"][j]["units"] = paraminfo[3].replace(/"/g,"") || "dimensionless";
 			catalog[i]["info"]["parameters"][j]["fill"] = paraminfo[4].replace(/"/g,"") || null;
 			var type = paraminfo[5].replace(/"/g,"");
-			//console.log(catalog[i]["info"]["parameters"][j]["name"],type)
+			//console.log(catalog[i]["info"]["parameters"][j]["name"],type,parseInt(type.replace(/%|s/,"")));
 			if (/f$/.test(type)) {
 				catalog[i]["info"]["parameters"][j]["type"] = "double";
 			}
@@ -100,9 +100,7 @@ function makeHAPI(jsonraw,cb) {
 				catalog[i]["info"]["parameters"][j]["type"] = "integer";
 			}
 			if (/s$/.test(type)) {
-				//let len = type.replace(/%|s/,"").length
-				let len = 32; 	// A guess of the maximum string length for a string
-			    				// parameter. It is probably 9.
+				let len = parseInt(type.replace(/%|s/,""));
 				catalog[i]["info"]["parameters"][j]["type"] = "string";
 				catalog[i]["info"]["parameters"][j]["length"] = len;
 			}
