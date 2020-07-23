@@ -181,6 +181,20 @@ function main() {
 
 	app.get('/all.txt', function (req,res) {res.send(serverlist);});
 
+	app.get('/all-dev.txt', function (req,res) {
+	    // TODO: Should be async.
+	    if (fs.existsSync(METADIR + "/all-dev.txt")) {
+		console.log(ds() + "Reading " + METADIR + "/all-dev.txt.");
+		let serverlist_dev = fs
+		    .readFileSync(METADIR + "/all-dev.txt")
+		    .toString()
+		res.send(serverlist_dev);
+	    } else {
+		console.log(ds() + "Did not find " + METADIR + "/all-dev.txt.");
+		res.status(404).send("");
+	    }
+	});
+
 	if (CATALOGS.length > 1) {
 
 		let html = fs
@@ -253,7 +267,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		// Any requests not matching set app.get() patterns will see error response.
 		app.get('*', function(req, res) {
 			if (PREFIXES.length == 1) {
-				res. status(404).send("Invalid URL. See <a href='"+PREFIXES[0]+"/hapi'>"+PREFIXES[0].substr(1)+"/hapi</a>");
+				res.status(404).send("Invalid URL. See <a href='"+PREFIXES[0]+"/hapi'>"+PREFIXES[0].substr(1)+"/hapi</a>");
 			} else {
 				res.status(404).send("Invalid URL. See <a href='/'>start page</a>");
 			}
