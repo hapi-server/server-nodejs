@@ -14,7 +14,7 @@ import urllib.request
 server = 'ftp://ftp.seismo.nrcan.gc.ca'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--id', default='minute/definitive/bou')
+parser.add_argument('--id', default='bou/minute/definitive')
 parser.add_argument('--start', default='2017-12-01T00:00:00.000000000Z')
 parser.add_argument('--stop', default='2017-12-02T00:00:00.000000000Z')
 args = vars(parser.parse_args())
@@ -30,7 +30,7 @@ def download(url, start, stop):
 
 	path = os.path.dirname(os.path.realpath(sys.argv[0]))
 	#print(path)
-	path = os.path.join(path,'..','metadata','INTERMAGNET','tmp')
+	path = os.path.join(path,'..','metadata','INTERMAGNET','tmp','intermagnet')
 	path = os.path.realpath(path)
 	if not os.path.exists(path):
 		os.makedirs(path)
