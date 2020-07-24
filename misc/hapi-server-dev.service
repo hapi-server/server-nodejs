@@ -1,0 +1,24 @@
+# Not tested
+[Unit]
+Description=URLWatcher
+Documentation=https://github.com/rweigel/urlwatcher
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=[Unit]
+Description=https://github.com/rweigel/urlwatcher
+Documentation=https://github.com/rweigel/urlwatcher
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+
+WorkingDirectory=/home/ubuntu/urlwatcher
+ExecStart=/home/ubuntu/.nvm/versions/node/v6.17.1/bin/node app.js private/app-config.json 2>&1 | logger -t urlwatcher
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
