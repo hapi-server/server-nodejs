@@ -14,7 +14,7 @@ import urllib.request
 server = 'ftp://ftp.seismo.nrcan.gc.ca'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--id', default='bou/minute/definitive')
+parser.add_argument('--id', default='bou/definitive/minute')
 parser.add_argument('--start', default='2017-12-01T00:00:00.000000000Z')
 parser.add_argument('--stop', default='2017-12-02T00:00:00.000000000Z')
 args = vars(parser.parse_args())
@@ -35,16 +35,37 @@ def download(url, start, stop):
 	if not os.path.exists(path):
 		os.makedirs(path)
 
+	found = False
 	filename = os.path.join(path, url.split("/")[-1])
-	if not os.path.exists(filename):
+	if os.path.exists(filename):
+		#print("Found " + filename)
+		found = True
+	else:
 		#print("Downloading " + url)
 		try:
 			urllib.request.urlretrieve(url, filename)
+			found = True
 		except Exception as e:
 			with open('bin/INTERMAGNET-error.log','at') as f:
 				f.write(e + ": " + url + "\n")
-				f.close()
-			return
+	if not found:
+		# Try again with ".gz" removed.
+		url = url[0:-3]
+		filename = os.path.join(path, url.split("/")[-1])
+		if os.path.exists(filename):
+			#print("Found " + filename)
+			found = True
+		else:
+			#print("Downloading " + url)
+			try:
+				urllib.request.urlretrieve(url, filename)
+				found = True
+			except Exception as e:
+				with open('bin/INTERMAGNET-error.log','at') as f:
+					f.write(e + ": " + url + "\n")
+
+	if not found:
+		return
 
 	#print("Reading " + filename)		
 	try:
@@ -68,23 +89,23 @@ def download(url, start, stop):
 				line = line[0:10] + "T" + line[11:23] + "Z" + line[23:]
 				print(line)
 
-path = os.path.dirname(os.path.realpath(sys.argv[0]))
-#print(path)
-fnamepkl = os.path.join(path,'..','metadata','INTERMAGNET','INTERMAGNET-manifest.pkl')
-fnamepkl = os.path.realpath(fnamepkl)
-#print(fnamepkl)
+if False:
+	# Read list of available files. File is large so this slows down process.
+	# Instead, create filenames and if file does not exist, return. This will be slow
+	# if there are large time gaps.
+	path = os.path.dirname(os.path.realpath(sys.argv[0]))
+	fnamepkl = os.path.join(path,'..','metadata','INTERMAGNET','INTERMAGNET-manifest.pkl')
+	fnamepkl = os.path.realpath(fnamepkl)
+	f = open(fnamepkl, 'rb')
+	S = pickle.load(f)
+	f.close()
 
-f = open(fnamepkl, 'rb')
-S = pickle.load(f)
-f.close()
-#print(S[id])
-#print(S[id]['dates'])
+id_l = id.split("/")
+ext = id_l[1][0] + id_l[2][0:3] + "." + id_l[2][0:3] + ".gz"
 
 startdt = datetime.datetime.strptime(start[0:10], '%Y-%m-%d')
 stopdt = datetime.datetime.strptime(stop[0:10], '%Y-%m-%d')
 stepdt = datetime.timedelta(days=1)
-#print(startdt)
-#print(stopdt)
 # If last date is midnight, last date to look for file is before this
 # (stop date is exlusive)
 if stop[10:] == "T00:00:00.000000000Z":
@@ -92,8 +113,13 @@ if stop[10:] == "T00:00:00.000000000Z":
 
 while startdt <= stopdt:
 	date = startdt.strftime('%Y%m%d')
-	if date in S[id]['dates']:
-		#print("File exists for " + date)
-		#print("Downloading " + S[id]['dates'][date])
+
+	# Slow method
+	if False and date in S[id]['dates']:
 		download(server + S[id]['dates'][date], start, stop)
+
+	url = server + "/intermagnet/" + id_l[2] + "/" + id_l[1]  \
+			+ "/IAGA2002/" + date[0:4] + "/" + date[4:6] + "/" \
+			+ id_l[0] + date + ext
+	download(url, start, stop)
 	startdt += stepdt
