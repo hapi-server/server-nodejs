@@ -24,7 +24,7 @@ start = args['start']
 stop = args['stop']
 
 def download(url, start, stop):
-	""""""
+
 	start = re.sub(r"T"," ", start[0:18])
 	stop = re.sub(r"T"," ", stop[0:18])
 
@@ -70,9 +70,11 @@ def download(url, start, stop):
 	#print("Reading " + filename)		
 	try:
 		if re.search(r'\.gz$', filename):
-			with gzip.open(filename, 'rt', errors='replace') as f: lines = f.readlines()
+			#with gzip.open(filename, 'rt', errors='replace') as f: lines = f.readlines()
+			with gzip.open(filename, 'rb') as f: lines = f.readlines()
 		else:
-			with open(filename, 'rt', errors='replace') as f: lines = f.readlines()
+			#with open(filename, 'rt', errors='replace') as f: lines = f.readlines()
+			with open(filename, 'r') as f: lines = f.readlines()
 	except Exception as e:
 		#print("Problem reading " + filename)
 		with open('bin/INTERMAGNET-error.log','at') as f:
@@ -80,7 +82,10 @@ def download(url, start, stop):
 			f.close()
 		return
 
+
+
 	for line in lines:
+		line = line.decode()
 		if re.match(r"[0-9]{4}",line):
 			if line[0:18] >= start and line[0:18] < stop:
 				# Make comma separated
