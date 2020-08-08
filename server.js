@@ -1,8 +1,10 @@
-var clc  = require('chalk'); // Colorize command line output
+const clc  = require('chalk'); // Colorize command line output
 
-var ver  = parseInt(process.version.slice(1).split('.')[0]);
-if (ver < 8) {
-	console.log(clc.red("!!! node.js version >= 8 required.!!! node.js -v returns " + process.version + ".\nConsider installing https://github.com/creationix/nvm and then 'nvm install 8'.\n"));
+const ver  = parseInt(process.version.slice(1).split('.')[0]);
+if (ver < 6) {
+	console.log(clc.red("!!! node.js version >= 6 required.!!! "
+				+ "node.js -v returns " + process.version 
+				+ ".\nConsider installing https://github.com/creationix/nvm and then 'nvm install 6'.\n"));
 	process.exit(1);
 }
 
@@ -10,36 +12,36 @@ process.on('SIGINT', function() {
 	process.exit(1);
 });
 
-var fs       = require('fs');
-var express  = require('express'); // Client/server library
-var app      = express();
-var server   = require("http").createServer(app);
-var compress = require('compression'); // Express compression module
-var moment   = require('moment'); // Time library http://moment.js
-var yargs    = require('yargs');
+const fs       = require('fs');
+const express  = require('express'); // Client/server library
+const app      = express();
+const server   = require("http").createServer(app);
+const compress = require('compression'); // Express compression module
+const moment   = require('moment'); // Time library http://moment.js
+const yargs    = require('yargs');
 
-var metadata = require('./lib/metadata.js').metadata;
-var prepmetadata = require('./lib/metadata.js').prepmetadata;
+const metadata = require('./lib/metadata.js').metadata;
+const prepmetadata = require('./lib/metadata.js').prepmetadata;
 
 // Test commands and urls
-var test = require('./lib/test.js');
+const test = require('./lib/test.js');
 
 // HAPI schema tests
-var is = require('hapi-server-verifier').is;
+const is = require('hapi-server-verifier').is;
 
 // Verify function
-var verify = require('hapi-server-verifier').tests.run;
+const verify = require('hapi-server-verifier').tests.run;
 
 // Date string for logging.
 function ds() {return (new Date()).toISOString() + " [server] ";};
 
-var usage = "node server.js";
+let usage = "node server.js";
 if (/server$/.test(process.execPath)) {
 	// Binary executable caled.
-	var usage = "server";
+	usage = "server";
 }
 
-var argv = yargs
+let argv = yargs
 			.strict()
 			.help()
 			.describe('file','Catalog configuration file')
@@ -81,20 +83,20 @@ var argv = yargs
 			})
 			.argv
 
-var config = require("./lib/metadata.js").configVars(argv.conf);
+const config = require("./lib/metadata.js").configVars(argv.conf);
 for (key in config) {
 	console.log(ds() + key + " = " + configd[key]);
 }
 
-var FILE        = argv.file;
-var PORT        = argv.port;
-var FORCE_START = argv.ignore; 
-var OPEN        = argv.open;
-var TEST        = argv.test;
-var VERIFY      = argv.verify;
-var LOGDIR      = argv.logdir;
-var VERIFIER    = argv.verifier;
-var PLOTSERVER  = argv.plotserver;
+const FILE        = argv.file;
+const PORT        = argv.port;
+const FORCE_START = argv.ignore; 
+const OPEN        = argv.open;
+const TEST        = argv.test;
+const VERIFY      = argv.verify;
+const LOGDIR      = argv.logdir;
+const VERIFIER    = argv.verifier;
+const PLOTSERVER  = argv.plotserver;
 
 if (typeof(FILE) == 'string') {
 	FILES = [FILE];	
@@ -102,9 +104,19 @@ if (typeof(FILE) == 'string') {
 	FILES = FILE;
 }
 
+for (i in FILES) {
+	console.log(FILES[i]);
+	if (!fs.existsSync(FILES[i])) {
+		console.log(clc.red("File not found: " + FILES[i]));
+		process.exit(1);
+	}
+}
+
+process.exit(0);
+
 exceptions(); // Catch common start-up exceptions
 
-if (!fs.existsSync(LOGDIR)){
+if (!fs.existsSync(LOGDIR)) {
 	fs.mkdirSync(LOGDIR);
 	console.log(ds() + "Created " + LOGDIR);
 } else {
@@ -120,7 +132,7 @@ function main() {
 	let CATALOGS = [];
 	let PREFIXES = [];
 
-	function writeall(file) {
+	function writeall(file, all) {
 		console.log(ds() + "Starting async creation of " + file);
 		fs.writeFile(file, all, "utf8", 
 			(err) => {
@@ -132,7 +144,7 @@ function main() {
 		});
 	}
 
-	var METADIR = __dirname + "/public/meta";
+	let METADIR = __dirname + "/public/meta";
 	if (!fs.existsSync(METADIR)){
 		fs.mkdirSync(METADIR);
 		console.log(ds() + "Created " + METADIR);
@@ -145,16 +157,16 @@ function main() {
 		CATALOGS[i] = metadata.cache[key]['server']['id'];
 		PREFIXES[i] = metadata.cache[key]['server']['prefix'];
 		
-		var all = JSON.stringify(metadata.cache[key]['info'],null,4);
-		var file = METADIR + PREFIXES[i] + "-all.json";
-		writeall(file);
+		let all = JSON.stringify(metadata.cache[key]['info'],null,4);
+		let file = METADIR + PREFIXES[i] + "-all.json";
+		writeall(file, all);
 		i = i + 1;
 	}
 
 	app.use(compress()); // Compress responses using gzip
 
 	// Log all requests, then call next route handler
-	app.get('*', function (req,res,next) {
+	app.get('*', function (req, res, next) {
 		logreq(req);
 		next();
 	})
@@ -163,10 +175,11 @@ function main() {
 	if (fs.existsSync(METADIR + "/all.txt")) {
 		console.log(ds() + "Reading " + METADIR + "/all.txt.");
 		serverlist = fs
-		                .readFileSync(METADIR + "/all.txt")
-				.toString()
+						.readFileSync(METADIR + "/all.txt")
+						.toString();
 	} else {
-		console.log(ds() + "Did not find " + METADIR + "/all.txt. Will generate.");
+		console.log(ds() + "Did not find " 
+					+ METADIR + "/all.txt. Will generate.");
 		let d;
 		for (let i = 0; i < CATALOGS.length; i++) {
 			d = metadata(CATALOGS[i],'data');
@@ -179,26 +192,26 @@ function main() {
 		}
 	}
 
-	app.get('/all.txt', function (req,res) {res.send(serverlist);});
+	app.get('/all.txt', function (req, res) {res.send(serverlist);});
 
 	app.get('/all-dev.txt', function (req,res) {
-	    // TODO: Should be async.
-	    if (fs.existsSync(METADIR + "/all-dev.txt")) {
+		// TODO: Should be async.
+		if (fs.existsSync(METADIR + "/all-dev.txt")) {
 			console.log(ds() + "Reading " + METADIR + "/all-dev.txt.");
 			let serverlist_dev = fs
 									.readFileSync(METADIR + "/all-dev.txt")
 									.toString()
 			res.send(serverlist_dev);
-	    } else {
+		} else {
 			console.log(ds() + "Did not find " + METADIR + "/all-dev.txt.");
 			res.status(404).send("");
-	    }
+		}
 	});
 
 	if (CATALOGS.length > 1) {
 
 		let html = fs
-					.readFileSync(__dirname + "/node_modules/hapi-server-ui/index.htm","utf8")
+					.readFileSync(__dirname + "/node_modules/hapi-server-ui/index.htm", "utf8")
 					.toString()
 					.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
 
@@ -238,7 +251,9 @@ function main() {
 
 		if (OPEN) {
 			// Open browser window
-			var start = (process.platform == 'darwin'? 'open': process.platform == 'win32'? 'start': 'xdg-open');
+			var start = (process.platform == 'darwin' 
+							? 'open': process.platform == 'win32'
+							? 'start': 'xdg-open');
 			require('child_process').exec(start + ' ' + url);
 		}
 
@@ -267,7 +282,9 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		// Any requests not matching set app.get() patterns will see error response.
 		app.get('*', function(req, res) {
 			if (PREFIXES.length == 1) {
-				res.status(404).send("Invalid URL. See <a href='"+PREFIXES[0]+"/hapi'>"+PREFIXES[0].substr(1)+"/hapi</a>");
+				res.status(404).send("Invalid URL. See <a href='"
+					+ PREFIXES[0] + "/hapi'>" 
+					+ PREFIXES[0].substr(1) + "/hapi</a>");
 			} else {
 				res.status(404).send("Invalid URL. See <a href='/'>start page</a>");
 			}
@@ -286,8 +303,8 @@ function apiInit(CATALOGS,PREFIXES,i) {
 
 	console.log(ds() + "To run test URLs and exit, use the --test option.");
 	console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
-	//console.log(ds() + "To run web-based verification tests, execute 'node verify.js' on the command line.");
-	console.log(ds() + clc.green("Initializing endpoints for http://localhost:" + argv.port + PREFIX + "/hapi"));
+	console.log(ds() + clc.green("Initializing endpoints for http://localhost:" 
+					 + argv.port + PREFIX + "/hapi"));
 
 	// Serve static files in ./public/data (no directory listing provided)
 	app.use(PREFIX + "/data", express.static(__dirname + '/public/data'));
@@ -302,7 +319,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 	app.get(PREFIX + '/hapi/all.json', function (req, res) {
 		cors(res);
 		res.contentType("application/json");
-		var file = __dirname + "/public/meta" + PREFIX + "-all.json";		
+		var file = __dirname + "/public/meta" + PREFIX + "-all.json";
 		fs.createReadStream(file).pipe(res);
 	})
 
@@ -321,7 +338,8 @@ function apiInit(CATALOGS,PREFIXES,i) {
 
 		// Send error if query parameters given
 		if (Object.keys(req.query).length > 0) {
-			error(req,res,hapiversion,1401,"This endpoint takes no query string.");
+			error(req, res, hapiversion, 1401,
+					"This endpoint takes no query string.");
 			return;
 		}
 
@@ -336,7 +354,8 @@ function apiInit(CATALOGS,PREFIXES,i) {
 
 		// Send error if query parameters given
 		if (Object.keys(req.query).length > 0) {
-			error(req,res,hapiversion,1401,"This endpoint takes no query string.");
+			error(req, res, hapiversion, 1401,
+					"This endpoint takes no query string.");
 			return;
 		}
 
@@ -360,7 +379,8 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		// infoCheck() is more consistent with other code.
 		var header = info(req,res,CATALOG); 
 		if (typeof(header) === "number") {
-			error(req,res,hapiversion,1406,"At least one parameter not found in dataset.");
+			error(req, res, hapiversion, 1406,
+					"At least one parameter not found in dataset.");
 			return;
 		} else {
 			res.send(header);
@@ -382,13 +402,18 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		var header = info(req,res,CATALOG);
 		if (typeof(header) === "number") {
 			// One or more of the requested parameters are invalid.
-			error(req,res,hapiversion,1406,"At least one parameter not found in dataset.");
+			error(req, res, hapiversion, 1406,
+					"At least one parameter not found in dataset.");
 			return;
 		};
 
-		// Add non-standard elements to header used later in code.
-		var proto = req.connection.encrypted ? 'https' : 'http'; // TODO: Not tested under https.	
-		header["status"]["x_request"] = proto + "://" + req.headers.host + req.originalUrl;
+		// Add non-standard elements in header used later in code.
+		// TODO: Not tested under https.	
+		var proto = req.connection.encrypted ? 'https' : 'http'; 
+		header["status"]["x_request"] = proto 
+										+ "://" 
+										+ req.headers.host 
+										+ req.originalUrl;
 		header["status"]["x_startDateRequested"] = req.query["time.min"];
 		header["status"]["x_stopDateRequested"]  = req.query["time.max"];
 		header["status"]["x_parentDataset"]      = req.query["id"];
@@ -403,7 +428,8 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		header["format"] = "csv"; // Set default format
 		if (req.query["format"]) {
 			if (!["csv","json","binary"].includes(req.query["format"])) {
-				error(req,res,hapiversion,1409,"Allowed values of 'format' are csv, json, and binary.");
+				error(req, res, hapiversion, 1409,
+						"Allowed values of 'format' are csv, json, and binary.");
 				return;
 			}
 			// Use requested format.
@@ -412,7 +438,8 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		
 		if (req.query["include"]) {
 			if (req.query["include"] !== "header") {
-				error(req,res,hapiversion,1410,"Allowed value of 'include' is 'header'.");
+				error(req, res, hapiversion, 1410,
+						"Allowed value of 'include' is 'header'.");
 				return;
 			}
 		}
@@ -446,10 +473,13 @@ function apiInit(CATALOGS,PREFIXES,i) {
 		data(req,res,CATALOG,header,include);
 	})
 
-	// Anything that does not match PREFIX + {/hapi,/hapi/capabilities,/hapi/info,/hapi/data}
+	// Anything that does not match
+	// PREFIX + {/hapi,/hapi/capabilities,/hapi/info,/hapi/data}
 	app.get(PREFIX + '/*', function (req, res) {
 		console.log(req);
-		res.status(404).send("Invalid URL. See <a href='"+PREFIX+"/hapi'>"+PREFIX.substr(1)+"/hapi</a>");
+		res.status(404).send(
+					"Invalid URL. See <a href='" 
+					+ PREFIX + "/hapi'>" + PREFIX.substr(1) + "/hapi</a>");
 	})
 
 	apiInit(CATALOGS,PREFIXES,++i);
@@ -513,8 +543,6 @@ function info(req,res,catalog) {
 
 	// Invalid parameter found
 	if (validparams.length != wantedparams.length) {
-		//console.log(validparams);
-		//console.log(wantedparams);
 		return 1401;
 	}
 
@@ -526,7 +554,9 @@ function info(req,res,catalog) {
 	}
 
 	// Remove nulls placed when array element is deleted
-	json.parameters = json.parameters.filter(function(n){return n != undefined}); 
+	json.parameters = json
+						.parameters
+						.filter(function (n) {return n != undefined}); 
 
 	// Return JSON string
 	return json;
@@ -671,8 +701,11 @@ function data(req,res,catalog,header,include) {
 		}
 
 		if (subsetcols || subsettime) {
-			//com = com + " | " + config.PYTHONEXE + " " + __dirname + "/lib/subset.py";
-			com = com + " | " + config.NODEEXE + " " + __dirname + "/lib/subset.js";
+			com = com 
+					+ " | " 
+					+ config.NODEEXE
+					+ " " + __dirname 
+					+ "/lib/subset.js";
 			if (subsettime) {
 				com = com + " --start " + start;
 				com = com + " --stop " + stop;
@@ -690,9 +723,12 @@ function data(req,res,catalog,header,include) {
 			return;
 		}
 		if (d.contact) {
-			error(req,res,header["HAPI"],1500,"Problem with the data server. Please send URL to " + d.contact + ".");
+			error(req, res, header["HAPI"], 1500,
+					"Problem with the data server. Please send URL to " 
+					+ d.contact + ".");
 		} else {
-			error(req,res,header["HAPI"],1500,"Problem with the data server.");
+			error(req, res, header["HAPI"], 1500,
+					"Problem with the data server.");
 		}
 	}
 
@@ -701,13 +737,8 @@ function data(req,res,catalog,header,include) {
 	// Call the CL command and send output.	
 	var coms  = com.split(/\s+/);
 	var coms0 = coms.shift();
-
-	// This method, which avoids need to use sh,
-	// leads to issues with escaping quotes.
-	// var child = require('child_process').spawn(coms0,coms,{"encoding":"buffer"})
-	// Instead use sh:
 	var child = require('child_process')
-					.spawn('sh',['-c',com],{"encoding":"buffer"})
+					.spawn('sh', ['-c', com], {"encoding": "buffer"});
 
 	var wroteheader = false; // If header already sent.
 	var gotdata = false; // First chunk of data received.
@@ -818,7 +849,7 @@ function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
 
 function csvTo(records,first,last,header,include) {
 
-	// Helper functions
+	// Helper function
 	function append(str,arr,N) {for (var i=0;i<N;i++) {arr.push(str);};return arr;}
 
 	// TODO: Do this on first call only.
@@ -844,21 +875,27 @@ function csvTo(records,first,last,header,include) {
 		po[header.parameters[i].name]["type"] = header.parameters[i].type;
 		po[header.parameters[i].name]["size"] = header.parameters[i].size || [1];
 		if (po[header.parameters[i].name]["size"].length > 1) {
-			console.log(ds() + "Warning. JSON for parameter " + name + " will be 1-D array instead of " + po[header.parameters[i].name]["size"].length + "-D")
-			po[header.parameters[i].name]["size"] = prod(po[header.parameters[i].name]["size"]);
+			console.log(ds() 
+						+ "Warning. JSON for parameter "
+						+ name 
+						+ " will be 1-D array instead of " 
+						+ po[header.parameters[i].name]["size"].length 
+						+ "-D");
+			po[header.parameters[i].name]["size"] = 
+						prod(po[header.parameters[i].name]["size"]);
 		}
 	}
 	
 	if (header["format"] === "json") {
-		return csv2json(records,po,names,first,last,header,include);
+		return csv2json(records, po, names, first, last, header, include);
 	}
 
 	if (header["format"] === "binary") {
-		return csv2bin(records,types,lengths,sizes);
+		return csv2bin(records, types, lengths, sizes);
 	}
 
 
-	function csv2bin(records,types,lengths,sizes) {
+	function csv2bin(records, types, lengths, sizes) {
 
 		// TODO: Only handles integer and double.
 
@@ -888,8 +925,6 @@ function csvTo(records,first,last,header,include) {
 			}		
 		}
 
-		//console.log(types,lengths,sizes,Nr,Nb,recordsarr);
-
 		var recordbuff = new Buffer.alloc(Nr*Nb);
 		var pos = 0;
 		for (var i = 0; i < Nr; i++) {
@@ -913,7 +948,7 @@ function csvTo(records,first,last,header,include) {
 		return recordbuff;
 	}
 
-	function csv2json(records,po,names,first,last,header,include) {
+	function csv2json(records, po, names, first, last, header, include) {
 
 		// Only handles 1-D arrays, e.g., size = [N], N integer.
 
@@ -965,7 +1000,9 @@ function csvTo(records,first,last,header,include) {
 		if (first == true) {
 			if (include) {
 				// Remove closing } and replace with new element.
-				open = JSON.stringify(header,null,4).replace(/}\s*$/,"") + ',\n"data":\n[\n';
+				open = JSON
+						.stringify(header,null,4)
+						.replace(/}\s*$/,"") + ',\n"data":\n[\n';
 			} else {
 				open = '[\n';				
 			}
@@ -989,7 +1026,7 @@ function queryCheck(req, res, hapiversion, catalog, type) {
 
 	// Check for required id parameter
 	if (!req.query.id) {
-		error(req,res,hapiversion,1400,"A dataset id must be given.");
+		error(req, res, hapiversion, 1400, "A dataset id must be given.");
 		return false;
 	}
 
@@ -1002,17 +1039,23 @@ function queryCheck(req, res, hapiversion, catalog, type) {
 	if (type === 'info') {
 		// Check if extra parameters given
 		for (var key in req.query) {
-			if (!["id","parameters","resolve_references"].includes(key)) {
-				error(req,res,hapiversion,1401,"'id', 'parameters', and 'resolve_references' are the only valid query parameters.");
+			if (!["id", "parameters", "resolve_references"].includes(key)) {
+				error(req, res, hapiversion, 1401,
+						"'id', 'parameters', and 'resolve_references' are the only valid query parameters.");
 				return false;
 			}
 		}
 	} else {
 		// Check if query parameters are all valid
-		var allowed = ["id","parameters","time.min","time.max","format","include","attach","resolve_references"];
+		var allowed = [
+						"id","parameters","time.min","time.max",
+						"format","include","attach","resolve_references"
+					];
 		for (var key in req.query) {
 			if (!allowed.includes(key)) {
-				error(req,res,hapiversion,1401,"The only allowed query parameters are " + allowed.join(", "));
+				error(req, res, hapiversion, 1401,
+						"The only allowed query parameters are "
+						+ allowed.join(", "));
 				return false;
 			}
 		}
@@ -1033,7 +1076,8 @@ function queryCheck(req, res, hapiversion, catalog, type) {
 
 	// If resolve_references given, check that it is "true" or "false".
 	if (!["true","false"].includes(req.query.resolve_references)) {
-		error(req,res,hapiversion,1411,"resolve_references must be 'true' or 'false'");
+		error(req, res, hapiversion, 1411,
+				"resolve_references must be 'true' or 'false'");
 		return false;
 	}
 
@@ -1046,8 +1090,11 @@ function timeCheck(header) {
 	// TODO: If one of the times had Z and the other does not, 
 	// should warn that all time stamps are interpreted as Z.
 
-	var times = [header["status"]["x_startDateRequested"],header["status"]["x_stopDateRequested"],
-				 header.startDate,header.stopDate];
+	var times = [
+					header["status"]["x_startDateRequested"],
+					header["status"]["x_stopDateRequested"],
+					header.startDate,header.stopDate
+				];
 
 	for (var i = 0;i < times.length;i++) {
 		// moment.js says YYYY-MM-DD and YYYY-DOY with no Z is
@@ -1151,7 +1198,8 @@ function error(req,res,hapiversion,code,message) {
 				"status": { "code": 1500, "message": "Internal server error"}
 			};
 	var httpcode = 500;
-	var httpmesg = "Internal server error. Please report URL attempted to the <a href='https://github.com/hapi-server/server-nodejs/issues'>issue tracker</a>.";
+	var httpmesg = "Internal server error. Please report URL attempted to the "
+					+ " <a href='https://github.com/hapi-server/server-nodejs/issues'>issue tracker</a>.";
 
 	// Modify defaults
 	if (errs[code+""]) {
@@ -1178,12 +1226,12 @@ function error(req,res,hapiversion,code,message) {
 // Uncaught errors in API request code.
 function errorHandler(err, req, res, next) {
 
-	var stack = err.stack.replace(new RegExp(__dirname + "/","g"),"").replace(/\n/g,"<br/>")
+	let stack = err.stack.replace(new RegExp(__dirname + "/","g"),"").replace(/\n/g,"<br/>")
 	console.log(err);
-	error(req,res,"2.0","1500","Server error. Please post the following error message at https://github.com/hapi-server/server-nodejs/issues. <br/>" + req.originalUrl + "<br/> " + err + " " + stack);
-	var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-	var msg = ds() + "Request from " + addr + ": " + req.originalUrl;
-	var tmps = ds().split("T")[0];
+	error(req, res, "2.0", "1500", "Server error. Please post the following error message at https://github.com/hapi-server/server-nodejs/issues.<br/>" + req.originalUrl + "<br/> " + err + " " + stack);
+	let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+	let msg = ds() + "Request from " + addr + ": " + req.originalUrl;
+	let tmps = ds().split("T")[0];
 	fs.appendFileSync(LOGDIR + '/server-error-' + tmps + ".log",msg + "\n" + err.stack);
 }
 
@@ -1196,16 +1244,15 @@ function exceptions() {
 		} else {
 			console.log(err.stack);
 			var tmps = ds().split("T")[0];
-			fs.appendFileSync('server-error-' + tmps + ".log", "\n" + ds() + " Uncaught Exception\n" + err.stack)
-			// TODO: This is not necessarily needed
-			process.exit(1);
+			fs.appendFileSync('server-error-' + tmps + ".log", "\n" 
+								+ ds() + " Uncaught Exception\n" + err.stack)
 		}
 	});
 }
 
 function logreq(req,extra) {
-	//console.log(req);
 	var extra = extra || "";
 	var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-	console.log(ds() + "Request from " + addr + ": " + "http://" + req.headers.host + req.originalUrl + " " + extra);
+	console.log(ds() + "Request from " + addr + ": " + "http://" 
+				+ req.headers.host + req.originalUrl + " " + extra);
 }
