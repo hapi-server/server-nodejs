@@ -1,5 +1,5 @@
 #!/bin/bash
-source ~/.nvm/nvm.sh && nvm use 8
+source ~/.nvm/nvm.sh && nvm use 6
 
 if [ "$1" = "dev-test" ]; then
     #nodemon -i public/meta server.js -- --port 8998 --ignore \
