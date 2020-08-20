@@ -122,8 +122,8 @@
 
 "S_BTraced_Region","S_BTraced_Region","Such a region (2-dimensional zone) is based on where the magnetic field line that passes through the spacecraft intersects the Earth's surface (at 100 km altitude) in the Earth's southern magnetic hemisphere. South B traced footpoint region assignments are the same as the 'South' regions and the Low Latitude region used for assigning a radial traced footpoint region. Magnetic field model: Internal: IGRF, External Tsyganenko 89C Kp = 3-, 3, 3+. See also https://sscweb.gsfc.nasa.gov/users_guide/ssc_reg_doc.shtml","","None",%32s"
 
-"GSE_Magnetic_Vector_X","GSE_Magnetic_Vector_X","?","R_E","1e31",%0.2f"
+"GSE_Magnetic_Vector_X","GSE_Magnetic_Vector_X","","R_E","1e31",%0.2f"
 
-"GSE_Magnetic_Vector_Y","GSE_Magnetic_Vector_Y","?","R_E","1e31",%0.2f"
+"GSE_Magnetic_Vector_Y","GSE_Magnetic_Vector_Y","","R_E","1e31",%0.2f"
 
-"GSE_Magnetic_Vector_Z","GSE_Magnetic_Vector_Z","?","R_E","1e31",%0.2f"
+"GSE_Magnetic_Vector_Z","GSE_Magnetic_Vector_Z","","R_E","1e31",%0.2f"

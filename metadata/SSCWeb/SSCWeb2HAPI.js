@@ -3,17 +3,23 @@ var xml2js  = require('xml2js');
 
 const fs = require('fs-extra');
 
-var urlo = "https://sscweb.sci.gsfc.nasa.gov/WS/sscr/2/observatories";
+var urlo = "https://sscweb.gsfc.nasa.gov/WS/sscr/2/observatories";
 var cfile = "SSCWeb-catalog.json";
 
-const force = true; // Force update if last update was < 24 hours ago.
+const force = false; // Force update even if last update was < 60 minutes.
+
+let max_age = 3600; // max-age found in HTTP headers of urlo.
+// TODO: The header should be saved and the value in the header should
+// be used. If max_age changes, this code will be up-to-date.
 
 SSCWeb2HAPI(
 	function (err,catalog) {
 		if (err) {
-			console.log(err);
+			console.error(err);
+			process.exit(1);
 		}
-		console.log(catalog);
+		console.log(JSON.stringify(catalog,null,4));
+		//process.exit(0);
 	}
 )
 
@@ -21,35 +27,36 @@ function SSCWeb2HAPI(cb) {
 
 	// Returns HAPI catalog or throws error if it can't reach urlo
 	// and no cached catalog is found. Only updates cached catalog
-	// if it is older than 24 hours.
+	// if it is older than max_age.
 
 	var age = 0;
 	// Look for cached catalog file
 	if (fs.existsSync(cfile)) {
 		age = new Date().getTime() - fs.statSync(cfile).mtime;
-		age = age/(86400*1000);
+		age = age/(max_age*1000);
 		if (!force && age < 1) { 
-			// Cache file less than one day old
-			console.log("Returning cache file because it is less than one day old.")
-			return fs.readFileSync(cfile);
+			// Cache file less than max_age
+			//console.error("Returning cache file " + cfile + " because it is less than " + max_age + " seconds.")
+			console.log(fs.readFileSync(cfile, 'utf8')); // TODO: Could stream this.
+			return;
 		} else {
-			// Save current version
+			// Save current version. Only archived by day.
 			ymd = new Date().toISOString().substring(0, 10);
 			cfilec = cfile.replace(/\.json/, "-" + ymd + ".json");
 			fs.copySync(__dirname + "/" + cfile, __dirname + "/old/" + cfilec);
-			console.error("Moved " + cfile + " to ./old/" + cfilec); 
+			//console.error("Moved " + cfile + " to ./old/" + cfilec); 
 		}
 	}
 
-	console.error("Getting " + urlo)
+	//console.error("Getting " + urlo)
 	request(urlo, 
 		function (error, response, body) {
 			if (error) {
 				if (fs.existsSync(cfile)) {
-					console.log("Could not get " +urlo + ". Returning cached metadata.")
+					//console.error("Could not get " + urlo + ". Returning cached metadata.")
 					cb(null,fs.readFileSync(cfile));
 				} else {
-					cb(Error ("Could not get " +urlo + " and no cached metadata."));
+					cb(Error ("Could not get " + urlo + " and no cached metadata."));
 				}
 			}
 			var parser = new xml2js.Parser();
@@ -82,7 +89,7 @@ function makeHAPI(jsonraw,cb) {
 		catalog[i]["info"]["stopDate"] = obs[i]["EndTime"][0];
 		catalog[i]["info"]["cadence"] = "PT" + obs[i]["Resolution"][0] + "S";
 		catalog[i]["info"]["description"] = "Ephemeris data";
-		catalog[i]["info"]["resourceURL"] = "https://sscweb.sci.gsfc.nasa.gov/";
+		catalog[i]["info"]["resourceURL"] = "https://sscweb.gsfc.nasa.gov/";
 		catalog[i]["info"]["parameters"] = [];
 		for (var j = 0;j < params.length;j++) {
 			paraminfo = params[j].split("\",");
@@ -118,12 +125,12 @@ function makeHAPI(jsonraw,cb) {
 
 	}
 	if (!makeHAPI.writing) {
-		console.error("Writing " + cfile)
+		//console.error("Writing " + cfile)
 		makeHAPI.writing = true;
 		fs.writeFile(cfile,JSON.stringify(catalog,null,4), 
 			function () {
 				makeHAPI.writing = false;
-				console.error("Wrote " + cfile);
+				//console.error("Wrote " + cfile);
 		})
 	}
 	cb(null,catalog);
