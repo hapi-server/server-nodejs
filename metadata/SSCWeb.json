@@ -4,7 +4,8 @@
 		"prefix": "",
 		"contact": "rweigel@gmu.edu",
 		"landing": "",
-		"catalog-update": 86400
+		"catalog-update": 86400,
+		"verify": "ace"
 	},
     "data": {
         "command": "$NODEEXE $HAPISERVERPATH/bin/SSCWeb.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",

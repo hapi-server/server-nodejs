@@ -9,7 +9,6 @@ const metadir = __dirname + '/../metadata';
 const excludes = 
 	[
 		"INTERMAGNET",
-		"SSCWeb",
 		"SuperMAG",
 		"AutoplotExample1",
 		"AutoplotExample2",

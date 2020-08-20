@@ -254,8 +254,15 @@ function main() {
 			test.urls(CATALOGS, PREFIXES, url, TEST);
 		}
 		if (VERIFY) {
-			// Exits with signal 0 or 1
-			verify(url + "/" + PREFIXES[0] + "/hapi");
+			// TODO: This only verifies first
+			let s = metadata(PREFIXES[0],'server');
+			// verify() exits with code 0 or 1.
+			if (s.verify) {
+				// If server has many datasets, select subset to verify.
+				verify(url + "/" + PREFIXES[0] + "/hapi", s.verify);
+			} else {
+				verify(url + "/" + PREFIXES[0] + "/hapi");
+			}
 		}
 	})
 }
