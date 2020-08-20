@@ -1,7 +1,6 @@
 var request = require("request");
 var xml2js  = require('xml2js');
-
-const fs = require('fs-extra');
+const fs = require('fs');
 
 var urlo = "https://sscweb.gsfc.nasa.gov/WS/sscr/2/observatories";
 var cfile = "SSCWeb-catalog.json";
@@ -37,7 +36,7 @@ function SSCWeb2HAPI(cb) {
 		if (!force && age < 1) { 
 			// Cache file less than max_age
 			//console.error("Returning cache file " + cfile + " because it is less than " + max_age + " seconds.")
-			console.log(fs.readFileSync(cfile, 'utf8')); // TODO: Could stream this.
+			console.log(fs.readFileSync(cfile, 'utf8')); // TODO: Could pipe this.
 			return;
 		} else {
 			// Save current version. Only archived by day.

@@ -22,8 +22,10 @@
     "express": "^4.15.3",
     "hapi-server-ui": "git+https://github.com/hapi-server/server-ui.git#master",
     "hapi-server-verifier": "git+https://github.com/hapi-server/verifier-nodejs.git#master",
+    "glob-fs": "*",
     "moment": "^2.18.1",
-    "yargs": "^8.0.1"
+    "yargs": "^8.0.1",
+    "xml2js": "^0.4.23"
   },
   "scripts": {
     "clean": "rm -rf node_modules/; rm -rf public/data/QinDenton/",

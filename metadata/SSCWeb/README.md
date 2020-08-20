@@ -8,3 +8,5 @@ To install and execute:
 npm install
 node SSCWeb2HAPI.js
 ```
+
+Note that if `npm install` was executed in the directory of `server.js`, this install command is not needed. All of the dependencies of `SSCWeb2HAPI.js` are available as a part of that install.

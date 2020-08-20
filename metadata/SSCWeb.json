@@ -4,7 +4,7 @@
 		"prefix": "",
 		"contact": "rweigel@gmu.edu",
 		"landing": "",
-		"catalog-update": null
+		"catalog-update": 86400
 	},
     "data": {
         "command": "$NODEEXE $HAPISERVERPATH/bin/SSCWeb.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
@@ -12,7 +12,5 @@
         "contact": "rweigel@gmu.edu",
         "test": "$NODEEXE $HAPISERVERPATH/bin/SSCWeb.js --id ace --parameters Time --start 2000-01-01T00:00:00.000Z --stop 2000-01-01T23:59:59.000Z"
     },
-    "catalog-update": 10,
-    "catalog": "cd $HAPISERVERPATH/metadata/SSCWeb; $NODEEXE SSCWeb2HAPI.js",
-    "xcatalog": "$HAPISERVERPATH/metadata/SSCWeb/SSCWeb-catalog.json"
+    "catalog": "cd $HAPISERVERPATH/metadata/SSCWeb; $NODEEXE SSCWeb2HAPI.js"
 }
