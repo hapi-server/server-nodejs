@@ -42,30 +42,37 @@ function SSCWeb2HAPI(cb) {
 			// Save current version. Only archived by day.
 			ymd = new Date().toISOString().substring(0, 10);
 			cfilec = cfile.replace(/\.json/, "-" + ymd + ".json");
-			fs.copySync(__dirname + "/" + cfile, __dirname + "/old/" + cfilec);
-			//console.error("Moved " + cfile + " to ./old/" + cfilec); 
+			if (!fs.existsSync(__dirname + "/old/")) {
+				fs.mkdirSync(__dirname + "/old/")
+			}
+			// Later versions of nodejs (8+) have copyFileSync. 
+			fs
+				.createReadStream(__dirname + "/" + cfile)
+				.pipe(fs.createWriteStream(__dirname + "/old/" + cfilec))
+				.on('finish', function () {
+					//console.error("Getting " + urlo)
+					request(urlo, 
+						function (error, response, body) {
+							if (error) {
+								if (fs.existsSync(cfile)) {
+									//console.error("Could not get " + urlo + ". Returning cached metadata.")
+									cb(null,fs.readFileSync(cfile));
+								} else {
+									cb(Error ("Could not get " + urlo + " and no cached metadata."));
+								}
+							}
+							var parser = new xml2js.Parser();
+							parser.parseString(body, function (err, jsonraw) {
+								if (err) {
+									cb(err);
+								}
+								makeHAPI(jsonraw,cb);
+							})
+					});
+				});
 		}
 	}
 
-	//console.error("Getting " + urlo)
-	request(urlo, 
-		function (error, response, body) {
-			if (error) {
-				if (fs.existsSync(cfile)) {
-					//console.error("Could not get " + urlo + ". Returning cached metadata.")
-					cb(null,fs.readFileSync(cfile));
-				} else {
-					cb(Error ("Could not get " + urlo + " and no cached metadata."));
-				}
-			}
-			var parser = new xml2js.Parser();
-			parser.parseString(body, function (err, jsonraw) {
-				if (err) {
-					cb(err);
-				}
-				makeHAPI(jsonraw,cb);
-			})
-	})
 }
 exports.SSCWeb2HAPI = SSCWeb2HAPI;
 
