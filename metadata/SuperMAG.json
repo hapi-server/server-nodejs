@@ -9,7 +9,7 @@
         	],
 		"testurls":
 			[
-				{"url": "${server}/data/?id=ABK&parameters=Time,B_N&time.min=2001-01-01T00:00:00Z&time.max=2001-01-02Z", "Nlines": 1440}
+				{"url": "data/?id=ABK&parameters=Time,B_N&time.min=2001-01-01T00:00:00Z&time.max=2001-01-02Z", "Nlines": 1440}
 			]
     },
     "catalog": "$HAPISERVERPATH/metadata/SuperMAG/SuperMAG-catalog.json"

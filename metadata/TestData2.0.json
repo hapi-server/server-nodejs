@@ -1,11 +1,18 @@
 {
+	"server": {
+		"id": "TestData2.0",
+		"prefix": "",
+		"contact": "rweigel@gmu.edu",
+		"landing": "",
+		"catalog-update": null
+	},
 	"data": {
 		"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.0.js --id ${id} --parameters '${parameters}' --start ${start} --stop ${stop}",
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
 		"testurls": [
-			{"url": "${server}/data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10},
-			{"url": "${server}/data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10Z&time.max=1970-01-01T00:00:20Z", "Nlines": 0}
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10Z&time.max=1970-01-01T00:00:20Z", "Nlines": 0}
 		],
 		"testcommands": [
 			{"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.0.js --id dataset1 --parameters scalar --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:00:10.000000000Z", "Nlines": 10},

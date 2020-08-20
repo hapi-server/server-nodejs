@@ -1,4 +1,11 @@
 {
+	"server": {
+		"id": "TestDataBad",
+		"prefix": "",
+		"contact": "rweigel@gmu.edu",
+		"landing": "",
+		"catalog-update": null
+	},
 	"data": {
 		"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.0.js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
 		"formats": ["csv"],

@@ -1,4 +1,11 @@
 {
+	"server": {
+		"id": "Example4",
+		"prefix": "",
+		"contact": "rweigel@gmu.edu",
+		"landing": "",
+		"catalog-update": null
+	},
 	"data": {
 		"command": "$PYTHONEXE $HAPISERVERPATH/bin/Example.py --id ${id} --params '${parameters}' --start ${start} --stop ${stop} --fmt ${format}",
 		"formats": ["csv","binary"],
@@ -7,11 +14,11 @@
 			{"command": "$PYTHONEXE $HAPISERVERPATH/bin/Example.py --params scalar --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:10:00.000000000Z","Nlines": 10}
 		],
 		"testurls": [
-			{"url": "${server}/data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00Z&time.max=1970-01-01T00:10Z", "Nlines": 10},
-			{"url": "${server}/data/?id=dataset1&parameters=scalar&time.min=1970-12-31T23:50Z&time.max=1971-01-01Z", "Nlines": 10}
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00Z&time.max=1970-01-01T00:10Z", "Nlines": 10},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-12-31T23:50Z&time.max=1971-01-01Z", "Nlines": 10}
 		]
 	},
-	"catalog" :
+	"catalog":
 		[
 			{
 				"id": "dataset1",

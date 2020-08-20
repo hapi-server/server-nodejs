@@ -1,15 +1,22 @@
 {
+	"server": {
+		"id": "TestData2.1",
+		"prefix": "",
+		"contact": "rweigel@gmu.edu",
+		"landing": "",
+		"catalog-update": null
+	},
 	"data": {
 		"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.1.js --id ${id} --parameters '${parameters}' --start ${start} --stop ${stop}",
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
 		"testurls": [
-			{"url": "${server}/data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10},
-			{"url": "${server}/data/?id=dataset1&parameters=vector3units&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10}
+			{"url": "data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10, "Ncommas": 30},
+			{"url": "data/?id=dataset1&parameters=vectormulti&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10, "Ncommas": 60}
 		],
 		"testcommands": [
-			{"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.1.js --id dataset1 --parameters vector --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:00:10.000000000Z", "Nlines": 10},
-			{"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.1.js --id dataset1 --parameters vector3units --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:00:10.000000000Z", "Nlines": 10}
+			{"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.1.js --id dataset1 --parameters vector --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:00:10.000000000Z", "Nlines": 10, "Ncommas": 30},
+			{"command": "$NODEEXE $HAPISERVERPATH/bin/TestData2.1.js --id dataset1 --parameters vectormulti --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:00:10.000000000Z", "Nlines": 10, "Ncommas": 60}
 		]
 	},
 	"HAPI": "2.1",
@@ -33,6 +40,16 @@
 										"units": "UTC",
 										"fill": null,
 										"length": 24
+									},
+									{ 
+										"name": "vectorstring",
+										"type": "string",
+										"units": [""],
+										"label": [""],
+										"size": [3],
+										"length": 7,
+										"fill": null,
+										"description": "A vector string where strings have newlines and commas, which are allowed by https://tools.ietf.org/html/rfc4180"
 									},
 									{ 
 										"name": "vector",
