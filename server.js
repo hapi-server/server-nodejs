@@ -44,7 +44,7 @@ if (/server$/.test(process.execPath)) {
 let argv = yargs
 			.strict()
 			.help()
-			.describe('file','Catalog configuration file')
+			.describe('file','Catalog configuration file or file pattern')
 			.alias('file','f')
 			.describe('port','Server port')
 			.alias('port','p')
@@ -98,21 +98,17 @@ const LOGDIR      = argv.logdir;
 const VERIFIER    = argv.verifier;
 const PLOTSERVER  = argv.plotserver;
 
+let FILES;
 if (typeof(FILE) == 'string') {
 	FILES = [FILE];	
 } else {
 	FILES = FILE;
 }
 
-for (i in FILES) {
-	console.log(FILES[i]);
-	if (!fs.existsSync(FILES[i])) {
-		console.log(clc.red("File not found: " + FILES[i]));
-		process.exit(1);
-	}
-}
+// Deal with file patterns.
+const expandfiles = require('./lib/expandfiles.js').expandfiles;
 
-process.exit(0);
+FILES = expandfiles(FILES);
 
 exceptions(); // Catch common start-up exceptions
 
@@ -125,26 +121,15 @@ if (!fs.existsSync(LOGDIR)) {
 
 // Populate metadata.cache array, which has elements of catalog objects
 // main() is callback.
-prepmetadata(FILES,FORCE_START,VERIFIER,PLOTSERVER,main);
+prepmetadata(FILES, FORCE_START, VERIFIER, PLOTSERVER, main);
 
 function main() {
 
 	let CATALOGS = [];
 	let PREFIXES = [];
 
-	function writeall(file, all) {
-		console.log(ds() + "Starting async creation of " + file);
-		fs.writeFile(file, all, "utf8", 
-			(err) => {
-				if (err) {
-					console.log(err);
-				} else {
-					console.log(ds() + "Finished async creation of " + file);
-				}
-		});
-	}
-
 	let METADIR = __dirname + "/public/meta";
+
 	if (!fs.existsSync(METADIR)){
 		fs.mkdirSync(METADIR);
 		console.log(ds() + "Created " + METADIR);
@@ -152,13 +137,20 @@ function main() {
 		console.log(ds() + "-all.json directory = " + METADIR);
 	}
 
+	// Eventually HAPI spec may support request for all metadata associated
+	// with server. This creates it.
+	function writeall(file, all) {
+		console.log(ds() + "Starting creation of " + file);
+		fs.writeFileSync(file, all, "utf8"); 
+		console.log(ds() + "Finished creation of " + file);
+	}
+
 	let i = 0;
 	for (let key in metadata.cache) {
 		CATALOGS[i] = metadata.cache[key]['server']['id'];
 		PREFIXES[i] = metadata.cache[key]['server']['prefix'];
-		
 		let all = JSON.stringify(metadata.cache[key]['info'],null,4);
-		let file = METADIR + PREFIXES[i] + "-all.json";
+		let file = METADIR + "/" + PREFIXES[i] + "-all.json";
 		writeall(file, all);
 		i = i + 1;
 	}
@@ -180,14 +172,15 @@ function main() {
 	} else {
 		console.log(ds() + "Did not find " 
 					+ METADIR + "/all.txt. Will generate.");
-		let d;
+
 		for (let i = 0; i < CATALOGS.length; i++) {
-			d = metadata(CATALOGS[i],'data');
+			let s = metadata(CATALOGS[i],'server');
+			let d = metadata(CATALOGS[i],'data');
 			serverlist = serverlist 
-							+ CATALOGS[i] + "/hapi," 
-							+ PREFIXES[i].substr(1) + "," 
-							+ PREFIXES[i].substr(1) + "," 
-							+ d.contact + "," 
+							+ PREFIXES[i] + "/hapi," 
+							+ CATALOGS[i] + "," 
+							+ CATALOGS[i] + "," 
+							+ s.contact + "," 
 							+ d.contact + "\n";
 		}
 	}
@@ -208,46 +201,45 @@ function main() {
 		}
 	});
 
-	if (CATALOGS.length > 1) {
 
-		let html = fs
-					.readFileSync(__dirname + "/node_modules/hapi-server-ui/index.htm", "utf8")
-					.toString()
-					.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
+	let html = fs
+				.readFileSync(__dirname + "/node_modules/hapi-server-ui/index.htm", "utf8")
+				.toString()
+				.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
 
-		// TODO: If index.htm changes, re-read it.
-		app.get('/', function (req,res) {res.send(html);});
+	// TODO: If index.htm changes, re-read it.
+	app.get('/', function (req,res) {res.send(html);});
 
-		// Serve static files in ./public/data (no directory listing provided)
-		app.use("/data", express.static(__dirname + '/public/data'));
+	// Serve static files in ./public/data (no directory listing provided)
+	app.use("/data", express.static(__dirname + '/public/data'));
 
-		// Serve content needed in index.htm (no directory listing provided)
-		app.use("/css",
-			express.static(__dirname + '/node_modules/hapi-server-ui/css'));
-		app.use("/js",
-			express.static(__dirname + '/node_modules/hapi-server-ui/js'));
-		app.use("/scripts",
-			express.static(__dirname + '/node_modules/hapi-server-ui/scripts'));
+	// Serve content needed in index.htm (no directory listing provided)
+	app.use("/css",
+		express.static(__dirname + '/node_modules/hapi-server-ui/css'));
+	app.use("/js",
+		express.static(__dirname + '/node_modules/hapi-server-ui/js'));
+	app.use("/scripts",
+		express.static(__dirname + '/node_modules/hapi-server-ui/scripts'));
 
-	}
-
-	apiInit(CATALOGS,PREFIXES);
+	apiInit(CATALOGS, PREFIXES);
 
 	// TODO: This should be a callback to apiInit.
 	app.listen(argv.port, function () {
 
-		// Show messages after server started
-		if (CATALOGS.length == 1) {
-			var url = 'http://localhost:' + argv.port + PREFIXES[0] + "/hapi";
-		} else {
-			var url = 'http://localhost:' + argv.port;
-			console.log(ds() + "HAPI server list is at");
-			console.log(ds() + "   http://localhost:" + argv.port);
-			console.log(ds() + "Listed datasets are at");
-			for (var i = 0;i < CATALOGS.length;i++) {
-				console.log(ds() + "  http://localhost:" + argv.port + PREFIXES[i] + "/hapi");
-			}
+		console.log(ds() + clc.blue("Listening on port " + argv.port));
+
+		var url = 'http://localhost:' + argv.port;
+		console.log(ds() + "HAPI server list is at");
+		console.log(ds() + "   http://localhost:" + argv.port);
+		console.log(ds() + "Listed datasets are at");
+		for (var i = 0;i < CATALOGS.length;i++) {
+			console.log(ds() + "  http://localhost:" + argv.port + "/" + PREFIXES[i] + "/hapi");
 		}
+
+		console.log(ds() + "To open a browser at " + url + ", use the --open option.");
+		console.log(ds() + "To run test URLs and exit, use the --test option.");
+		console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
+
 
 		if (OPEN) {
 			// Open browser window
@@ -257,20 +249,18 @@ function main() {
 			require('child_process').exec(start + ' ' + url);
 		}
 
-		console.log(ds() + clc.blue("Listening on port " + argv.port));
-
 		if (TEST) {
 			// Exits with signal 0 or 1
-			test.urls(CATALOGS,PREFIXES,url,TEST);
+			test.urls(CATALOGS, PREFIXES, url, TEST);
 		}
 		if (VERIFY) {
 			// Exits with signal 0 or 1
-			verify(url);
+			verify(url + "/" + PREFIXES[0] + "/hapi");
 		}
 	})
 }
 
-function apiInit(CATALOGS,PREFIXES,i) {
+function apiInit(CATALOGS, PREFIXES, i) {
 
 	if (arguments.length == 2) {
 		i = 0;
@@ -284,7 +274,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 			if (PREFIXES.length == 1) {
 				res.status(404).send("Invalid URL. See <a href='"
 					+ PREFIXES[0] + "/hapi'>" 
-					+ PREFIXES[0].substr(1) + "/hapi</a>");
+					+ PREFIXES[0] + "/hapi</a>");
 			} else {
 				res.status(404).send("Invalid URL. See <a href='/'>start page</a>");
 			}
@@ -296,13 +286,11 @@ function apiInit(CATALOGS,PREFIXES,i) {
 	}
 
 	let CATALOG = CATALOGS[i];
-	let PREFIX = PREFIXES[i]
+	let PREFIX = "/" + PREFIXES[i]
 	
 	let capabilities = metadata(CATALOG,"capabilities");
 	let hapiversion = capabilities["HAPI"];
 
-	console.log(ds() + "To run test URLs and exit, use the --test option.");
-	console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
 	console.log(ds() + clc.green("Initializing endpoints for http://localhost:" 
 					 + argv.port + PREFIX + "/hapi"));
 
@@ -482,7 +470,7 @@ function apiInit(CATALOGS,PREFIXES,i) {
 					+ PREFIX + "/hapi'>" + PREFIX.substr(1) + "/hapi</a>");
 	})
 
-	apiInit(CATALOGS,PREFIXES,++i);
+	apiInit(CATALOGS, PREFIXES, ++i);
 }
 
 function cors(res) {
@@ -614,7 +602,6 @@ function data(req,res,catalog,header,include) {
 			com = com.replace("${parameters}",'');
 		}
 		com = com.replace("${format}",header["format"]);
-		com = com.replace("${server}","http://localhost:" + argv.port);
 		return com;	
 	}
 
@@ -909,7 +896,8 @@ function csvTo(records,first,last,header,include) {
 			// Does not check for multiple trailing newlines.
 		}
 
-		var record1 = recordsarr[0].split(",");
+		var re = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/g;
+		var record1 = recordsarr[0].split(re);
 		var Nd = record1.length - 1; // Number of data columns
 
 		Nb = 0;
@@ -927,9 +915,11 @@ function csvTo(records,first,last,header,include) {
 
 		var recordbuff = new Buffer.alloc(Nr*Nb);
 		var pos = 0;
+		var truncated = 0;
 		for (var i = 0; i < Nr; i++) {
-			var record = recordsarr[i].split(",");
-			//console.log(record)
+			// Regex that handles quoted commas
+			// from: https://stackoverflow.com/a/23582323
+			var record = recordsarr[i].split(re);
 			for (var j = 0;j < Nd+1;j++) {
 				if (types[j] === 'double') {
 					recordbuff.writeDoubleLE(record[j],pos);
@@ -940,10 +930,16 @@ function csvTo(records,first,last,header,include) {
 					pos = pos + 4;
 				}
 				if (types[j] === 'string' || types[j] === 'isotime') {
+					if (record[j].length > lengths[j]) {
+						truncated = truncated + 1;
+					}
 					recordbuff.write(record[j],pos)
 					pos = pos + lengths[j];
 				}
 			}
+		}
+		if (truncated > 0) {
+			console.log(ds() + clc.red((truncated) + " strings were truncated because they were longer than length given in metadata"));
 		}
 		return recordbuff;
 	}

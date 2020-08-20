@@ -22,18 +22,15 @@
     "express": "^4.15.3",
     "hapi-server-ui": "git+https://github.com/hapi-server/server-ui.git#master",
     "hapi-server-verifier": "git+https://github.com/hapi-server/verifier-nodejs.git#master",
-    "json-ref-resolver": "^1.0.1",
     "moment": "^2.18.1",
-    "nodemon": "^2.0.4",
-    "sync-request": "^4.1.0",
     "yargs": "^8.0.1"
   },
   "scripts": {
     "clean": "rm -rf node_modules/; rm -rf public/data/QinDenton/",
     "test": "node test/server-test.js; node test/subset-test.js",
     "start": "node server.js --port 8998",
-    "start-production": "bash -c -l 'source ~/.nvm/nvm.sh; nvm use 8 && nohup forever server.js --port 9998 -i -f metadata/TestData.json -f metadata/TestData2.1.json -f metadata/TestDataBad.json -f metadata/TestDataRef.json -f metadata/SSCWeb.json 1>&2 | tee nohup.out &'",
-    "start-test": "bash -c -l 'source ~/.nvm/nvm.sh && nvm use 8 && forever server.js --port 8998 -i -f metadata/TestData.json -f metadata/TestData2.1.json -f metadata/TestDataBad.json -f metadata/TestDataRef.json'",
+    "start-production": "bash -c -l 'source ~/.nvm/nvm.sh; nvm use 6 && nohup forever server.js --port 9998 -i -f metadata/TestData.json -f metadata/TestData2.1.json -f metadata/TestDataBad.json -f metadata/TestDataRef.json -f metadata/SSCWeb.json 1>&2 | tee nohup.out &'",
+    "start-test": "bash -c -l 'source ~/.nvm/nvm.sh && nvm use 6 && forever server.js --port 8998 -i -f metadata/TestData.json -f metadata/TestData2.1.json -f metadata/TestDataBad.json -f metadata/TestDataRef.json'",
     "package": "cd pkg; make update VERSION=v$npm_package_version",
     "test-packages": "cd pkg; make test-packages VERSION=v$npm_package_version",
     "release": "cd pkg; make release VERSION=v$npm_package_version"
