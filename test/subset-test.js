@@ -16,4 +16,25 @@ var testa = [
 		"Ncommas": "7"
 	}
 ]
-test.commands(testa,"subset.js");
+
+console.log('Subsetting tests');
+console.log('________________');
+const clc = require('chalk');
+let fails = 0;
+for (let i = 0;i < testa.length; i++) {
+	let prefix = "Test " + (i+1) + "/" + (testa.length) + ": ";
+	process.stdout.write(clc.blue(prefix) + testa[i]["command"] + "\n");
+	ok = test.commands([testa[i]], "subset.js");
+	if (ok) {
+		console.log(clc.blue(prefix) + clc.green.bold("PASS") + "\n");
+	} else {
+		fails = fails + 1;
+		console.log(clc.blue(prefix) + clc.red.bold(" FAIL") + "\n");
+	}
+}
+
+if (fails == 0) {
+	process.exit(0);
+} else {
+	process.exit(1);
+}

@@ -48,6 +48,9 @@ function filelist(metadir, excludes) {
 	return files;
 }
 
+console.log('URL tests');
+console.log('_________');
+
 let fails = 0;
 for (var i = 0; i < files.length; i++) {
 	// Run node server.js --test -f metadata/CATALOG.json
