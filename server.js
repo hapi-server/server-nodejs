@@ -1,5 +1,10 @@
-const clc  = require('chalk'); // Colorize command line output
+const fs   = require('fs');
+if (!fs.existsSync(__dirname + "/node_modules")) {
+	console.log("Dependencies not found. Execute npm install before starting server.");
+	process.exit(1);
+}
 
+const clc  = require('chalk'); // Colorize command line output
 const ver  = parseInt(process.version.slice(1).split('.')[0]);
 if (ver < 6) {
 	console.log(clc.red("!!! node.js version >= 6 required.!!! "
@@ -12,7 +17,6 @@ process.on('SIGINT', function() {
 	process.exit(1);
 });
 
-const fs       = require('fs');
 const express  = require('express'); // Client/server library
 const app      = express();
 const server   = require("http").createServer(app);
