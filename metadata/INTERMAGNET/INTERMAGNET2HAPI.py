@@ -1,4 +1,5 @@
 # Dependencies:
+#   Python 3.6+
 #   pip install ftputil joblib
 #
 # Usage:
@@ -8,12 +9,6 @@
 # Walks the directory tree of ftp.seismo.nrcan.gc.ca/intermagnet to generate a
 # list of files and then writes INTERMAGNET-manifest.{txt,pkl} and then 
 # INTERMAGNET-catalog.json, which is HAPI metadata.
-
-import sys, tempfile
-if len(sys.argv) == 2:
-    tmpdir = sys.argv[1]
-else:
-    tmpdir = '/tmp'
 
 # When True, uses 4 parallel FTP connections when updating manifest
 parallelize = True
@@ -31,8 +26,8 @@ update_pkl = False
 # Write a HAPI JSON file using information in INTERMAGNET-manifest.pkl
 # and information in first and last file for each magnetometer.
 # Takes ~3.5 hours (1 minute if first and last files found in TMPDIR).
-update_json = False 
-test_N = None # Run test on only first test_N datasets. If test_N = None, process all datasets.
+update_json = True 
+test_N = 3 # Run test on only first test_N datasets. If test_N = None, process all datasets.
 
 update_table = True 
 
@@ -218,14 +213,14 @@ def createjson(fnamepkl, fnamejson, fnametableinfo, tmpdir):
         info["description"] = "" \
             + "This is a pass-through HAPI server of data from " + purl + "." \
             + "This server responds to requests by fetching the required files and concatenating or " \
-            + "subsetting them. The numbers in a response will exactly match the numbers in the contributing " \
+            + "subsetting them (as needed). The numbers in a response will exactly match the numbers in the contributing " \
             + "files. The metadata for the files used to for the response can be found by either (1) making a request for metadata " \
             + "using http://hapi-server.org/INTERMAGNET/hapi/info?id=" + id + "/metadata&time.min=START&time.max=STOP, "\
-            + "where START/STOP are the start/stop dates of interest or (2) reading the headers the files " \
+            + "where START/STOP are the start/stop dates of interest or (2) reading the headers in the files " \
             + "associated with the requested timerange at " + purl + "."
 
-        info["_terms_of_use"] = "See https://intermagnet.github.io/data_conditions.html (Creative Commons Attribution-NonCommercial 4.0 International License)"
-        info["_acknowledgement"] = "See https://intermagnet.org/data-donnee/data-eng.php#conditions"
+        info["x_terms_of_use"] = "See https://intermagnet.github.io/data_conditions.html (Creative Commons Attribution-NonCommercial 4.0 International License)"
+        info["x_acknowledgement"] = "See https://intermagnet.org/data-donnee/data-eng.php#conditions"
 
         start = s[id]['first'].split("/")[-1][3:11]
         stop = s[id]['last'].split("/")[-1][3:11]
@@ -279,13 +274,17 @@ def createjson(fnamepkl, fnamejson, fnametableinfo, tmpdir):
                             + "The definitions of the parameters are given at " \
                             + "https://www.ngdc.noaa.gov/IAGA/vdat/IAGA2002/iaga2002format.html"
 
-        info["_terms_of_use"] = "See https://intermagnet.github.io/data_conditions.html (Creative Commons Attribution-NonCommercial 4.0 International License)"
-        info["_acknowledgement"] = "See https://intermagnet.org/data-donnee/data-eng.php#conditions"
+        info["x_terms_of_use"] = "See https://intermagnet.github.io/data_conditions.html (Creative Commons Attribution-NonCommercial 4.0 International License)"
+        info["x_acknowledgement"] = "See https://intermagnet.org/data-donnee/data-eng.php#conditions"
 
         start = s[id]['first'].split("/")[-1][3:11]
         stop = s[id]['last'].split("/")[-1][3:11]
         info["startDate"] = start[0:4] + "-" + start[4:6] + "-" + start[6:8] + "Z"
         info["stopDate"] = stop[0:4] + "-" + stop[4:6] + "-" + stop[6:8] + "Z"
+
+        tmp = datetime.datetime.strptime(stop[0:8],"%Y%m%d") - datetime.timedelta(days=3)
+        info["sampleStartDate"] = datetime.datetime.strftime(tmp, '%Y-%m-%dZ')
+        info["sampleStopDate"] = info["stopDate"]
 
         keys = [
                 ['Source_of_Data', "string", None, None, 70],
@@ -311,13 +310,6 @@ def createjson(fnamepkl, fnamejson, fnametableinfo, tmpdir):
                                 "fill": None,
                                 "length": 10
                             }]
-
-        info["parameters"].append({
-                                    "name": "DOY",
-                                    "type": "integer", 
-                                    "units": None, 
-                                    "fill": None
-                                })
 
         info["parameters"].append({
                                     "name": "Components",
@@ -403,6 +395,7 @@ def createjson(fnamepkl, fnamejson, fnametableinfo, tmpdir):
         else:
             meta = meta_first[id]
 
+        # Regular data dataset
         catalog.append({})
         catalog[-1]["id"] =  id
         if 'Station Name' in meta:
@@ -412,11 +405,11 @@ def createjson(fnamepkl, fnamejson, fnametableinfo, tmpdir):
         else:
             catalog[-1]["title"] = ''
 
-        catalog[-1]["title"] = catalog[-1]["title"]
+        catalog[-1]["title"] = catalog[-1]["id"] + " @ " + catalog[-1]["title"]
         
         catalog[-1]["info"] = datainfo(s, id, meta)
 
-
+        # Metadata dataset
         catalog.append({})
         catalog[-1]["id"] =  id + "/metadata"
         if 'Station Name' in meta:
@@ -426,7 +419,7 @@ def createjson(fnamepkl, fnamejson, fnametableinfo, tmpdir):
         else:
             catalog[-1]["title"] = ''
 
-        catalog[-1]["title"] = catalog[-1]["title"]
+        catalog[-1]["title"] = catalog[-1]["id"] + " @ " + catalog[-1]["title"]
         
         catalog[-1]["info"] = metainfo(s, id, meta)
 
@@ -464,32 +457,14 @@ def createjson(fnamepkl, fnamejson, fnametableinfo, tmpdir):
 def archive(fname):
     ds = datetime.datetime.now().strftime('%Y-%m-%d')
     if os.path.exists(fname):
-        fname_old = 'old/%s-%s.txt' % (fname[0:-4], ds)
+        fname_old = 'old/%s-%s.txt' % (fname[0:-5], ds)
         print('Moving ./' + fname + ' to ' + fname_old)
         os.makedirs('old', exist_ok=True)
         shutil.move(fname, fname_old)
 
 
-fnametxt = 'INTERMAGNET-manifest.txt'
-fnamepkl = 'INTERMAGNET-manifest.pkl'
-fnamejson = 'INTERMAGNET-catalog.json'
-fnametableinfo = 'INTERMAGNET-tableinfo.pkl'
-fnametable = 'INTERMAGNET-tableinfo.html'
+def createtable():
 
-if update_manifest:
-    archive(fnametxt)
-    createmanifest(server, fnametxt)
-
-if update_pkl:
-    archive(fnamepkl)
-    parsemanifest(fnametxt, fnamepkl)
-
-if update_json:
-    archive(fnamejson)
-    createjson(fnamepkl, fnamejson, fnametableinfo, tmpdir)
-
-if update_table:
-    #print('Reading ' + fnametableinfo)
     with open(fnametableinfo, 'rb') as f:
         meta_all = pickle.load(f)
 
@@ -562,3 +537,30 @@ if update_table:
     print("Writing " + "html/index.htm")
     with open('html/index.htm','w') as f:
         f.writelines(l)
+
+
+if len(sys.argv) == 2:
+    tmpdir = sys.argv[1]
+else:
+    tmpdir = os.path.dirname(os.path.abspath(__file__))
+
+fnametxt = 'meta/INTERMAGNET-manifest.txt'
+fnamepkl = 'meta/INTERMAGNET-manifest.pkl'
+fnamejson = 'INTERMAGNET-catalog.json'
+fnametableinfo = 'meta/INTERMAGNET-tableinfo.pkl'
+fnametable = 'meta/INTERMAGNET-tableinfo.html'
+
+if update_manifest:
+    archive(fnametxt)
+    createmanifest(server, fnametxt)
+
+if update_pkl:
+    archive(fnamepkl)
+    parsemanifest(fnametxt, fnamepkl)
+
+if update_json:
+    archive(fnamejson)
+    createjson(fnamepkl, fnamejson, fnametableinfo, tmpdir)
+
+if update_table:
+    createtable()

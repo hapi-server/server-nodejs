@@ -11,6 +11,8 @@ import urllib.request
 
 server = 'ftp.seismo.nrcan.gc.ca'
 
+tmpdir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','metadata','INTERMAGNET')
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--id', default='ams/definitive/minute')
 parser.add_argument('--start', default='2013-12-01T00:00:00.000000000Z')
@@ -18,13 +20,14 @@ parser.add_argument('--stop', default='2013-12-02T00:00:00.000000000Z')
 #parser.add_argument('--id', default='bou/definitive/minute')
 #parser.add_argument('--start', default='2017-12-01T00:00:00.000000000Z')
 #parser.add_argument('--stop', default='2017-12-02T00:00:00.000000000Z')
-parser.add_argument('--tmpdir', default='/tmp')
+parser.add_argument('--tmpdir', default=tmpdir)
 parser.add_argument('--refresh', default=False)
 args = vars(parser.parse_args())
 
 id = args['id']
 start = args['start']
 stop = args['stop']
+
 
 def download(url, start, stop):
 
@@ -143,6 +146,8 @@ def download(url, start, stop):
 					outline = outline + ',' + '"' + meta[key] + '"'
 				else:
 					outline = outline + "," + meta[key]
+			else:
+					outline = outline + ","
 		print(outline + "," + '"' + comment + '"')
 	else:
 		for line in lines:
