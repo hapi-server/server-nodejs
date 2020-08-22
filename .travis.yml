@@ -1,12 +1,25 @@
 sudo: required
-os:
-  - linux
-  - osx
-language: node_js
-node_js:
-  - "6.16"
+jobs:
+  include:
+    - os: linux
+      language: node_js
+      node_js:
+        - "6.16"
+
+    - os: windows
+      language: node_js
+      node_js:
+        - "8.11.3"
+
+    - os: osx
+      language: node_js
+      node_js:
+        - "6.16"
+
+
 before_install:
   - npm  i
 script:
+  - npm run-script test-https -- --coverage
   - node test/server-test.js -- --coverage
   - node test/subset-test.js -- --coverage

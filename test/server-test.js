@@ -3,7 +3,7 @@ const path = require("path");
 const clc  = require('chalk');
 const spawnSync = require('child_process').spawnSync;
 
-const nodeexe = process.execPath + " server.js";
+const nodeexe =  "node server.js";
 const metadir = __dirname + '/../metadata';
 
 const excludes = 
