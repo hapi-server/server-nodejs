@@ -3,11 +3,7 @@ const path = require("path");
 const clc  = require('chalk');
 const spawnSync = require('child_process').spawnSync;
 
-<<<<<<< HEAD
 const nodeexe = "'" + process.execPath + "' server.js";
-=======
-const nodeexe =  "node server.js";
->>>>>>> Added travis.yml, modified files to support windows env
 const metadir = __dirname + '/../metadata';
 
 const excludes =
