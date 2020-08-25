@@ -23,6 +23,9 @@ SSCWeb2HAPI(
 
 		console.log(JSON.stringify(catalog,null,4));
 		//console.log(fs.readFileSync(cfile, 'utf8'));
+	
+		//console.log(JSON.stringify(catalog,null,4));
+		console.log(fs.readFileSync(cfile, 'utf8'));
 		//process.exit(0);
 	}
 )
@@ -70,6 +73,7 @@ function SSCWeb2HAPI(cb) {
 			//console.error("Returning cache file " + cfile + " because it is less than " + max_age + " seconds.")
 			console.log(fs.readFileSync(cfile, 'utf8'));
 			// TODO: Could pipe this.
+			 // TODO: Could pipe this.
 		} else {
 			// Save current version. Only archived by day.
 			ymd = new Date().toISOString().substring(0, 10);
@@ -84,12 +88,63 @@ function SSCWeb2HAPI(cb) {
 				.on('finish', function () {
 					getUrlo(cb);
 
+					//console.error("Getting " + urlo)
+					request(urlo, 
+						function (error, response, body) {
+							if (error) {
+								if (fs.existsSync(cfile)) {
+									//console.error("Could not get " + urlo + ". Returning cached metadata.")
+									cb(null,fs.readFileSync(cfile));
+								} else {
+									cb(Error ("Could not get " + urlo + " and no cached metadata."));
+								}
+							}
+							var parser = new xml2js.Parser();
+							parser.parseString(body, function (err, jsonraw) {
+								if (err) {
+									cb(err);
+								}
+
+								//loading the catalog file with newly fetched data (writeFileSync shall overwrite by default)
+								fs.writeFileSync(cfile, JSON.stringify(jsonraw,null,4));
+								makeHAPI(jsonraw,cb);
+							})
+					});
 				});
 		}
 	} else {
 		//if there is no cached file
 		getUrlo(cb);
 
+
+		//create a new cfile
+		var createStream = fs.createWriteStream(cfile);
+		createStream.end();
+
+					//console.error("Getting " + urlo)
+					request(urlo, 
+						function (error, response, body) {
+							if (error) {
+								if (fs.existsSync(cfile)) {
+									console.error("Could not get " + urlo + ". Returning cached metadata.")
+									cb(null,fs.readFileSync(cfile));
+								} else {
+									cb(Error ("Could not get " + urlo + " and no cached metadata."));
+								}
+							}
+							var parser = new xml2js.Parser();
+							parser.parseString(body, function (err, jsonraw) {
+								if (err) {
+									cb(err);
+								}
+								
+								//loading the catalog file
+								fs.writeFileSync(cfile, JSON.stringify(jsonraw,null,4));
+        
+								  //triggering the callback
+								makeHAPI(jsonraw,cb);
+							})
+					});
 	}
 
 }
@@ -143,6 +198,26 @@ function makeHAPI(jsonraw, cb) {
 			  catalog[i]["info"]["parameters"][j]["length"] = len;
 		  }
            
+			catalog[i]["info"]["parameters"][j]["name"] = paraminfo[0].replace(/"/g,"");
+			catalog[i]["info"]["parameters"][j]["description"] = paraminfo[2].replace(/"/g,"");
+			catalog[i]["info"]["parameters"][j]["units"] = paraminfo[3].replace(/"/g,"") || "dimensionless";
+			catalog[i]["info"]["parameters"][j]["fill"] = paraminfo[4].replace(/"/g,"") || null;
+
+			
+			var type = paraminfo[5].replace(/"/g,"");
+			//console.log(catalog[i]["info"]["parameters"][j]["type"],type,parseInt(type.replace(/%|s/,"")));
+
+			if (type.substring(type.length-2,type.length-1) == "f") {
+				catalog[i]["info"]["parameters"][j]["type"] = "double";
+			}
+			if (type.substring(type.length-2,type.length-1) == "d") {
+				catalog[i]["info"]["parameters"][j]["type"] = "integer";
+			}
+			if (type.substring(type.length-2,type.length-1) == "s") {
+				let len = parseInt(type.replace(/%|s/,""));
+				catalog[i]["info"]["parameters"][j]["type"] = "string";
+				catalog[i]["info"]["parameters"][j]["length"] = len;
+			}
 		}
 		
 
