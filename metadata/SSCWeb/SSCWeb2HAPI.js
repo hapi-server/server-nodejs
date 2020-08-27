@@ -120,31 +120,8 @@ function SSCWeb2HAPI(cb) {
 		//create a new cfile
 		var createStream = fs.createWriteStream(cfile);
 		createStream.end();
+		getUrlo(cb);
 
-					//console.error("Getting " + urlo)
-					request(urlo, 
-						function (error, response, body) {
-							if (error) {
-								if (fs.existsSync(cfile)) {
-									console.error("Could not get " + urlo + ". Returning cached metadata.")
-									cb(null,fs.readFileSync(cfile));
-								} else {
-									cb(Error ("Could not get " + urlo + " and no cached metadata."));
-								}
-							}
-							var parser = new xml2js.Parser();
-							parser.parseString(body, function (err, jsonraw) {
-								if (err) {
-									cb(err);
-								}
-								
-								//loading the catalog file
-								fs.writeFileSync(cfile, JSON.stringify(jsonraw,null,4));
-        
-								  //triggering the callback
-								makeHAPI(jsonraw,cb);
-							})
-					});
 	}
 
 }
@@ -203,18 +180,17 @@ function makeHAPI(jsonraw, cb) {
 			catalog[i]["info"]["parameters"][j]["units"] = paraminfo[3].replace(/"/g,"") || "dimensionless";
 			catalog[i]["info"]["parameters"][j]["fill"] = paraminfo[4].replace(/"/g,"") || null;
 
-			
-			var type = paraminfo[5].replace(/"/g,"");
+			var type = paraminfo[5].replace(/"/g, "");
 			//console.log(catalog[i]["info"]["parameters"][j]["type"],type,parseInt(type.replace(/%|s/,"")));
 
-			if (type.substring(type.length-2,type.length-1) == "f") {
+			if (type.substring(type.length - 2, type.length - 1) === "f") {
 				catalog[i]["info"]["parameters"][j]["type"] = "double";
 			}
-			if (type.substring(type.length-2,type.length-1) == "d") {
+			if (type.substring(type.length - 2, type.length - 1) === "d") {
 				catalog[i]["info"]["parameters"][j]["type"] = "integer";
 			}
-			if (type.substring(type.length-2,type.length-1) == "s") {
-				let len = parseInt(type.replace(/%|s/,""));
+			if (type.substring(type.length - 2, type.length - 1) === "s") {
+				let len = parseInt(type.replace(/%|s/, ""));
 				catalog[i]["info"]["parameters"][j]["type"] = "string";
 				catalog[i]["info"]["parameters"][j]["length"] = len;
 			}
