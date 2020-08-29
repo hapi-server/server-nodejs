@@ -16,16 +16,17 @@
     "url": "https://github.com/hapi-server/server-nodejs.git"
   },
   "dependencies": {
+    "asyncawait": "^3.0.0",
     "chalk": "^2.4.1",
     "command-exists": "^1.2.2",
     "compression": "^1.6.2",
     "express": "^4.15.3",
+    "glob-fs": "*",
     "hapi-server-ui": "git+https://github.com/hapi-server/server-ui.git#master",
     "hapi-server-verifier": "git+https://github.com/hapi-server/verifier-nodejs.git#master",
-    "glob-fs": "*",
     "moment": "^2.18.1",
-    "yargs": "^8.0.1",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.4.23",
+    "yargs": "^8.0.1"
   },
   "scripts": {
     "clean": "rm -rf node_modules/; rm -rf public/data/QinDenton/",
