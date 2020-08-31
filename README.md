@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/hapi-server/server-nodejs.png?branch=master)](https://travis-ci.org/hapi-server/server-nodejs)
+
 # HAPI Server Front-End
 
 A generic HAPI front-end server.
