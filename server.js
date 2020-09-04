@@ -17,6 +17,7 @@ process.on('SIGINT', function() {
 	process.exit(1);
 });
 
+
 const express  = require('express'); // Client/server library
 const app      = express();
 const compress = require('compression'); // Express compression module
