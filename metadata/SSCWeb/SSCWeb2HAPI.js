@@ -183,17 +183,20 @@ function makeHAPI(jsonraw, cb) {
 			var type = paraminfo[5].replace(/"/g, "");
 			//console.log(catalog[i]["info"]["parameters"][j]["type"],type,parseInt(type.replace(/%|s/,"")));
 
-			if (type.substring(type.length - 1, type.length) === "f") {
-				catalog[i]["info"]["parameters"][j]["type"] = "double";
-			}
-			if (type.substring(type.length - 1, type.length) === "d") {
-				catalog[i]["info"]["parameters"][j]["type"] = "integer";
-			}
-			if (type.substring(type.length - 1, type.length) === "s") {
-				let len = parseInt(type.replace(/%|s/, ""));
-				catalog[i]["info"]["parameters"][j]["type"] = "string";
-				catalog[i]["info"]["parameters"][j]["length"] = len;
-			}
+			
+
+                if (type.substring(type.length - 2, type.length-1) === "f") {
+                    catalog[i]["info"]["parameters"][j]["type"] = "double";
+                }
+                if (type.substring(type.length - 2, type.length-1) === "d") {
+                    catalog[i]["info"]["parameters"][j]["type"] = "integer";
+                }
+                if (type.substring(type.length - 2, type.length-1) === "s") {
+                    let len = parseInt(type.replace(/%|s/, ""));
+                    catalog[i]["info"]["parameters"][j]["type"] = "string";
+                    catalog[i]["info"]["parameters"][j]["length"] = len;
+                }
+           
 		}
 		
 
@@ -219,3 +222,4 @@ function makeHAPI(jsonraw, cb) {
 	}
 	cb(null, catalog);
 }
+

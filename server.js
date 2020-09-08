@@ -17,8 +17,8 @@ process.on('SIGINT', function() {
 	process.exit(1);
 });
 
-
 const express  = require('express'); // Client/server library
+const app      = express();
 const compress = require('compression'); // Express compression module
 const moment   = require('moment'); // Time library http://moment.js
 const yargs    = require('yargs');
@@ -108,12 +108,8 @@ const VERIFIER    = argv.verifier;
 const PLOTSERVER  = argv.plotserver;
 const HTTPS       = argv.https;
 
-const app      = express();
+var server   = "";
 const args = require('minimist')(process.argv.slice(2));
-console.log("key : "+args['key'])
-console.log("cert : "+args['cert'])
-var options = {};
-var server = "";
 
 if(HTTPS!= undefined){
 	//If HTTPs is true, checks for the path of certificates
@@ -278,7 +274,56 @@ function main() {
 	apiInit(CATALOGS, PREFIXES);
 
 	// TODO: This should be a callback to apiInit.
-	app.listen(argv.port, function () {
+
+
+	if(HTTPS!= undefined){
+//In-case of HTTPS, server.listen shall be used. app.listen() can only listen to HTTP requests
+	server.listen(argv.port, function () {
+
+		console.log(ds() + clc.blue("Listening on port " + argv.port));
+
+		var url = 'https://localhost:' + argv.port;
+		console.log(ds() + "HAPI server list is at");
+		console.log(ds() + "   https://localhost:" + argv.port);
+		console.log(ds() + "Listed datasets are at");
+		for (var i = 0;i < CATALOGS.length;i++) {
+			console.log(ds() + "  https://localhost:" + argv.port + "/" + PREFIXES[i] + "/hapi");
+		}
+
+		console.log(ds() + "To open a browser at " + url + ", use the --open option.");
+		console.log(ds() + "To run test URLs and exit, use the --test option.");
+		console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
+
+	if (OPEN) {
+			// Open browser window
+			var start = (process.platform == 'darwin' 
+							? 'open': process.platform == 'win32'
+							? 'start': 'xdg-open');
+			require('child_process').exec(start + ' ' + url);
+		}
+			if (TEST) {
+			// Exits with signal 0 or 1
+			test.urls(CATALOGS, PREFIXES, url, TEST, HTTPS);
+		}
+
+		if (VERIFY) {
+			// TODO: This only verifies first
+			let s = metadata(PREFIXES[0],'server');
+			// verify() exits with code 0 or 1.
+			if (s.verify) {
+				// If server has many datasets, select subset to verify.
+				verify(url + "/" + PREFIXES[0] + "/hapi", s.verify);
+			} else {
+				verify(url + "/" + PREFIXES[0] + "/hapi");
+			}
+		}
+
+		
+	})
+
+	} else {
+		//In case of HTTP connection
+		app.listen(argv.port, function () {
 
 		console.log(ds() + clc.blue("Listening on port " + argv.port));
 
@@ -319,6 +364,8 @@ function main() {
 			}
 		}
 	})
+	}
+	
 }
 
 function apiInit(CATALOGS, PREFIXES, i) {

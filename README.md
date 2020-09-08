@@ -603,14 +603,14 @@ npm test
 
 # Starting the HTTPS Server
 
-# The Usage of --https flag triggers the HTTPS server. The --cert and  --key flags are used to explicitly specify the ssl certificate paths.
+# The Usage of --https flag triggers the HTTPS server. The --cert and  --key flags (both optional) are used to explicitly specify the ssl certificate paths.
 # If --https flag is not provided the http server shall be launched with default certificates present in the ssl folder. If the given path of certificates do not exists, then the process terminates.
 
 # Generate the certificates
 node test/gen_ssl.js
 
 #Launch the HTTPS server
-./hapi-server --https --cert certPath --key keyPath
+./hapi-server --https --cert certPath --key keyPath OR node server.js --https --cert certPath --key keyPath
 
 #Run the test suite on top of HTTPS server
 npm run-script test-https

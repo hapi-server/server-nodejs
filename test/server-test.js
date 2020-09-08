@@ -19,8 +19,6 @@ const excludes =
 const args = require('minimist')(process.argv.slice(2));
 var isHttps=args['https']; //This will be true if the --https flag is given
 
-console.log("HTTPS enabled :  "+ isHttps);
-
 files = filelist(metadir, excludes);
 
 function execute(com,i) {
