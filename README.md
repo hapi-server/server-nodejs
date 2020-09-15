@@ -566,6 +566,26 @@ The path to a fully resolved catalog can also be given. See also [Example5.json]
 
 ### 5.3 `data`
 
+<a name="HTTPS Support"></a>
+## 6. HTTPS Support
+
+```bash
+# Start the HTTPS server. This shall generate the SSL certificates and starts the HTTPS server
+npm run-script start-https
+
+# Generate certificates, start HTTPS server and run the test-suite
+npm run-script test-https
+
+#Providing the path of certificates explicitly
+
+node server.js --https --cert certPath --key keyPath
+
+#Generate the SSL certificates 
+node test/gen_ssl.js
+
+```
+
+
 <a name="Development"></a>
 ## 7. Development
 
@@ -601,22 +621,6 @@ node server.js
 # Run tests; Python 2.7+ required for certain tests.
 npm test
 ```
-
-# Starting the HTTPS Server
-
-# The Usage of --https flag triggers the HTTPS server. The --cert and  --key flags (both optional) are used to explicitly specify the ssl certificate paths.
-# If --https flag is not provided the http server shall be launched with default certificates present in the ssl folder. If the given path of certificates do not exists, then the process terminates.
-
-# Generate the certificates
-node test/gen_ssl.js
-
-#Launch the HTTPS server
-./hapi-server --https --cert certPath --key keyPath OR node server.js --https --cert certPath --key keyPath
-
-#Run the test suite on top of HTTPS server
-npm run-script test-https
-
-
 
 <a name="Contact"></a>
 ## 8. Contact
