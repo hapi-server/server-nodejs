@@ -571,14 +571,14 @@ The path to a fully resolved catalog can also be given. See also [Example5.json]
 
 ```bash
 # Start the HTTPS server. This shall generate the SSL certificates and starts the HTTPS server
-npm run-script start-https
+node server.js --https
+
+#Providing the path of certificates explicitly
+node server.js --https --cert certPath --key keyPath
 
 # Generate certificates, start HTTPS server and run the test-suite
 npm run-script test-https
 
-#Providing the path of certificates explicitly
-
-node server.js --https --cert certPath --key keyPath
 
 ```
 
