@@ -34,8 +34,8 @@
   "scripts": {
     "clean": "rm -rf node_modules/; rm -rf public/data/QinDenton/",
     "test": "node test/server-test.js && node test/subset-test.js",
-    "test-https": "node test/gen_ssl.js && node test/server-test.js --https",
-    "start-https": "node test/gen_ssl.js && node server.js --https",
+    "test-https": "node test/server-test.js --https",
+    "start-https": "node server.js --https",
     "start": "node server.js --port 8998",
     "start-production": "bash -c -l 'source ~/.nvm/nvm.sh; nvm use 6 && nohup forever server.js --port 9998 -i -f metadata/TestData.json -f metadata/TestData2.1.json -f metadata/TestDataBad.json -f metadata/TestDataRef.json -f metadata/SSCWeb.json 1>&2 | tee nohup.out &'",
     "start-test": "bash -c -l 'source ~/.nvm/nvm.sh && nvm use 6 && forever server.js --port 8998 -i -f metadata/TestData.json -f metadata/TestData2.1.json -f metadata/TestDataBad.json -f metadata/TestDataRef.json'",

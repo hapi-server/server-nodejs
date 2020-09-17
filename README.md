@@ -579,9 +579,6 @@ npm run-script test-https
 
 node server.js --https --cert certPath --key keyPath
 
-#Generate the SSL certificates 
-node test/gen_ssl.js
-
 ```
 
 
