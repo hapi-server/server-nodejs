@@ -1,14 +1,12 @@
 sudo: required
-services:
-  - docker
-
 os:
   - linux
   - osx
-  
+language: node_js
+node_js:
+  - "6.16"
 before_install:
   - npm  i
-
 script:
   - node test/server-test.js -- --coverage
   - node test/subset-test.js -- --coverage
