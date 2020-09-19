@@ -25,6 +25,7 @@ to be able to serve data from a HAPI API from their server. This software handle
 
 1. HAPI metadata validation,
 2. request validation and error responses,
+3. self-signed HTTPS certificate generation,
 3. logging and alerts,
 4. time and parameter subsetting (as needed), and
 5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed).
@@ -564,23 +565,6 @@ The command line command should return the response of an `/info` query (with no
 The path to a fully resolved catalog can also be given. See also [Example5.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example4.json).
 
 ### 5.3 `data`
-
-<a name="HTTPS Support"></a>
-## 6. HTTPS Support
-
-```bash
-# Start the HTTPS server. This shall generate the SSL certificates and starts the HTTPS server
-node server.js --https
-
-#Providing the path of certificates explicitly
-node server.js --https --cert certPath --key keyPath
-
-# Generate certificates, start HTTPS server and run the test-suite
-npm run-script test-https
-
-
-```
-
 
 <a name="Development"></a>
 ## 7. Development
