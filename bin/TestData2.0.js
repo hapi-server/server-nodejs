@@ -67,9 +67,9 @@ for (var i = startsec; i < stopsec; i++) {
 	}
 	if (all || parameters.includes('vector')) {
 		record = record 
-					+ "," + Math.sin(Math.PI*(i-startsec)/600) 
-					+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
-					+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
+					+ "," + Math.sin(Math.PI*(i)/600) 
+					+ "," + Math.sin(Math.PI*(i-150)/600) 
+					+ "," + Math.sin(Math.PI*(i-300)/600)
 	}
 	if (all || parameters.includes('vectorint')) {
 		record = record 
@@ -79,15 +79,15 @@ for (var i = startsec; i < stopsec; i++) {
 	}
 	if (all || parameters.includes('vectorstr')) {
 		record = record 
-						+ "," + scalarstrs[(i-startsec) % scalarstrs.length]
-						+ "," + scalarstrs[(i-startsec+1) % scalarstrs.length]
-						+ "," + scalarstrs[(i-startsec+2) % scalarstrs.length];
+						+ "," + scalarstrs[(i) % scalarstrs.length]
+						+ "," + scalarstrs[(i+1) % scalarstrs.length]
+						+ "," + scalarstrs[(i+2) % scalarstrs.length];
 	}
 	if (all || parameters.includes('vectorcats')) {
 		record = record 
-					+ "," + scalarcats[(i-startsec)   % scalarcats.length]
-					+ "," + scalarcats[(i-startsec+1) % scalarcats.length]
-					+ "," + scalarcats[(i-startsec+2) % scalarcats.length];
+					+ "," + scalarcats[(i)   % scalarcats.length]
+					+ "," + scalarcats[(i+1) % scalarcats.length]
+					+ "," + scalarcats[(i+2) % scalarcats.length];
 	}
 	if (all || parameters.includes('vectoriso')) {
 		record = record 
@@ -97,12 +97,12 @@ for (var i = startsec; i < stopsec; i++) {
 	}
 	if (all || parameters.includes('vectormulti')) {
 		record = record 
-					+ "," + Math.sin(Math.PI*(i-startsec)/600) 
-					+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
-					+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
-					+ "," + Math.sin(Math.PI*(i-startsec)/600) 
-					+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
-					+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
+					+ "," + Math.sin(Math.PI*(i/600))
+					+ "," + Math.sin(Math.PI*(i-150)/600)
+					+ "," + Math.sin(Math.PI*(i-300)/600)
+					+ "," + Math.sin(Math.PI*(i/600))
+					+ "," + Math.sin(Math.PI*(i-150)/600) 
+					+ "," + Math.sin(Math.PI*(i-300)/600)
 	}
 	if (all || parameters.includes('transform')) {
 		for (var j = 0;j < 9;j++) {
