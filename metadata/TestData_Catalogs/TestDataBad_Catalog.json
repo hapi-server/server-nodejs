@@ -1,0 +1,123 @@
+[
+  {
+    "id": "dataset0",
+    "title": "Dataset with !!! intentionally invalid HAPI 2.0 metadata and data !!!",
+    "info":
+        {
+          "startDate": "1970-01-01Z",
+          "stopDate" : "2016-12-31Z",
+          "sampleStartDate": "1970-01-01Z",
+          "sampleStopDate" : "1970-01-01T00:00:10Z",
+          "cadence": "PT1M",
+          "parameters":
+            [
+              {
+                "name": "Time",
+                "type": "isotime",
+                "units": "UTC",
+                "length": 10,
+                "description": "Missing fill, incorrect length, and non-monotonic."
+              },
+              {
+                "name": "scalar",
+                "type": "double",
+                "description": "Missing units"
+              },
+              {
+                "name": "scalar",
+                "type": "double",
+                "description": "Duplicated parameter name"
+              },
+              {
+                "name": "scalarint",
+                "type": "integer",
+                "units": "m",
+                "fill": -1e31,
+                "description": "Floating point value for fill instead of string"
+              },
+              {
+                "name": "scalarstr",
+                "type": "string",
+                "units": null,
+                "fill": "-10",
+                "length": 4,
+                "description": "Numerical value for fill for string parameter"
+              },
+              {
+                "name": "scalariso",
+                "type": "isotime",
+                "units": "UTC",
+                "fill": "0000-00-00:T00:00:00",
+                "length": 21,
+                "description": "Fill is not the same length as parameter (shorter by 1 character)"
+              },
+              {
+                "name": "scalarcats",
+                "type": "integer",
+                "units": null,
+                "fill": null,
+                "description":"This parameters should be before scalariso in array. If both scalariso and scalarcats are requested, order will be wrong in CSV.",
+                "categorymap": {"good":0,"bad ":1,"ugly":2}
+              },
+              {
+                "name": "scalarmulti",
+                "type": "double",
+                "units": "m",
+                "fill": "-1e31",
+                "size": [1,1],
+                "description": "Same as 'scalar' but with size = [1,1] in metadata intead of no size being provided as was case for parameter 'scalar'."
+              },
+              {
+                "name": "vector",
+                "type": "double",
+                "units": "m",
+                "fill": "-1e31",
+                "size": [2],
+                "description ": "Size is wrong (should be [3])"
+              },
+              {
+                "name": "vectorint",
+                "type": "int",
+                "units": "m",
+                "fill": "-1e31",
+                "size": [3],
+                "description ": "Type is 'int' instead of 'integer'."
+              },
+              {
+                "name": "vectorstr",
+                "type": "str",
+                "units": null,
+                "fill": null,
+                "length": 4,
+                "size": [3],
+                "description": "Type is 'str' instead of 'string'"
+              },
+              {
+                "name": "vectoriso",
+                "type": "isotime",
+                "units": "UTC",
+                "length": 20,
+                "fill": "0000-00-00:T00:00:00",
+                "size": [3],
+                "description ": "Type is 'iso' instead of 'isotime'."
+              },
+              {
+                "name": "vectorcats",
+                "type": "integer",
+                "size": [3],
+                "categorymap": {"good":0,"bad ":1,"ugly":2},
+                "description": "Units and fill missing"
+              },
+              {
+                "name": "spectra",
+                "type": "double",
+                "units": "m",
+                "fill": "-1e31",
+                "size" : [100],
+                "bins": {"name": "frequency","centers":[]},
+                "description": "Units missing on bins."
+              }
+            ]
+        }
+  }
+]

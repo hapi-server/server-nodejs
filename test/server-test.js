@@ -16,6 +16,9 @@ const excludes =
 		"TestDataBad"
 	];
 
+//Preparing the catalog for SSCWeb well in advance
+var prepareSSCCatalog= spawnSync('cd ./metadata/SSCWeb && node SSCWeb2HAPI.js', {shell: true});
+
 const args = require('minimist')(process.argv.slice(2));
 var isHttps=args['https']; //This will be true if the --https flag is given
 

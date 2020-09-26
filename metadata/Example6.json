@@ -19,5 +19,5 @@
 		]
 	},
 	"catalog-update": 1,
-	"catalog": "cat $HAPISERVERPATH/metadata/Example5/catalog.json"
+	"catalog": "$HAPISERVERPATH/metadata/Example_Catalogs/Example6_Catalog.json"
 }

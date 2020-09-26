@@ -18,5 +18,5 @@
 			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-12-31T23:50Z&time.max=1971-01-01Z", "Nlines": 10}
 		]
 	},
-	"catalog": "cat $HAPISERVERPATH/metadata/Example5/catalog.json"
+	"catalog": "$HAPISERVERPATH/metadata/Example_Catalogs/Example5_Catalog.json"
 }

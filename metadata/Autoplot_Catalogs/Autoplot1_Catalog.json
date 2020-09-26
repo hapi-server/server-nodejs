@@ -1,0 +1,4 @@
+{
+   "id": "ACE",
+   "info": "java -Djava.awt.headless=true -cp $HAPISERVER_BIN_DIR/autoplot.jar org.autoplot.AutoplotDataServer --uri='http://autoplot.org/data/autoplot.cdf?BGSM' -f hapi-info"
+}

@@ -17,12 +17,5 @@
 			{"url": "http://localhost:8999/AutoplotExample2/hapi/data?id=10.CF3744000800&parameters=Temperature&time.min=2018-01-06Z&time.max=2018-01-07T00:00:00.000Z", "Nlines": 1423}
 		]
 	},
-	"catalog" :
-		[
-			{
-				"id": "10.CF3744000800",
-				"title": "Pool Temperature",
-				"info": "public/data/AutoplotExample2/info/10.CF3744000800.json"
-			}
-		]
+	"catalog" : "cat  $HAPISERVERPATH/metadata/Autoplot_Catalogs/Autoplot2_Catalog.json"
 }

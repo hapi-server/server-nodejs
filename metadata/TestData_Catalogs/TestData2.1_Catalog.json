@@ -1,0 +1,91 @@
+[
+			{
+				"id": "dataset1",
+				"title": "Dataset w/valid HAPI 2.1",
+				"info":
+						{
+							"startDate": "1970-01-01Z",
+							"stopDate" : "2016-12-31Z",
+							"sampleStartDate": "1970-01-01Z",
+							"sampleStopDate" : "1970-01-01T00:00:11Z",
+							"cadence": "PT1S",
+							"parameters":
+								[
+									{
+										"name": "Time",
+										"type": "isotime",
+										"units": "UTC",
+										"fill": null,
+										"length": 24
+									},
+									{
+										"name": "vectorstring",
+										"type": "string",
+										"units": [""],
+										"label": [""],
+										"size": [3],
+										"length": 7,
+										"fill": null,
+										"description": "A vector string where strings have newlines and commas, which are allowed by https://tools.ietf.org/html/rfc4180"
+									},
+									{
+										"name": "vector",
+										"type": "double",
+										"units": ["nT","nT","Å"],
+										"label": ["Bx","By","Bz"],
+										"fill": "-1e31",
+										"size": [3],
+										"description": "Each vector component has a different unit and label."
+									},
+									{
+										"name": "vectormulti",
+										"type": "double",
+										"units": [["nT"],["nT","degrees","nT"]],
+										"label": [["$H_1$","$D_1$","$Z_1$"],["$H_2$","$D_2$","$Z_2$"]],
+										"fill": "-1e31",
+										"size": [2,3],
+										"description": "Two vectors; Each component of each vector is a sine wave with a 600 s period with differing phases."
+									},
+									{
+										"name": "matrix",
+										"type": "double",
+										"units": null,
+										"label": [["Δ$T_{xx}=0$","$\\Delta T_{xy}=1$","$ΔT_{xz}=2$"],["ΔTyx=4","ΔTyy=5","ΔTyz=6"],["ΔTzx=7","ΔTzy=8","ΔTzz=9"]],
+										"fill": "-1e31",
+										"size" : [3,3],
+										"description": "A time invariant matrix with values given in label."
+									},
+									{
+										"name": "spectra",
+										"type": "double",
+										"units": ["m","m","m","m","m","km","km","km","km",null],
+										"fill": "-1e31",
+										"size" : [10],
+										"label": ["Channel À","Channel ẞ","Channel Ç","Channel Д","Channel Ë","Channel ㄱ","Channel が","Channel H","Channel ⺓","Channel ج"],
+										"bins": [
+													{
+														"name": "frequency",
+														"label": ["low f","low f","low f","low f","low f","high f","high f","high f","high f","high f"],
+														"units": ["Hz","Hz","Hz","Hz","Hz","Hz","MHz","MHz","MHz",null],
+														"centers":[0,1,2,3,4,5,6,7,8,null],
+														"ranges":[[-0.5,0.5],[0.5,1.5],[1.5,2.5],[2.5,3.5],[3.5,4.5],[4.5,5.5],[5.5,6.5],[6.5,7.5],[7.5,8.5],[null,null]]
+													}
+										],
+										"description": "A time independent 1/f spectra."
+									},
+									{
+										"name": "spectramulti",
+										"type": "double",
+										"units": [["m","m","m","m","m","km","km","km","km",null],["m","m","m","m","m","km","km","km",null,"km"]],
+										"fill": "-1e31",
+										"size" : [2,10],
+										"bins": [
+													{"name": "frequency", "units": "Hz","centers":[0,1,2,3,4,5,6,7,8,null]},
+													{"name": "frequency", "units": "MHz","centers":[10,11,12,13,14,15,16,17,null,19]}
+												],
+										"description": "Two time independent 1/f spectra."
+									}
+								]
+						}
+			}
+		]

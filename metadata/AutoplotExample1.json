@@ -16,11 +16,5 @@
             {"url": "data?id=ACE&parameters=Bx__GSM_&time.min=2006-01-01T00:00:00.000Z&time.max=2006-01-02T00:00:00.000Z&attach=false","Nlines": 24}
         ]
     },
-    "catalog":
-    [
-         {
-            "id": "ACE",
-            "info": "java -Djava.awt.headless=true -cp $HAPISERVER_BIN_DIR/autoplot.jar org.autoplot.AutoplotDataServer --uri='http://autoplot.org/data/autoplot.cdf?BGSM' -f hapi-info"
-        }
-    ]
+    "catalog": "cat  $HAPISERVERPATH/metadata/Autoplot_Catalogs/Autoplot1_Catalog.json"
 }
