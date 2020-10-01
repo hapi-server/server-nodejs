@@ -27,8 +27,8 @@ if (parameters.trim() === '') {
 	var parameters = parameters.split(",");
 }
 
-var startsec = new Date(start).valueOf()/1000;
-var stopsec  = new Date(stop).valueOf()/1000;
+var startsec = Math.floor(new Date(start).valueOf()/1000);
+var stopsec  = Math.floor(new Date(stop).valueOf()/1000);
 
 var records = ""; // Number of records (lines)
 var record  = ""; // A record with comma-separated fields (columns)
