@@ -145,8 +145,13 @@ function main() {
 	// with server. This creates it.
 	function writeall(file, all) {
 		console.log(ds() + "Starting creation of " + file);
-		fs.writeFileSync(file, all, "utf8"); 
-		console.log(ds() + "Finished creation of " + file);
+		try {
+			fs.writeFileSync(file, all, "utf8");
+			console.log(ds() + "Finished creation of " + file);
+		} catch(e) {
+			console.log(ds() + clc.red("Error when writing " + file + ":"));
+			console.log(e);
+		}
 	}
 
 	let i = 0;
