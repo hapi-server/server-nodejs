@@ -17,18 +17,19 @@ parallelize = True
 # listing. Takes ~30 minutes when parallelize=True. Set to False if
 # only making corrections to HAPI JSON and not updating list
 # of available files.
-update_manifest = False  
+update_manifest = False
 
 # Create a dictionary of the information in INTERMAGNET-manifest.txt
 # Takes ~10 seconds.
-update_pkl = False 
+update_pkl = False
 
 # Write a HAPI JSON file using information in INTERMAGNET-manifest.pkl
 # and information in first and last file for each magnetometer.
 # Takes ~3.5 hours (1 minute if first and last files found in TMPDIR).
-update_json = True 
-test_N = 3 # Run test on only first test_N datasets. If test_N = None, process all datasets.
+update_json = False 
+test_N = None # Run test on only first test_N datasets. If test_N = None, process all datasets.
 
+# Regenerate index.htm
 update_table = True 
 
 server = 'ftp.seismo.nrcan.gc.ca'
@@ -496,7 +497,8 @@ def createtable():
             max_header_N = header_N
     print('Max # of header lines = ' + str(max_header_N))
 
-    l  = "<body>\n"
+    l  = ""
+    l  = "<p>Last updated: " + datetime.datetime.now().isoformat() + "</p>" 
     l += "<table id='example' class='display dataTable' role='grid'>\n"
     l += "    <tfoot>\n"
     l += "        <tr>\n"
@@ -531,11 +533,12 @@ def createtable():
     l += "</table>\n"
     l += "</body>\n</html>\n"
 
-    with open('html/index-head.htm','r') as f:
-        l = "".join(f.readlines()) + l
-
     print("Writing " + "html/index.htm")
     with open('html/index.htm','w') as f:
+        with open('html/index-head.htm','r') as fh:
+            l = "".join(fh.readlines()) + l
+        with open('html/index-tail.htm','r') as ft:
+            l = l + "".join(ft.readlines())
         f.writelines(l)
 
 
@@ -544,6 +547,10 @@ if len(sys.argv) == 2:
 else:
     tmpdir = os.path.dirname(os.path.abspath(__file__))
 
+
+if not os.path.exists('meta'):
+    os.makedirs('meta')
+    
 fnametxt = 'meta/INTERMAGNET-manifest.txt'
 fnamepkl = 'meta/INTERMAGNET-manifest.pkl'
 fnamejson = 'INTERMAGNET-catalog.json'

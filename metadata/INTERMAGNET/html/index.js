@@ -4,7 +4,7 @@ $(document).ready(function() {
     // Setup - add a text input to each footer cell
     $('#example tfoot th').each( function () {
         var title = $(this).text();
-        $(this).html( '<input type="text" placeholder="Search '+title+'" />' );
+        $(this).html('<p><input type="text" placeholder="Search col."/></p>');
     } );
 
     // DataTable
@@ -21,8 +21,8 @@ $(document).ready(function() {
                             .search( this.value )
                             .draw();
                     }
-                } );
-            } );
+                });
+            });
         }
     });
-} );
+});
