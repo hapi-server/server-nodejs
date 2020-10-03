@@ -11,10 +11,8 @@ script:
   - node test/server-test.js -- --coverage
   - node test/subset-test.js -- --coverage
 notifications:
-  email:
-    recipients:
-      - rweigel@gmu.edu
-      - ksreddy9945@gmail.com
-    if: branch = master
-      on_success: change
-      on_failure: always
+  if branch = master:
+    email:
+      recipients:
+        - rweigel@gmu.edu
+        - ksreddy9945@gmail.com
