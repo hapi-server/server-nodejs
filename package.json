@@ -20,6 +20,7 @@
     "command-exists": "^1.2.2",
     "compression": "^1.6.2",
     "express": "^4.15.3",
+    "serve-index": "^1.9.1",
     "hapi-server-ui": "git+https://github.com/hapi-server/server-ui.git#master",
     "hapi-server-verifier": "git+https://github.com/hapi-server/verifier-nodejs.git#master",
     "glob-fs": "*",

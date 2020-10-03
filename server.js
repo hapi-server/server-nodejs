@@ -17,12 +17,13 @@ process.on('SIGINT', function() {
 	process.exit(1);
 });
 
-const express  = require('express'); // Client/server library
-const app      = express();
-const server   = require("http").createServer(app);
-const compress = require('compression'); // Express compression module
-const moment   = require('moment'); // Time library http://moment.js
-const yargs    = require('yargs');
+const express    = require('express'); // Client/server library
+const app        = express();
+const serveIndex = require('serve-index');
+const server     = require("http").createServer(app);
+const compress   = require('compression'); // Express compression module
+const moment     = require('moment'); // Time library http://moment.js
+const yargs      = require('yargs');
 
 const metadata = require('./lib/metadata.js').metadata;
 const prepmetadata = require('./lib/metadata.js').prepmetadata;
@@ -313,12 +314,6 @@ function apiInit(CATALOGS, PREFIXES, i) {
 	// Serve static files in ./public/data (no directory listing provided)
 	app.use(PREFIX + "/data", express.static(__dirname + '/public/data'));
 
-	// Serve content needed in index.htm (no directory listing provided)
-	app.use(PREFIX + "/css",
-		express.static(__dirname + '/node_modules/hapi-server-ui/css'));
-	app.use(PREFIX + "/js",
-		express.static(__dirname + '/node_modules/hapi-server-ui/js'));
-
 	// Serve all.json file
 	app.get(PREFIX + '/hapi/all.json', function (req, res) {
 		cors(res);
@@ -327,12 +322,64 @@ function apiInit(CATALOGS, PREFIXES, i) {
 		fs.createReadStream(file).pipe(res);
 	})
 
+	// Serve static files if a landing path given
+	let landing_path = metadata(CATALOG,"landingPath");
+	if (landing_path !== "") {
+		console.log(ds() + "Allowing access to files in " + landing_path);
+		app.use(PREFIX + "/", express.static(metadata(CATALOG,"landingPath")));
+	}
+
 	// Serve landing web page
-	app.get(PREFIX + '/hapi', function (req, res) {
-		cors(res); // Set CORS headers
-		res.contentType('text/html');
-		res.send(metadata(CATALOG,"landing"));
-	})
+	// If landing file, serve it.
+	// If no landing file but landing path, serve index.htm or index.html if
+	// found in landing path. If neither found, serve directory listing of
+	// landing path.
+	// If no landing file and no landing path, default page is served (this is
+	// handled in metadata.js, so case will never occur here).
+	let landingFile = "";
+	if (metadata(CATALOG,"landingFile") !== "") {
+		// Serve landing file
+		landingFile = metadata(CATALOG,"landingFile");
+	} else {
+		let file1 = metadata(CATALOG,"landingPath") + "/index.htm";
+		let file2 = metadata(CATALOG,"landingPath") + "/index.html";
+		if (fs.existsSync(file1)) {
+			landingFile = file1;
+		} else {
+			if (fs.existsSync(file2)) {
+				landingFile = file2;
+			} else {
+				// Serve directory listing
+				console.log(ds() 
+							+ "Did not find index.{htm,html}. "
+				  			+ "In " + landing_path 
+				  			+ ". Allowing directory listing.");
+				app.use(PREFIX + '/hapi', serveIndex(landing_path));
+			}
+		}
+	}
+
+	function landing(landingFile) {
+		app.get(PREFIX + '/hapi', function (req, res) {
+			if (landingFile !== "") {
+				//cors(res); // Set CORS headers
+				res.contentType('text/html');
+				let tmp = metadata(CATALOG,"catalog");
+				let str = fs
+					.readFileSync(landingFile,"utf8")
+					.toString()
+					.replace(/__CATALOG__/g, CATALOG.replace(/.*\//,""))
+					.replace(/__VERSION__/g, tmp.HAPI)
+					.replace(/__VERIFIER__/g, VERIFIER)
+					.replace(/__PLOTSERVER__/g, PLOTSERVER);
+				res.send(str);
+			} else {
+				// In this case, directory listing is served. See
+				// serveIndex call.
+			}
+		})
+	}
+	landing(landingFile);
 
 	// /capabilities
 	app.get(PREFIX + '/hapi/capabilities', function (req, res) {

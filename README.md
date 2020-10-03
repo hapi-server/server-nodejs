@@ -7,12 +7,11 @@ A generic HAPI front-end server.
 ## Contents
 
 1. [About](#About)
-1. [Installation](#Installation)
-1. [Examples](#Examples)
-1. [Server Configuration](#Server_Configuration)
-1. [Metadata](#Metadata)
-1. [Development](#Development)
-1. [Contact](#Contact)
+2. [Installation](#Installation)
+3. [Examples](#Examples)
+4. [Server Configuration](#Server_Configuration)
+5. [Metadata](#Metadata)
+6. [Development](#Development)7. [Contact](#Contact)
 
 <a name="About"></a>
 ## 1. About
@@ -275,7 +274,7 @@ And the page at `http://localhost:8999/` will point to these two URLs.
 
 The variables `HAPISERVERPATH`, `HAPISERVERHOME`, `NODEEXE`, and `PYTHONEXE` can be set in `conf/config.json` or as environment variables. These variables can be used in commands, files, and URLs in the server metadata (the file passed using the command-line `--file` switch). 
 
-The default configuration file is `conf/config.json` and this location changed using a command line argument, e.g.,
+The default configuration file is `conf/config.json` and this location can be set using a command line argument, e.g.,
 
 ```
 ./hapiserver -c /tmp/config.json
@@ -387,7 +386,11 @@ The top-level structure of the configuration file is
 	"server": { // See section 5.1
 		"id": "",
 		"prefix": "",
-		"landing": ""
+		"landing": "",
+		"contact": "", 
+		"landingFile": "",
+		"landingPath": "",
+		"catalog-update": null
 	},
 	"catalog": array or string // See section 5.2 
 	"data": { // See section 5.3
@@ -437,11 +440,17 @@ The server node has the form
 
 ```
 "server": {
-	"id": "",
-	"prefix": "",
-	"landing": ""
+	"id": "", 		// Default is file name without extension.
+	"prefix": "", 	// Default is id.
+	"contact": "", 	// Required. Server will not start without this set.
+	"landingFile": "",
+	"landingPath": "",
+	"catalog-update": null // How often in seconds to re-read content
+						   // in the catalog node (5.2).
 }
 ```
+
+#### 5.1.1 `id` and `prefix`
 
 The `id` is by default the name of the server configuration file, e.g.,
 
@@ -459,13 +468,41 @@ http://localhost:8999/TestData/hapi
 
 `TestData` in the URL can be changed to `TestData2` by using `prefix=TestData2`.
 
-`landing` is the path of the page to serve at
+#### 5.1.2 `contact`
+
+This element must not be empty or the server will not start. It should be at minimum the email address of a system administrator.
+
+#### 5.1.3 `landingFile` and `landingPath`
+
+`landingFile` is the file to serve in response to requests for
 
 ```
 http://localhost:8999/TestData/hapi
 ```
 
-By default, the page served is [`$HAPISERVERPATH/public/default.htm`](https://github.com/hapi-server/server-nodejs/blob/master/public/default.htm).
+By default, the landing page served is [single.htm](https://github.com/hapi-server/server-ui/blob/master/single.htm) from the HAPI server UI codebase. The double underscore variables in this file are replaced using information in the metadata file (e.g., `__CONTACT__` is replaced with the `server.contact` value. A different landing page can be served by setting the `landingFile` configuration variable, e.g. `"landingFile": "$HAPISERVERPATH/public/index.htm"`, where `$HAPISERVERPATH` is described in [Server Configuration](#Server_Configuration). 
+
+If `landingFile` has local CSS and JS dependencies, set `landingPath` to be the local directory of the referenced files. Several possible settings are
+
+```javascript
+	"landingFile": "$HAPISERVERPATH/index.htm", 
+	// $HAPISERVERPATH will be replaced with location of hapi-server binary
+	"landingPath": "/var/www/public/" // Location of CSS and JS files
+	// If index.htm has <script src="index.js">, index.js should be in /var/www/public/
+```
+
+To serve a directory listing, use
+
+```javascript
+	"landingFile": "",
+	"landingPath": "/var/www/public/"
+	// Server will look for index.htm and index.html in /var/www/public/. If not
+	// found, directory listing of /var/www/public/ will be served.
+```
+
+#### 5.1.4 `catalog-update`
+
+This is an integer number of seconds corresponding to how often the `catalog` node should be updated. Use this if the `catalog` node is not static.
 
 ### 5.2 `catalog`
 
