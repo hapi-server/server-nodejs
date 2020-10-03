@@ -16,3 +16,5 @@ notifications:
       recipients:
         - rweigel@gmu.edu
         - ksreddy9945@gmail.com
+    on_success: change
+    on_failure: always
