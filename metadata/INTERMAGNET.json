@@ -3,7 +3,7 @@
 		"id": "INTERMAGNET",
 		"prefix": "",
 		"contact": "rweigel@gmu.edu",
-		"landing": "",
+		"landingPath": "$HAPISERVERPATH/metadata/INTERMAGNET/html/",
 		"catalog-update": null
 	},
 	"data": {

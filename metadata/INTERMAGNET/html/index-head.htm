@@ -5,8 +5,12 @@
         href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
     </link>
 	<style>
+		body {
+			margin: 1em;
+		}
 		#example {
 			width:100%;
+			padding-top: 1em;
 		}
 		#example_filter {
 			float: left;
@@ -22,14 +26,53 @@
 			padding: 3px;
 			box-sizing: border-box;
 		}
+		table.dataTable tfoot tr th p {
+			margin: 1px;
+		}
+		table.dataTable tfoot th, table.dataTable tfoot td {
+			padding: 1px;
+		}
 	</style>
-	<script type="text/javascript" 
-		src="https://code.jquery.com/jquery-3.5.1.slim.min.js">
-	</script>
-	<script type="text/javascript"
-		src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js">
-	</script>
-	<script type="text/javascript"
-		src="index.js">
-	</script>
 </head>
+<body>
+
+<h1>HAPI Server for INTERMAGNET data</h1>
+
+<p>
+	This is a pass-though server of the magnetometer data maintained by <a href='http://intermagnet.org'>intermagnet.org</a> and stored in IAGA-2002-formatted files at <a href='ftp://ftp.seismo.nrcan.gc.ca/intermagnet/'>ftp://ftp.seismo.nrcan.gc.ca/intermagnet/</a>.
+</p>
+
+<p>
+	This server responds to requests by fetching the required files and concatenating or subsetting them (as needed). The numbers in a response will exactly match the numbers in the contributing files (each containing 1 day of data). The metadata for the files used to for the response can be found by either (1) making a request for metadata (see example below) or (2) reading the headers in the IAGA-2002-formatted files associated with the requested timerange.
+</p>
+
+<p>
+	The datasets are available at three quality levels: preliminary, quasi-definitive, and definitive and two time resolutions: 1-minute and 1-second. The following table lists all of the available datasets.
+</p>
+
+<p>
+	Because the coordinate system of data in a given dataset can change over the timerange of available data (typically 1-2 times), the parameters associated with each dataset are "Component 1-4" instead of, e.g., X, Y, Z, F. The coordinate system associated with data from a given time range can be determined using a request for metadata that is stored in the files associated with that time range. The reported coordinate system on the last available date of data is shown for each dataset in the table below in the <i>Reported</i> column.
+</p>
+
+<p>
+	For example:
+
+	<ul>
+	<li>List coordinate system of data from the Boulder, Colorado magnetometer station: <br/><a href="http://hapi-server.org/INTERMAGNET/hapi/data?id=bou/definitive/minute/metadata&parameters=Reported&time.min=2018-12-28Z&time.max=2018-12-31Z">http://hapi-server.org/INTERMAGNET/hapi/data?id=bou/definitive/minute/metadata&amp;parameters=Reported&time.min=2018-12-28Z&time.max=2018-12-31Z</a>.</li>
+
+	<li>List all metadata in the data files of data from the Boulder, Colorado magnetometer station:<br/>
+	<a href="http://hapi-server.org/INTERMAGNET/hapi/data?id=bou/definitive/minute/metadata&time.min=2018-12-28Z&time.max=2018-12-31Z">http://hapi-server.org/INTERMAGNET/hapi/data?id=bou/definitive/minute/metadata&time.min=2018-12-28Z&time.max=2018-12-31Z</a></li>
+	</ul>
+</p>
+
+<h1>Acknowledgements</h1>
+
+<p>
+	We thank the <a href="https://intermagnet.github.io/structure.html">INTERMAGNET</a> consortium for the development of this resource and the many individual magnetometer data providers who have allowed their data to be (1) openly used and shared for scientific use in easy-to-access standardized files and (2) anonymous access to data.
+
+	Users should follow the instructions for acknowledging individual data providers and INTERMAGNET at <a href="https://intermagnet.github.io/data_conditions.html">https://intermagnet.github.io/data_conditions.html</a>.
+</p>
+
+<h1>Metadata Summary</h1>
+
+The following table is a list of metadata in the last available file for each dataset stored in IAGA2002 files at the INTERMAGNET <a href='ftp://ftp.seismo.nrcan.gc.ca/intermagnet/'>ftp site</a>.
