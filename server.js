@@ -20,7 +20,6 @@ process.on('SIGINT', function() {
 const express    = require('express'); // Client/server library
 const app        = express();
 const serveIndex = require('serve-index');
-const server     = require("http").createServer(app);
 const compress   = require('compression'); // Express compression module
 const moment     = require('moment'); // Time library http://moment.js
 const yargs      = require('yargs');
