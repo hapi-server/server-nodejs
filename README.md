@@ -11,7 +11,8 @@ A generic HAPI front-end server.
 3. [Examples](#Examples)
 4. [Server Configuration](#Server_Configuration)
 5. [Metadata](#Metadata)
-6. [Development](#Development)7. [Contact](#Contact)
+6. [Development](#Development)
+7. [Contact](#Contact)
 
 <a name="About"></a>
 ## 1. About
