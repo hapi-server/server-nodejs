@@ -18,16 +18,9 @@ jobs:
 
 
 before_install:
-  - npm  i
+  - npm i
+
 script:
   - npm run-script test-https -- --coverage
   - node test/server-test.js -- --coverage
   - node test/subset-test.js -- --coverage
-notifications:
-  if branch = master:
-    email:
-      recipients:
-        - rweigel@gmu.edu
-        - ksreddy9945@gmail.com
-    on_success: change
-    on_failure: always
