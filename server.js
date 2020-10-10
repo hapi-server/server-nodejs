@@ -48,12 +48,9 @@ if (/server$/.test(process.execPath)) {
 let argv = yargs
 			.strict()
 			.help()
-			.describe('https','ishttps')
-			.alias('https','https')
-			.describe('cert','certPath')
-			.alias('cert','cert')
-			.describe('key','keyPath')
-			.alias('key','key')
+			.describe('https','Start https server')
+			.describe('cert','https certificate file path')
+			.describe('key','https key file path')
 			.describe('file','Catalog configuration file or file pattern')
 			.alias('file','f')
 			.describe('port','Server port')
@@ -71,6 +68,7 @@ let argv = yargs
 			.describe('verify','Run verification tests on command line and exit')
 			.alias('verify','v')
 			.option('ignore',{'type': 'boolean'})
+			.option('https',{'type': 'boolean'})
 			.option('open',{'type': 'boolean'})
 			.option('test',{'type': 'boolean'})
 			.option('verify',{'type': 'boolean'})
@@ -81,6 +79,7 @@ let argv = yargs
 			.usage('Usage: ' + usage + ' [options]')
 			.default({
 				'ignore': false,
+				'https': false,
 				'open': false,
 				'test': false,
 				'verify': false,
@@ -93,7 +92,7 @@ let argv = yargs
 			})
 			.argv
 
-const config = require("./lib/metadata.js").configVars(argv.conf);
+const config = require(__dirname + "/lib/metadata.js").configVars(argv.conf);
 for (key in config) {
 	console.log(ds() + key + " = " + configd[key]);
 }
@@ -108,50 +107,58 @@ const LOGDIR      = argv.logdir;
 const VERIFIER    = argv.verifier;
 const PLOTSERVER  = argv.plotserver;
 const HTTPS       = argv.https;
+//const CERT = argv.cert;
+//const PEM = argv.PEM;
 
-var server   = "";
+let server;
 const args = require('minimist')(process.argv.slice(2));
 
-if(HTTPS!= undefined){
-	//If HTTPs is true, checks for the path of certificates
-if(args['key'] != undefined && args['cert'] != undefined) {
-	//If the path is valid, server shall be started with specifed path options
-	if(fs.existsSync(args['key']) && fs.existsSync(args['cert'])) {
-  options = {
-   key:  fs.readFileSync(args['key']),
-   cert: fs.readFileSync(args['cert'])
- };
-
- server = require("https").createServer(options, app);
+if (HTTPS === false) {
+	console.log(ds() + "Starting HTTP Server");
+	server = require("http").createServer(app);
 } else {
-	//else process shall be existed
-  console.log("Invalid SSL Path!");
-	process.exit(1);
-}
-} else {
-	//If there is not path provided, certificates shall be generated and used
-	var yourscript = execSync('sh ./ssl/gen.sh',
-	(error, stdout, stderr) => {
-		if (error !== null) {
-			console.log(`exec error: ${error}`);
-		}
+	console.log(ds() + "Starting HTTPS Server");
+	if (args['key'] == undefined && args['cert'] != undefined) {
+		console.log(clc.read("If cert is given, key must be given. Exiting."));
+		process.exit(1);
+	}
+	if (args['key'] != undefined && args['cert'] == undefined) {
+		console.log(clc.red("If key is given, cert must be given. Exiting."));
+		process.exit(1);
+	}
+	if (args['key'] && !fs.existsSync(args['key'])) {
+		console.log(clc.red("Could not find https key file " + args['key']));
+		process.exit(1);
+	}
+	if (args['cert'] && !fs.existsSync(args['cert'])) {
+		console.log(clc.red("Could not find https cert file " + args['cert']));
+		process.exit(1);
+	}
 
-
-	});
-
-  options = {
-  key:  fs.readFileSync('./ssl/key.pem'),
-  cert: fs.readFileSync('./ssl/cert.pem')
-  };
+	if (args['cert'] && args['key']) {
+		// Both cert and key file given
+		options = {
+			key:  fs.readFileSync(args['key']),
+			cert: fs.readFileSync(args['cert'])
+		};
+	} else {
+		// Genererate key and cert file
+		let com = 'sh \"' + __dirname + '/ssl/gen.sh' + '\"';
+		// TODO: execSync does not have callback.
+		var yourscript = execSync(com,
+		(error, stdout, stderr) => {
+			if (error !== null) {
+				console.log(clc.read("Error when executing: " + com));
+				console.log(`${error}`);
+			}
+		});
+		options = {
+			key:  fs.readFileSync('\"' + __dirname + '/ssl/key.pem' + '\"'),
+			cert: fs.readFileSync('\"' + __dirname + '/ssl/cert.pem' + '\"')
+		};
+	}
 	server = require("https").createServer(options, app);
 }
-} else {
-	//If there is no --https flag, HTTP server shall be started
-  console.log("starting HTTP Server");
-   server = require("http").createServer(app);
-}
-
-
 
 let FILES;
 if (typeof(FILE) == 'string') {
@@ -161,7 +168,7 @@ if (typeof(FILE) == 'string') {
 }
 
 // Deal with file patterns.
-const expandfiles = require('./lib/expandfiles.js').expandfiles;
+const expandfiles = require(__dirname + '/lib/expandfiles.js').expandfiles;
 
 FILES = expandfiles(FILES);
 
