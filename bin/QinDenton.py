@@ -43,6 +43,25 @@ if not os.path.exists(filename):
 
 file = open(filename, "r")
 
+
+start_list = startp.split()
+
+def differ_days(date1, date2):
+    a = date1
+    b = date2
+    return (a-b).days
+
+end_year = int(start_list[0])
+#Calculating number of days from 1964 to specified year
+days = differ_days((datetime(end_year,1,1)), datetime(1964,1,1))
+
+#Adding the additional days specified
+days = days + int(start_list[1])
+#Since each day prints out 24 lines each of 203 bytes
+start_pointer = days * 24 * 203
+file.seek(start_pointer, 0)
+
+
 # The following avoids the use of date parsing by using fact that
 # ASCII values for time in the file are monotonically increasing 
 # so that >= and < can be used to find start and stop times.
