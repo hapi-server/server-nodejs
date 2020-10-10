@@ -25,6 +25,11 @@ script:
   - node test/server-test.js -- --coverage
   - node test/subset-test.js -- --coverage
 
+# Trigger build only for these branches
+branches:
+  only:
+  - master
+
 notifications:
   email:
     recipients:
