@@ -26,12 +26,16 @@ import argparse
 import datetime
 import re
 
-from signal import signal, SIGPIPE, SIG_DFL
+if sys.platform == 'win32':
+  from signal import signal, SIG_DFL
+else:
+  from signal import signal, SIGPIPE, SIG_DFL
 # Trap broke pipe signal so usage in the form of
 # python ./bin/Example.py | python lib/subset.py ...
 # does not throw error when subset.py terminates read
 # of output of Example.py.
-signal(SIGPIPE, SIG_DFL)
+if sys.platform != 'win32':
+    signal(SIGPIPE, SIG_DFL)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--id',default='dataset1') # Not used
