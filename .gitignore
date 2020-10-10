@@ -12,3 +12,9 @@ public/data/QinDenton/
 nohup.out
 metadata/SSCWeb/SSCWeb-catalog.json
 metadata/SSCWeb/old/*
+metadata/INTERMAGNET/old/*
+metadata/INTERMAGNET/meta/*
+metadata/INTERMAGNET/ftp.seismo.nrcan.gc.ca/*
+metadata/INTERMAGNET/INTERMAGNET-catalog.json
+metadata/INTERMAGNET/html/index.htm
+
