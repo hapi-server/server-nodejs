@@ -143,7 +143,7 @@ if (HTTPS === false) {
 		};
 	} else {
 		// Genererate key and cert file
-		let com = 'sh \"' + __dirname + '/ssl/gen.sh' + '\"';
+		let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
 		// TODO: execSync does not have callback.
 		var yourscript = execSync(com,
 		(error, stdout, stderr) => {
@@ -152,10 +152,14 @@ if (HTTPS === false) {
 				console.log(`${error}`);
 			}
 		});
+		// options = {
+		// 	key:  fs.readFileSync('\"' + __dirname + '/ssl/key.pem' + '\"'),
+		// 	cert: fs.readFileSync('\"' + __dirname + '/ssl/cert.pem' + '\"')
+		// };
 		options = {
-			key:  fs.readFileSync('\"' + __dirname + '/ssl/key.pem' + '\"'),
-			cert: fs.readFileSync('\"' + __dirname + '/ssl/cert.pem' + '\"')
-		};
+			key:  fs.readFileSync(require("path").resolve(__dirname, "./ssl/key.pem")),
+			cert: fs.readFileSync(require("path").resolve(__dirname, "./ssl/cert.pem"))
+			};
 	}
 	server = require("https").createServer(options, app);
 }
@@ -293,7 +297,7 @@ function main() {
 	// TODO: This should be a callback to apiInit.
 
 
-	if(HTTPS!= undefined){
+	if(HTTPS){
 //In-case of HTTPS, server.listen shall be used. app.listen() can only listen to HTTP requests
 	server.listen(argv.port, function () {
 
