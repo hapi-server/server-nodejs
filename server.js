@@ -142,7 +142,7 @@ if (HTTPS === false) {
 		};
 	} else {
 		// Genererate key and cert file
-		let com = 'sh \"' + __dirname + '/ssl/gen.sh' + '\"';
+		let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
 		//ExecSync requires a callback. Replaced it with spawnSync.
 		let child;
 		try {
@@ -311,7 +311,7 @@ function main() {
 	// TODO: This should be a callback to apiInit.
 
 
-	if(HTTPS!= undefined){
+	if(HTTPS){
 //In-case of HTTPS, server.listen shall be used. app.listen() can only listen to HTTP requests
 	server.listen(argv.port, function () {
 
