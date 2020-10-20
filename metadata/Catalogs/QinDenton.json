@@ -1,0 +1,200 @@
+[
+  {
+    "id": "hourly",
+    "title": "Qin-Denton Hourly Database",
+    "x_description": "Database of Input Parameters for Tsyganenko Magnetic Field Models",
+    "info":
+        {
+          "startDate": "1963-331T14Z",
+          "stopDate" : "2017-034T23Z",
+          "sampleStartDate": "1964-001T00Z",
+          "sampleStopDate" : "1964-002T00Z",
+          "cadence": "PT1H",
+          "parameters":
+            [
+              {
+                "name": "Time",
+                "type": "isotime",
+                "units": "UTC",
+                "fill": null,
+                "length": 12
+              },
+              {
+                "name": "ByIMF",
+                "type": "double",
+                "units": "nT",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "BzIMF",
+                "type": "double",
+                "units": "nT",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "V_SW",
+                "type": "double",
+                "units": "km/s",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "Den_P",
+                "type": "double",
+                "units": "particles / cm^3",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "Pdyn",
+                "type": "double",
+                "units": "nPa",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "G1",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "G2",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "G3",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "8status",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": "8 status integers corresponding to the 8 preceding quantities"
+              },
+              {
+                "name": "kp",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "akp3",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "dst",
+                "type": "integer",
+                "units": "nT",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "Bz1",
+                "type": "double",
+                "units": "nT",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "Bz2",
+                "type": "double",
+                "units": "nT",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "Bz3",
+                "type": "double",
+                "units": "nT",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "Bz4",
+                "type": "double",
+                "units": "nT",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "Bz5",
+                "type": "double",
+                "units": "nT",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "Bz6",
+                "type": "double",
+                "units": "nT",
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "W1",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "W2",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "W3",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "W4",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "W5",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "W6",
+                "type": "double",
+                "units": null,
+                "fill": null,
+                "description": ""
+              },
+              {
+                "name": "6status",
+                "type": "integer",
+                "units": null,
+                "fill": null,
+                "description": "6 status integers corresponding to the 6 preceding quantities"
+              }
+            ]
+        }
+  }
+]
