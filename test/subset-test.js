@@ -24,7 +24,7 @@ let fails = 0;
 for (let i = 0;i < testa.length; i++) {
 	let prefix = "Test " + (i+1) + "/" + (testa.length) + ": ";
 	process.stdout.write(clc.blue(prefix) + testa[i]["command"] + "\n");
-	ok = test.commands([testa[i]], "subset.js");
+	ok = test.commands0([testa[i]], "subset.js");
 	if (ok) {
 		console.log(clc.blue(prefix) + clc.green.bold("PASS") + "\n");
 	} else {
