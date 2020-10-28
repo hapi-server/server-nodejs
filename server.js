@@ -149,7 +149,7 @@ if (HTTPS === false) {
 		(error, stdout, stderr) => {
 			if (error !== null) {
 				console.log(clc.read("Error when executing: " + com));
-				console.log(`${error}`);
+				console.log(error);
 			}
 		});
 		// options = {
@@ -324,7 +324,7 @@ function main() {
 		}
 			if (TEST) {
 			// Exits with signal 0 or 1
-			test.urls(CATALOGS, PREFIXES, url, TEST, HTTPS);
+			test.urls(CATALOGS, PREFIXES, url, TEST);
 		}
 
 		if (VERIFY) {
