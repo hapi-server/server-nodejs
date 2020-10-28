@@ -143,6 +143,7 @@ if (HTTPS === false) {
 	} else {
 		// Genererate key and cert file
 		let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
+
 		//ExecSync requires a callback. Replaced it with spawnSync.
 		let child;
 		try {
@@ -338,7 +339,7 @@ function main() {
 		}
 			if (TEST) {
 			// Exits with signal 0 or 1
-			test.urls(CATALOGS, PREFIXES, url, TEST, HTTPS);
+			test.urls(CATALOGS, PREFIXES, url, TEST);
 		}
 
 		if (VERIFY) {
