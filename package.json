@@ -22,12 +22,11 @@
     "compression": "^1.6.2",
     "express": "^4.15.3",
     "glob-fs": "*",
-    "serve-index": "^1.9.1",
     "hapi-server-ui": "git+https://github.com/hapi-server/server-ui.git#master",
     "hapi-server-verifier": "git+https://github.com/hapi-server/verifier-nodejs.git#master",
     "https": "^1.0.0",
-    "minimist": "^1.2.5",
     "moment": "^2.18.1",
+    "serve-index": "^1.9.1",
     "shelljs": "^0.8.4",
     "xml2js": "^0.4.23",
     "yargs": "^8.0.1"
