@@ -23,7 +23,6 @@ const serveIndex = require('serve-index');
 const compress   = require('compression'); // Express compression module
 const moment     = require('moment'); // Time library http://moment.js
 const yargs      = require('yargs');
-const { execSync } = require('child_process');
 const metadata = require('./lib/metadata.js').metadata;
 const prepmetadata = require('./lib/metadata.js').prepmetadata;
 
@@ -144,21 +143,40 @@ if (HTTPS === false) {
 	} else {
 		// Genererate key and cert file
 		let com = 'sh \"' + __dirname + '/ssl/gen.sh' + '\"';
-		// TODO: execSync does not have callback.
-		var yourscript = execSync(com,
-		(error, stdout, stderr) => {
-			if (error !== null) {
-				console.log(clc.read("Error when executing: " + com));
-				console.log(`${error}`);
+		//ExecSync requires a callback. Replaced it with spawnSync.
+		let child;
+		try {
+			child = require('child_process').spawnSync('sh', ['-c', com], {stdio: 'pipe'});
+		} catch (ex) {
+			console.log(ds() + clc.red("Error when executing: " + com + "."));
+			if (ex.stderr) {
+				console.log(clc.red(ex.stderr.toString()));
 			}
-		});
-		options = {
-			key:  fs.readFileSync('\"' + __dirname + '/ssl/key.pem' + '\"'),
-			cert: fs.readFileSync('\"' + __dirname + '/ssl/cert.pem' + '\"')
-		};
-	}
-	server = require("https").createServer(options, app);
-}
+			if (exit_if_fail) {
+				process.exit(1);
+			} else {
+				return false;
+			}
+		}
+
+		if ( child.status == 0 ) {
+
+			options = {
+				key:  fs.readFileSync(require("path").resolve(__dirname, "./ssl/key.pem")),
+				cert: fs.readFileSync(require("path").resolve(__dirname, "./ssl/cert.pem"))
+				};
+			
+			server = require("https").createServer(options, app);
+
+		} else {
+			console.log(ds() + clc.red("Command returned non-zero status: " + com + "."));
+			console.log("\nstdout:\n" + child.stdout.toString());
+			console.log("\nstderr:\n" + child.stderr.toString());
+			console.log("Exiting.");
+			process.exit(1);
+		}
+	  }
+   }
 
 let FILES;
 if (typeof(FILE) == 'string') {
