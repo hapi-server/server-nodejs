@@ -17,7 +17,7 @@
 			{"url": "http://localhost:8999/AutoplotExample2/hapi/data?id=10.CF3744000800&parameters=Temperature&time.min=2018-01-06Z&time.max=2018-01-07T00:00:00.000Z", "Nlines": 1423}
 		]
 	},
-	"catalog" :
+	"catalog_inline" :
 		[
 			{
 				"id": "10.CF3744000800",

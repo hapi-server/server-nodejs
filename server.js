@@ -878,10 +878,10 @@ function data(req,res,catalog,header,include) {
 
 		if (subsetcols || subsettime) {
 			com = com
-					+ " | "
+					+ " | '"
 					+ config.NODEEXE
-					+ " " + __dirname
-					+ "/lib/subset.js";
+					+ "' '" + __dirname
+					+ "/lib/subset.js'";
 			if (subsettime) {
 				com = com + " --start " + start;
 				com = com + " --stop " + stop;

@@ -15,7 +15,7 @@
 			{"url": "data/?id=dataset1&parameters=vector&time.min=1970-01-01T00:00:50Z&time.max=1970-01-01T00:01:00Z", "Nbytes": 834, "Nlines": 10}
 		]
 	},
-	"catalog":
+	"catalog_inline":
 		[
 			{
 				"id": "dataset1",

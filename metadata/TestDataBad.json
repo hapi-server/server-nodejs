@@ -13,7 +13,7 @@
 		"test": "$NODEEXE $HAPISERVERPATH/bin/TestData.js --id dataset0 --parameters Time,scalar --start 2001-01-01 --stop 2001-01-01T00:10:00"
 	},
 	"HAPI": "2.0",
-	"catalog" :
+	"catalog_inline" :
 		[
 			{
 				"id": "dataset0",
