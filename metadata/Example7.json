@@ -19,5 +19,5 @@
 			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10Z&time.max=1970-01-01T00:00:20Z", "Nlines": 0}
 		]
 	},
-	"catalog" : "http://hapi-server.org/servers/TestData2.0/hapi/catalog"
+	"catalog_url" : "http://hapi-server.org/servers/TestData2.0/hapi/catalog"
 }

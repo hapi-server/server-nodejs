@@ -7,7 +7,7 @@
 		"catalog-update": null
 	},
 	"data": {
-		"command": "\"$NODEEXE\" $HAPISERVERPATH/bin/TestData3.0.js --id ${id} --parameters '${parameters}' --start ${start} --stop ${stop}",
+		"command": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/TestData3.0.js\" --id ${id} --parameters '${parameters}' --start ${start} --stop ${stop}",
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
 		"testurls": [
@@ -15,7 +15,7 @@
 		]
 	},
 	"HAPI": "2.1",
-	"catalog" :
+	"catalog_inline" :
 		[
 			{
 				"id": "dataset1",
@@ -163,3 +163,4 @@
 			}
 		]
 }
+
