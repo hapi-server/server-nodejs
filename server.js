@@ -106,43 +106,45 @@ const LOGDIR      = argv.logdir;
 const VERIFIER    = argv.verifier;
 const PLOTSERVER  = argv.plotserver;
 const HTTPS       = argv.https;
-//const CERT = argv.cert;
-//const PEM = argv.PEM;
+const KEY_PATH    = argv.key;
+const CERT_PATH   = argv.cert;
 
 let server;
-const args = require('minimist')(process.argv.slice(2));
 
 if (HTTPS === false) {
 	console.log(ds() + "Starting HTTP Server");
 	server = require("http").createServer(app);
 } else {
 	console.log(ds() + "Starting HTTPS Server");
-	if (args['key'] == undefined && args['cert'] != undefined) {
+	if (KEY_PATH  == undefined && CERT_PATH != undefined) {
 		console.log(clc.read("If cert is given, key must be given. Exiting."));
 		process.exit(1);
 	}
-	if (args['key'] != undefined && args['cert'] == undefined) {
+	if (KEY_PATH  != undefined && CERT_PATH == undefined) {
 		console.log(clc.red("If key is given, cert must be given. Exiting."));
 		process.exit(1);
 	}
-	if (args['key'] && !fs.existsSync(args['key'])) {
-		console.log(clc.red("Could not find https key file " + args['key']));
+	if (KEY_PATH && !fs.existsSync(KEY_PATH )) {
+		console.log(clc.red("Could not find https key file " + KEY_PATH));
 		process.exit(1);
 	}
-	if (args['cert'] && !fs.existsSync(args['cert'])) {
-		console.log(clc.red("Could not find https cert file " + args['cert']));
+	if (CERT_PATH && !fs.existsSync(CERT_PATH)) {
+		console.log(clc.red("Could not find https cert file " + CERT_PATH));
 		process.exit(1);
 	}
 
-	if (args['cert'] && args['key']) {
+	if (CERT_PATH && KEY_PATH) {
 		// Both cert and key file given
 		options = {
-			key:  fs.readFileSync(args['key']),
-			cert: fs.readFileSync(args['cert'])
+			key:  fs.readFileSync(KEY_PATH),
+			cert: fs.readFileSync(CERT_PATH)
 		};
+		server = require("https").createServer(options, app);
 	} else {
 		// Genererate key and cert file
-		let com = 'sh \"' + __dirname + '/ssl/gen.sh' + '\"';
+
+		let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
+		
 		//ExecSync requires a callback. Replaced it with spawnSync.
 		let child;
 		try {
@@ -311,7 +313,7 @@ function main() {
 	// TODO: This should be a callback to apiInit.
 
 
-	if(HTTPS!= undefined){
+	if(HTTPS){
 //In-case of HTTPS, server.listen shall be used. app.listen() can only listen to HTTP requests
 	server.listen(argv.port, function () {
 
@@ -338,7 +340,7 @@ function main() {
 		}
 			if (TEST) {
 			// Exits with signal 0 or 1
-			test.urls(CATALOGS, PREFIXES, url, TEST, HTTPS);
+			test.urls(CATALOGS, PREFIXES, url, TEST);
 		}
 
 		if (VERIFY) {
