@@ -142,8 +142,9 @@ if (HTTPS === false) {
 		server = require("https").createServer(options, app);
 	} else {
 		// Genererate key and cert file
-		let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
 
+		let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
+		
 		//ExecSync requires a callback. Replaced it with spawnSync.
 		let child;
 		try {
