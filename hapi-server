@@ -18,25 +18,25 @@ fi
 # Use node in path if version > versionmin
 if command -v node > /dev/null 2>&1; then
 	version=$(node -v)
-	version=${version//v/}
-	version="${version%%.*}"
+	versionf=${version//v/}
+	version="${versionf%%.*}"
     if test $version -gt $(($versionmin-1)); then
-    	echo "Using system node binary with version = $version."
+    	echo "hapi-server: Using system node binary with version = $versionf."
 		node $com
 		exit 0
 	else
-		echo "System node binary version = $version. Version $versionmin+ required. Using package node binary."
+		echo "hapi-server: System node binary version = $versionf. Version $versionmin+ required. Will use package node binary in $path/bin/."
     fi
 elif command -v nodejs > /dev/null 2>&1; then
 	version=$(node -v)
-	version=${version//v/}
-	version="${version%%.*}"
+	versionf=${version//v/}
+	version="${versionf%%.*}"
     if test $version -gt $(($versionmin-1)); then
-    	echo "Using system nodejs binary with version = $version."
+    	echo "hapi-server: Using system nodejs binary with version = $versionf."
 		nodejs $com
 		exit 0
 	else
-		echo "System node binary version = $version. Version $versionmin+ required. Using package node binary."
+		echo "hapi-server: System node binary version = $versionf. Version $versionmin+ required. Using package node binary in $path/bin/."
     fi
 fi
 
@@ -44,6 +44,6 @@ fi
 if command -v $path"/bin/node" > /dev/null 2>&1; then
     $path"/bin/node" $com
 else
-    echo "Did not find $path/bin/node, node, or nodejs."
+    echo "hapi-server: Error: \"node\" and \"nodejs\" are not shell commands and did not find $path/bin/node." | cat - 1>&2
     exit 1
 fi
