@@ -312,71 +312,21 @@ function main() {
 
 	// TODO: This should be a callback to apiInit.
 
-
-	if(HTTPS){
-//In-case of HTTPS, server.listen shall be used. app.listen() can only listen to HTTP requests
-	server.listen(argv.port, function () {
-
+	function Utiltyhandler(url_prefix){
 		console.log(ds() + clc.blue("Listening on port " + argv.port));
-
-		var url = 'https://localhost:' + argv.port;
+	
+		var url = url_prefix + argv.port;
 		console.log(ds() + "HAPI server list is at");
-		console.log(ds() + "   https://localhost:" + argv.port);
+		console.log(ds() + "  "+ url_prefix + argv.port);
 		console.log(ds() + "Listed datasets are at");
 		for (var i = 0;i < CATALOGS.length;i++) {
-			console.log(ds() + "  https://localhost:" + argv.port + "/" + PREFIXES[i] + "/hapi");
+			console.log(ds() + "  "+ url_prefix + argv.port + "/" + PREFIXES[i] + "/hapi");
 		}
-
+	
 		console.log(ds() + "To open a browser at " + url + ", use the --open option.");
 		console.log(ds() + "To run test URLs and exit, use the --test option.");
 		console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
-
-	if (OPEN) {
-			// Open browser window
-			var start = (process.platform == 'darwin' 
-							? 'open': process.platform == 'win32'
-							? 'start': 'xdg-open');
-			require('child_process').exec(start + ' ' + url);
-		}
-			if (TEST) {
-			// Exits with signal 0 or 1
-			test.urls(CATALOGS, PREFIXES, url, TEST);
-		}
-
-		if (VERIFY) {
-			// TODO: This only verifies first
-			let s = metadata(PREFIXES[0],'server');
-			// verify() exits with code 0 or 1.
-			if (s.verify) {
-				// If server has many datasets, select subset to verify.
-				verify(url + "/" + PREFIXES[0] + "/hapi", s.verify);
-			} else {
-				verify(url + "/" + PREFIXES[0] + "/hapi");
-			}
-		}
-
-		
-	})
-
-	} else {
-		//In case of HTTP connection
-		app.listen(argv.port, function () {
-
-		console.log(ds() + clc.blue("Listening on port " + argv.port));
-
-		var url = 'http://localhost:' + argv.port;
-		console.log(ds() + "HAPI server list is at");
-		console.log(ds() + "   http://localhost:" + argv.port);
-		console.log(ds() + "Listed datasets are at");
-		for (var i = 0;i < CATALOGS.length;i++) {
-			console.log(ds() + "  http://localhost:" + argv.port + "/" + PREFIXES[i] + "/hapi");
-		}
-
-		console.log(ds() + "To open a browser at " + url + ", use the --open option.");
-		console.log(ds() + "To run test URLs and exit, use the --test option.");
-		console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
-
-
+	
 		if (OPEN) {
 			// Open browser window
 			var start = (process.platform == 'darwin'
@@ -384,7 +334,7 @@ function main() {
 							? 'start': 'xdg-open');
 			require('child_process').exec(start + ' ' + url);
 		}
-
+	
 		if (TEST) {
 			// Exits with signal 0 or 1
 			test.urls(CATALOGS, PREFIXES, url, TEST);
@@ -400,6 +350,21 @@ function main() {
 				verify(url + "/" + PREFIXES[0] + "/hapi");
 			}
 		}
+	
+	}
+	
+	if(HTTPS){
+//In-case of HTTPS, server.listen shall be used. app.listen() can only listen to HTTP requests
+       var url_prefix = 'https://localhost:';
+	   server.listen(argv.port, function () {
+		   Utiltyhandler(url_prefix);
+	})
+
+	} else {
+		//In case of HTTP connection
+	    var url_prefix = 'http://localhost:';
+		app.listen(argv.port, function () {
+		    Utiltyhandler(url_prefix);
 	})
 	}
 	
