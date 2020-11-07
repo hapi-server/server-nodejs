@@ -17,13 +17,13 @@ process.on('SIGINT', function() {
 	process.exit(1);
 });
 
-const express    = require('express'); // Client/server library
+const express    = require('express'); 		// Client/server library
 const app        = express();
 const serveIndex = require('serve-index');
-const compress   = require('compression'); // Express compression module
-const moment     = require('moment'); // Time library http://moment.js
+const compress   = require('compression'); 	// Express compression module
+const moment     = require('moment'); 		// Time library http://moment.js
 const yargs      = require('yargs');
-const metadata = require('./lib/metadata.js').metadata;
+const metadata   = require('./lib/metadata.js').metadata;
 const prepmetadata = require('./lib/metadata.js').prepmetadata;
 
 // Test commands and urls
@@ -145,7 +145,7 @@ if (HTTPS === false) {
 
 		let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
 		
-		//ExecSync requires a callback. Replaced it with spawnSync.
+		// execSync requires a callback. Replaced it with spawnSync.
 		let child;
 		try {
 			child = require('child_process').spawnSync('sh', ['-c', com], {stdio: 'pipe'});
@@ -161,12 +161,13 @@ if (HTTPS === false) {
 			}
 		}
 
-		if ( child.status == 0 ) {
+		if (child.status == 0) {
 
+			// TODO: Report error and exit if key.pem and cert.pem not found.
 			options = {
 				key:  fs.readFileSync(require("path").resolve(__dirname, "./ssl/key.pem")),
 				cert: fs.readFileSync(require("path").resolve(__dirname, "./ssl/cert.pem"))
-				};
+			};
 			
 			server = require("https").createServer(options, app);
 
@@ -310,73 +311,22 @@ function main() {
 
 	apiInit(CATALOGS, PREFIXES);
 
-	// TODO: This should be a callback to apiInit.
 
-
-	if(HTTPS){
-//In-case of HTTPS, server.listen shall be used. app.listen() can only listen to HTTP requests
-	server.listen(argv.port, function () {
-
+	function startupMessages(url_prefix){
 		console.log(ds() + clc.blue("Listening on port " + argv.port));
-
-		var url = 'https://localhost:' + argv.port;
+	
+		let url = url_prefix + argv.port;
 		console.log(ds() + "HAPI server list is at");
-		console.log(ds() + "   https://localhost:" + argv.port);
+		console.log(ds() + "  " + url);
 		console.log(ds() + "Listed datasets are at");
 		for (var i = 0;i < CATALOGS.length;i++) {
-			console.log(ds() + "  https://localhost:" + argv.port + "/" + PREFIXES[i] + "/hapi");
+			console.log(ds() + "  " + url + "/" + PREFIXES[i] + "/hapi");
 		}
-
+	
 		console.log(ds() + "To open a browser at " + url + ", use the --open option.");
 		console.log(ds() + "To run test URLs and exit, use the --test option.");
 		console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
-
-	if (OPEN) {
-			// Open browser window
-			var start = (process.platform == 'darwin' 
-							? 'open': process.platform == 'win32'
-							? 'start': 'xdg-open');
-			require('child_process').exec(start + ' ' + url);
-		}
-			if (TEST) {
-			// Exits with signal 0 or 1
-			test.urls(CATALOGS, PREFIXES, url, TEST);
-		}
-
-		if (VERIFY) {
-			// TODO: This only verifies first
-			let s = metadata(PREFIXES[0],'server');
-			// verify() exits with code 0 or 1.
-			if (s.verify) {
-				// If server has many datasets, select subset to verify.
-				verify(url + "/" + PREFIXES[0] + "/hapi", s.verify);
-			} else {
-				verify(url + "/" + PREFIXES[0] + "/hapi");
-			}
-		}
-
-		
-	})
-
-	} else {
-		//In case of HTTP connection
-		app.listen(argv.port, function () {
-
-		console.log(ds() + clc.blue("Listening on port " + argv.port));
-
-		var url = 'http://localhost:' + argv.port;
-		console.log(ds() + "HAPI server list is at");
-		console.log(ds() + "   http://localhost:" + argv.port);
-		console.log(ds() + "Listed datasets are at");
-		for (var i = 0;i < CATALOGS.length;i++) {
-			console.log(ds() + "  http://localhost:" + argv.port + "/" + PREFIXES[i] + "/hapi");
-		}
-
-		console.log(ds() + "To open a browser at " + url + ", use the --open option.");
-		console.log(ds() + "To run test URLs and exit, use the --test option.");
-		console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
-
-
+	
 		if (OPEN) {
 			// Open browser window
 			var start = (process.platform == 'darwin'
@@ -384,7 +334,7 @@ function main() {
 							? 'start': 'xdg-open');
 			require('child_process').exec(start + ' ' + url);
 		}
-
+	
 		if (TEST) {
 			// Exits with signal 0 or 1
 			test.urls(CATALOGS, PREFIXES, url, TEST);
@@ -400,7 +350,22 @@ function main() {
 				verify(url + "/" + PREFIXES[0] + "/hapi");
 			}
 		}
-	})
+	
+	}
+	
+	// TODO: Server startup should be a callback to apiInit.
+	if (HTTPS) {
+		// In-case of HTTPS, server.listen is used. app.listen() can only listen to HTTP requests
+		var url_prefix = 'https://localhost:';
+		server.listen(argv.port, function () {
+			startupMessages(url_prefix);
+		});
+	} else {
+		// HTTP connection
+		var url_prefix = 'http://localhost:';
+		app.listen(argv.port, function () {
+			startupMessages(url_prefix);
+		});
 	}
 	
 }
@@ -1431,7 +1396,7 @@ function exceptions() {
 		} else {
 			console.log(err.stack);
 			var tmps = ds().split("T")[0];
-			fs.appendFileSync('server-error-' + tmps + ".log", "\n"
+			fs.appendFileSync(LOGDIR + 'server-error-' + tmps + ".log", "\n"
 								+ ds() + " Uncaught Exception\n" + err.stack)
 		}
 	});

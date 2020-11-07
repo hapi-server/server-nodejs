@@ -1,6 +1,7 @@
-const fs   = require('fs');
-const path = require("path");
-const clc  = require('chalk');
+const fs        = require('fs');
+const path      = require("path");
+const clc       = require('chalk');
+const yargs     = require('yargs');
 const spawnSync = require('child_process').spawnSync;
 
 const nodeexe = "'" + process.execPath + "' server.js";
@@ -17,10 +18,19 @@ const excludes =
 	];
 
 
-const args = require('minimist')(process.argv.slice(2));
-var isHttps=args['https']; //This will be true if the --https flag is given
+let argv = yargs
+			.option('https',{'type': 'boolean'})
+			.default({
+				'https': false,
+			})
+			.argv
 
-files = filelist(metadir, excludes);
+let server_args = "";
+if (argv.https) {
+	server_args = "--https";
+}
+
+let files = filelist(metadir, excludes);
 
 function execute(com,i) {
 	let prefix = "Test " + (i+1) + "/" + (2*files.length) + ": ";
@@ -57,23 +67,12 @@ console.log('_________');
 let fails = 0;
 for (var i = 0; i < files.length; i++) {
 	// Run node server.js --test -f metadata/CATALOG.json
-	if(isHttps){
-         //The server shall be called --https flag with isHttps is true
-		let comt = nodeexe + " --test --https -f " + metadir + "/" + files[i];
-		fails = fails + execute(comt,2*i);
+	let comt = nodeexe + " --test " + server_args + " -f " + metadir + "/" + files[i];
+	fails = fails + execute(comt,2*i);
 
-		// Run node server.js --verify -f metadata/CATALOG.json
-		let comv = nodeexe + " --verify --https -f " + metadir + "/" + files[i];
-		fails = fails + execute(comv,2*i+1);
-	}
-	else {
-		let comt = nodeexe + " --test -f " + metadir + "/" + files[i];
-		fails = fails + execute(comt,2*i);
-
-		// Run node server.js --verify -f metadata/CATALOG.json
-		let comv = nodeexe + " --verify -f " + metadir + "/" + files[i];
-		fails = fails + execute(comv,2*i+1);
-	}
+	// Run node server.js --verify -f metadata/CATALOG.json
+	let comv = nodeexe + " --verify " + server_args + " -f " + metadir + "/" + files[i];
+	fails = fails + execute(comv,2*i+1);
 }
 
 if (fails == 0) {
