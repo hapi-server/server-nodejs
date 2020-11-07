@@ -315,12 +315,12 @@ function main() {
 	function startupMessages(url_prefix){
 		console.log(ds() + clc.blue("Listening on port " + argv.port));
 	
-		var url = url_prefix + argv.port;
+		let url = url_prefix + argv.port;
 		console.log(ds() + "HAPI server list is at");
-		console.log(ds() + "  "+ url_prefix + argv.port);
+		console.log(ds() + "  " + url);
 		console.log(ds() + "Listed datasets are at");
 		for (var i = 0;i < CATALOGS.length;i++) {
-			console.log(ds() + "  "+ url_prefix + argv.port + "/" + PREFIXES[i] + "/hapi");
+			console.log(ds() + "  " + url + "/" + PREFIXES[i] + "/hapi");
 		}
 	
 		console.log(ds() + "To open a browser at " + url + ", use the --open option.");
