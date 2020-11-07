@@ -24,12 +24,18 @@ let fails = 0;
 for (let i = 0;i < testa.length; i++) {
 	let prefix = "Test " + (i+1) + "/" + (testa.length) + ": ";
 	process.stdout.write(clc.blue(prefix) + testa[i]["command"] + "\n");
-	ok = test.commands0([testa[i]], "subset.js");
-	if (ok) {
+	let results = test.commands0([testa[i]], "subset.js");
+	console.log(results);
+	// loop through results
+	// If results.err = true 
+	//		pass = false
+	//		print expected and got if exists
+	//		print msg if exists
+	//		fails = fails + 1;
+	if (pass) {
 		console.log(clc.blue(prefix) + clc.green.bold("PASS") + "\n");
 	} else {
-		fails = fails + 1;
-		console.log(clc.blue(prefix) + clc.red.bold(" FAIL") + "\n");
+		console.log(clc.blue(prefix) + clc.red.bold("FAIL" + " (" + fails + ")" + "\n");
 	}
 }
 

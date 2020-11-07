@@ -36,6 +36,7 @@ function execute(com,i) {
 	let prefix = "Test " + (i+1) + "/" + (2*files.length) + ": ";
 	process.stdout.write(clc.blue(prefix) + com + "\n");
 	let child = spawnSync('sh', ['-c', com], {stdio: 'pipe'});
+	console.log(child.stderr.toString())
 	let status = 0;
 	if (child.status == 0) {
 		status = 0;
