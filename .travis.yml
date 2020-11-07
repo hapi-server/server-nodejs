@@ -21,9 +21,7 @@ before_install:
   - npm i
 
 script:
-  - npm run-script test-https -- --coverage
-  - node test/server-test.js -- --coverage
-  - node test/subset-test.js -- --coverage
+  - npm test
 
 # Trigger build only for these branches
 branches:
