@@ -25,18 +25,24 @@ for (let i = 0;i < testa.length; i++) {
 	let prefix = "Test " + (i+1) + "/" + (testa.length) + ": ";
 	process.stdout.write(clc.blue(prefix) + testa[i]["command"] + "\n");
 	let results = test.commands0([testa[i]], "subset.js");
-	console.log(results);
-	// loop through results
-	// If results.err = true 
-	//		pass = false
-	//		print expected and got if exists
-	//		print msg if exists
-	//		fails = fails + 1;
-	if (pass) {
-		console.log(clc.blue(prefix) + clc.green.bold("PASS") + "\n");
-	} else {
-		console.log(clc.blue(prefix) + clc.red.bold("FAIL" + " (" + fails + ")" + "\n");
-	}
+	var pass = true;
+	for (var j=0; j<results.length; j++) {
+		if (results[j].err) {
+			pass = false;
+			if ((results[j].expected != undefined) && (results[j].got != undefined)) {
+			    console.log(clc.red.bold("Expected : ") + clc.red.bold(results[j].expected) + clc.red.bold(" Got : ") + clc.red.bold(results[j].got)  + "\n");
+		    }
+			if (results[j].msg != undefined) {
+			   console.log(clc.red.bold("Error Msg : ") + clc.red.bold(results[j].msg + "\n"));
+			}
+        fails = fails + 1;
+	    }
+	    if (pass) {
+		    console.log(clc.blue(prefix) + clc.green.bold("PASS") + "\n");
+	    } else {
+		    console.log(clc.blue(prefix) + clc.red.bold("FAIL" + " (" + fails + ")" + "\n"));
+	    }
+    }
 }
 
 if (fails == 0) {
