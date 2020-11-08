@@ -1095,7 +1095,9 @@ function csvTo(records,first,last,header,include) {
 			}
 		}
 		if (truncated > 0) {
-			console.log(ds() + clc.red((truncated) + " strings were truncated because they were longer than length given in metadata"));
+			console.log(ds() + clc.red((truncated) 
+						+ " strings were truncated because they"
+						+ " were longer than length given in metadata"));
 		}
 		return recordbuff;
 	}
@@ -1396,7 +1398,7 @@ function exceptions() {
 		} else {
 			console.log(err.stack);
 			var tmps = ds().split("T")[0];
-			fs.appendFileSync(LOGDIR + 'server-error-' + tmps + ".log", "\n"
+			fs.appendFileSync(LOGDIR + '/server-error-' + tmps + ".log", "\n"
 								+ ds() + " Uncaught Exception\n" + err.stack)
 		}
 	});
