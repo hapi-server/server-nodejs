@@ -2,50 +2,58 @@ var test = require('../lib/test.js');
 var testa = [
 	{
 		"command": "node lib/subset.js --url 'http://hapi-server.org/servers/TestData2.0/hapi/data?id=dataset1&parameters=scalar&time.min=1970-01-01Z&time.max=1970-01-01T00:00:11Z&attach=false' --stop 1970-01-01T00:00:07",
-		"Nlines": "7",
-		"Ncommas": "7"
+		"Nlines": 7,
+		"Ncommas": 7
 	},
 	{
 		"command": "node lib/subset.js --columns 1 --url 'http://hapi-server.org/servers/TestData2.0/hapi/data?id=dataset1&parameters=scalar&time.min=1970-01-01Z&time.max=1970-01-01T00:00:11Z&attach=false' --stop 1970-01-01T00:00:07",
-		"Nlines": "7",
-		"Ncommas": "0"
+		"Nlines": 7,
+		"Ncommas": 0
 	},
 	{
 		"command": "node lib/subset.js --columns 1-2 --url 'http://hapi-server.org/servers/TestData2.0/hapi/data?id=dataset1&parameters=scalar&time.min=1970-01-01Z&time.max=1970-01-01T00:00:11Z&attach=false' --stop 1970-01-01T00:00:07",
-		"Nlines": "7",
-		"Ncommas": "7"
+		"Nlines": 7,
+		"Ncommas": 7
 	}
 ]
 
 console.log('Subsetting tests');
 console.log('________________');
 const clc = require('chalk');
-let fails = 0;
+let pass = true;
 for (let i = 0;i < testa.length; i++) {
-	let prefix = "Test " + (i+1) + "/" + (testa.length) + ":";
+	let fails = 0; // Number of failures on a given test object
+	let prefix = "Test " + (i+1) + "/" + (testa.length) + ": ";
 	process.stdout.write(clc.blue(prefix) + testa[i]["command"] + "\n");
 	let results = test.commands0([testa[i]], "subset.js");
-	var pass = true;
+	
+	// https://stackoverflow.com/a/15397506
+	// Flatten results array.
+	// Newer Javascript has flat() - can use results = results.flat();
+	// TODO: Each element in testa is a test command for which there are test conditions.
+	// If there are multiple test conditions, loop over them.
+	results = Array.prototype.concat.apply([], results);
+
 	for (var j=0; j<results.length; j++) {
 		if (results[j].err) {
-			pass = false;
-			if ((results[j].expected != undefined) && (results[j].got != undefined)) {
-			    console.log(clc.red.bold("Expected : ") + clc.red.bold(results[j].expected) + clc.red.bold(" Got : ") + clc.red.bold(results[j].got)  + "\n");
-		    }
 			if (results[j].msg != undefined) {
-			   console.log(clc.red.bold("Error Msg : ") + clc.red.bold(results[j].msg + "\n"));
+				console.log(clc.red.bold("Error Msg : ") + clc.red.bold(results[j].msg + "\n"));
 			}
-        fails = fails + 1;
-	    }
-	    if (pass) {
-		    console.log(clc.blue(prefix) + clc.green.bold("PASS") + "\n");
-	    } else {
-		    console.log(clc.blue(prefix) + clc.red.bold("FAIL" + " (" + fails + ")" + "\n"));
-	    }
-    }
+			if ((results[j].expected != undefined) && (results[j].got != undefined)) {
+				console.log(clc.red.bold("Expected : ") + clc.red.bold(results[j].expected) + clc.red.bold(" Got : ") + clc.red.bold(results[j].got)  + "\n");
+			}
+			fails = fails + 1;
+		}
+	}
+	if (fails == 0) {
+		console.log(clc.blue(prefix) + clc.green.bold("PASS") + "\n");
+	} else {
+		pass = false;
+		console.log(clc.blue(prefix) + clc.red.bold("FAIL") + "\n");
+	}
 }
 
-if (fails == 0) {
+if (pass) {
 	process.exit(0);
 } else {
 	process.exit(1);
