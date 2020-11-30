@@ -13,6 +13,26 @@ const argv = yargs
   .argv;
 
 var file_to_parse = path.join(__dirname, 'tmp', argv.file);
+var start_time = "";
+var stop_time = "";
+
+//Gets the start_time and stop_time for the metadata from the JSON repsonse
+function extract_start_stop(callback){
+  let json_response= fs.readFileSync('json_response.json');
+  let array = JSON.parse(json_response);
+
+  for (item in array) {
+    for (subItem in array[item]) {
+      if( array[item][subItem]['DATASET.DATASET_ID'] === argv.file.replace('.CEF.XML','')) {
+          start_time = array[item][subItem]['DATASET.START_DATE'];
+          stop_time = array[item][subItem]['DATASET.END_DATE'];      
+          break;    
+      }
+    }
+  }
+  callback();
+}
+
 
 //Will parse each file sent as a argument and converts the XML into HAPI metadata format
 function parsing(){
@@ -33,6 +53,27 @@ function parsing(){
 
     if( paramarray[paramarray.length-1].PARAMETERS != undefined ){
       paramarray[paramarray.length-1].PARAMETERS[0].PARAMETER.forEach(element => {
+
+       if(element.PARAMETER_ID === undefined || element.FIELDNAM ===  undefined || element.UNITS === undefined || element.FILLVAL === undefined || element.VALUE_TYPE === undefined ) {
+          console.log("Missing elements for "+ argv.file + " :");
+          if(element.PARAMETER_ID === undefined ){
+            console.log(clc.yellow("name"));
+          } 
+          if(element.UNITS === undefined ){
+            console.log(clc.yellow("units"));
+          } 
+          if(element.FIELDNAM === undefined ){
+            console.log(clc.yellow("description"));
+          } 
+          if(element.FILLVAL === undefined ){
+            console.log(clc.yellow("fill"));
+          } 
+          if(element.VALUE_TYPE === undefined ){
+            console.log(clc.yellow("type"));
+          } 
+          
+       }
+
         var paramobj = {
           name :element.PARAMETER_ID === undefined ? "" : element.PARAMETER_ID.toString(),
           description: element.FIELDNAM ===  undefined ? "" : element.FIELDNAM.toString(),
@@ -44,16 +85,13 @@ function parsing(){
       resobj.parameters.push(paramobj);
 
       });
+    } else {
+      console.log(clc.yellow("Warning: "+ argv.file + " does not have parameters!"))
     }
 
-    let start_stop_rawdata = fs.readFileSync('start_stop_map.json');
-    let start_stop_map = JSON.parse(start_stop_rawdata);
-    var start_date = start_stop_map[argv.file.replace('.CEF.XML','')+ "_start"];
-    var stop_date = start_stop_map[argv.file.replace('.CEF.XML','')+ "_stop"];
-
     var buildobj = {
-      startDate : start_date,
-      stopDate : stop_date,
+      startDate : start_time,
+      stopDate : stop_time,
       cadence : paramarray[paramarray.length-1].TIME_RESOLUTION.toString(),
       description: paramarray[paramarray.length-1].DATASET_DESCRIPTION.toString(),
       resourceURL : "https://csa.esac.esa.int/csa/aio/product-action?RETRIEVALTYPE=HEADER&DATASET_ID="+argv.file.replace('.CEF.XML',''),
@@ -79,4 +117,4 @@ function parsing(){
 		console.log(clc.red("XML File not found to parse for "+argv.file.replace('.CEF.XML','')));
   } 
 }
-parsing();
+extract_start_stop(parsing);

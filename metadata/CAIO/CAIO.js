@@ -4,22 +4,18 @@ const clc  = require('chalk');
 const yargs  = require('yargs');
 
 const argv = yargs
-  .option('start', {
-    description: 'Start Time',
-  })
-  .option('stop', {
-    description: 'Stop Time',
+  .option('update', {
+    description: 'Force update the existing metadata',
    })
   .help()
   .alias('help', 'h')
   .default({
-    'start': '2001-02-01',
-    'stop': '2001-02-05',
+    'update': false
   })
   .argv;
 
   //For generating the /catalog response. FILL_CATALOG will download and decompress each of the /info response files as well.
-var com = 'node FILL_CATALOG.js --start ' + argv.start + ' --stop '+ argv.stop ;
+var com = 'node FILL_CATALOG.js ' + '--update '+ argv.update ;
 let catalog_child;
 try {
   catalog_child = require('child_process').spawnSync('sh', ['-c', com], {stdio: 'pipe'});
@@ -36,7 +32,8 @@ try {
 }
 
 if (catalog_child.status == 0) {
-  console.log("Generated the catalog response Sucessfully!");
+  console.log(clc.green("Generated the catalog response Sucessfully!"));
+  console.log(clc.yellow(catalog_child.stdout));
 } else {
   console.log(clc.red("Failure in Generating the Catalog Response :"+ catalog_child.stderr));
 }
@@ -72,7 +69,7 @@ function moving(callback){
     console.log(clc.yellow("No CSA Directory to move files. So Proceeding to Parse"));
   } else {
     //Removes the folder CSA_Dataset_TIMESTAMP and all the downloaded zip files as well (Not needed since we store each info response in JSON files). 
-    console.log("Files moved succesfully!");
+    console.log("Files moved out succesfully!");
     var  del_cmd = 'rm -rf tmp/'+file +' && rm -rf tmp/*tar.gz && rm -rf tmp/CSA_Download*';
     try {
       del_child = require('child_process').spawnSync('sh', ['-c', del_cmd], {stdio: 'pipe'});
@@ -92,15 +89,14 @@ function moving(callback){
     if(del_child.status != 0){
       console.log("Deletion Failed : "+ del_child.stderr);
     } else {
-      console.log("Files deleted!");
-    }
-    
-    
+      console.log("Junk Metadata Files deleted!");
+      callback();
+    }  
   }
 }
     });
   });
-  callback();
+  
 }
 
 //For each XML file residing in the tmp directory, parsing will be done inorder to convert the metadata into the HAPI specification
@@ -129,13 +125,13 @@ function parsing(){
             return false;
           }
         }
-
         if (parse_child.status == 0) {
-          console.log("Succesfully Parsed : "+ file);
+          console.log(clc.green("Succesfully Parsed : "+ file));
+          console.log(clc.yellow(parse_child.stdout));
         } else {
           console.log("Parse failed for "+ file + " Error: "+ parse_child.stderr);
         }
       }
-    })
- })
+    });
+ });
 }
