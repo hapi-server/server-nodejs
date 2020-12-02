@@ -89,10 +89,14 @@ function parsing(){
       console.log(clc.yellow("Warning: "+ argv.file + " does not have parameters!"))
     }
 
+  TIME_RESOLUTION = "";
+    if (paramarray[paramarray.length-1].TIME_RESOLUTION) {
+      TIME_RESOLUTION = paramarray[paramarray.length-1].TIME_RESOLUTION.toString();
+    }
     var buildobj = {
       startDate : start_time,
       stopDate : stop_time,
-      cadence : paramarray[paramarray.length-1].TIME_RESOLUTION.toString(),
+      cadence : TIME_RESOLUTION,
       description: paramarray[paramarray.length-1].DATASET_DESCRIPTION.toString(),
       resourceURL : "https://csa.esac.esa.int/csa/aio/product-action?RETRIEVALTYPE=HEADER&DATASET_ID="+argv.file.replace('.CEF.XML',''),
       contact : paramarray[paramarray.length-1].CONTACT_COORDINATES.toString(),
@@ -107,7 +111,7 @@ function parsing(){
     }
 
     //Stores the resulting metadata created into the meta folder.
-    fs.writeFile (path.join(__dirname,"meta", argv.file.replace('.CEF.XML','.JSON')), JSON.stringify(buildobj), function(err) {
+    fs.writeFile (path.join(__dirname,"meta", argv.file.replace('.CEF.XML','.JSON')), JSON.stringify(buildobj, null, 4), function(err) {
       if (err) throw err;
     });
 
