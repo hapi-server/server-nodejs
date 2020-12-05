@@ -13,8 +13,8 @@ const argv = yargs
                 .alias('help', 'h')
                 .argv;
 
-//var url = "https://csa.esac.esa.int/csa/aio/metadata-action?SELECTED_FIELDS=DATASET.DATASET_ID,DATASET.START_DATE,DATASET.END_DATE,DATASET.TITLE&RESOURCE_CLASS=TASET&RETURN_TYPE=JSON&QUERY=(DATASET.IS_CEF='true')"
-var url = 'https://csa.esac.esa.int/csa/aio/metadata-action?SELECTED_FIELDS=DATASET.DATASET_ID,DATASET.START_DATE,DATASET.END_DATE,DATASET.TITLE&RESOURCE_CLASS=DATASET&RETURN_TYPE=JSON';
+var url = "https://csa.esac.esa.int/csa/aio/metadata-action?SELECTED_FIELDS=DATASET.DATASET_ID,DATASET.START_DATE,DATASET.END_DATE,DATASET.TITLE&RESOURCE_CLASS=DATASET&RETURN_TYPE=JSON&QUERY=(DATASET.IS_CEF='true')"
+//var url = 'https://csa.esac.esa.int/csa/aio/metadata-action?SELECTED_FIELDS=DATASET.DATASET_ID,DATASET.START_DATE,DATASET.END_DATE,DATASET.TITLE&RESOURCE_CLASS=DATASET&RETURN_TYPE=JSON';
 //var url = 'https://csa.esac.esa.int/csa/aio/metadata-action?SELECTED_FIELDS=DATASET.DATASET_ID,DATASET.START_DATE,DATASET.END_DATE,DATASET.TITLE&RESOURCE_CLASS=DATASET&RETURN_TYPE=JSON&QUERY=(DATASET.IS_CEF=true)';
 //var url = "https://csa.esac.esa.int/csa/aio/metadata-action?SELECTED_FIELDS=DATASET.DATASET_ID,DATASET.START_DATE,DATASET.END_DATE,DATASET.TITLE&RESOURCE_CLASS=DATASET&QUERY=FILE.START_DATE%20<=%20'"+argv.stop+"'%20AND%20FILE.END_DATE%20>=%20'"+argv.start+"'&PAGE_SIZE=100&PAGE=1&RETURN_TYPE=CSV"
 //var url = "https://csa.esac.esa.int/csa/aio/metadata-action?SELECTED_FIELDS=DATASET.DATASET_ID,DATASET.START_DATE,DATASET.END_DATE,DATASET.TITLE&RESOURCE_CLASS=DATASET&QUERY=(DATASET.DATASET_ID%20like%20'C1_CP_EDI_EGD'%20OR%20DATASET.DATASET_ID%20like%20'C1_CP_EFW_L3_P'%20OR%20DATASET.DATASET_ID%20like%20'C1_CP_FGM_FULL')%20AND%20FILE.START_DATE%20<=%20'"+argv.start+"'%20AND%20FILE.END_DATE%20>=%20'"+argv.stop+"'&PAGE_SIZE=100&PAGE=1&RETURN_TYPE=CSV"
@@ -28,7 +28,7 @@ function fill_catalog(callback1){
 	request(url, function (error, response, body) {
 		console.log("Received " + url);
 		if (error) {
-			console.log("Request to url :"+ url+ "Failed due to :"+ error);
+			console.log("Request to url :" + url + "Failed due to :" + error);
 			process.exit(1);
 		}   
 		if (response && response.statusCode != 200) {
@@ -81,7 +81,7 @@ function download_decompress(){
 	});
 	
 	//for(var i=1;i<id_arr.length;i++){
-	for(var i=1;i<100;i++){
+	for(var i=1;i<10;i++){
 		id_arr[i] = id_arr[i].replace(/"/g, "");
 		const filePath = path.join(__dirname, 'tmp', id_arr[i].toString()+ ".CEF.XML");
 		// Downloads only if there is no exisitng metadata in the meta folder.
@@ -115,17 +115,17 @@ function download_decompress(){
 			// Decompresses tar.gz content into the tmp folder
 			if (child.status == 0) {
 				var tgz_tmp = __dirname + "/tmp/";
-				var tgz = tgz_tmp+id_arr[i] +".tar.gz";
+				var tgz = tgz_tmp + id_arr[i] + ".tar.gz";
 				console.log("Extracting " + tgz + " to " + tgz_tmp);
 				targz.decompress({
 					src: tgz,
 					dest: tgz_tmp
 				}, function(err){
 					if (err) {
-						console.log(clc.red("Error in Decompressing "+id_arr[i] + err));
+						console.log(clc.red("Error in extracting " + id_arr[i] + ".tar.gz: " + err);
 					} 
-					console.log("Extracted " + tgz + " to " + tgz_tmp);
 				});
+				console.log("Extracted " + tgz + " to " + tgz_tmp);
 			}
 		}
 		else {

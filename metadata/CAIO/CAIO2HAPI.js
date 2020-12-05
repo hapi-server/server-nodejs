@@ -1,5 +1,5 @@
 const fs = require('fs');
-var path = require('path');
+const path = require('path');
 const xml2js = require('xml2js');
 const yargs  = require('yargs');
 const clc  = require('chalk');
@@ -45,9 +45,7 @@ function parsing(){
 				res = JSON.stringify(result, null, 4);
 			});
 			const obj = JSON.parse(res);
-			var resobj = {
-
-			};
+			var resobj = {};
 			
 			resobj.parameters = [];
 			var paramarray = obj.DATASETS.DATASET_METADATA;
@@ -74,11 +72,11 @@ function parsing(){
 					}
 
 					var paramobj = {
-						name :element.PARAMETER_ID === undefined ? "" : element.PARAMETER_ID.toString(),
+						name: element.PARAMETER_ID === undefined ? "" : element.PARAMETER_ID.toString(),
 						description: element.FIELDNAM ===  undefined ? "" : element.FIELDNAM.toString(),
-						units :  element.UNITS === undefined ? "" : element.UNITS.toString(),
-						fill : element.FILLVAL === undefined ? "" : element.FILLVAL.toString(),
-						type : element.VALUE_TYPE === undefined ? "" : element.VALUE_TYPE.toString()
+						units: element.UNITS === undefined ? "" : element.UNITS.toString(),
+						fill: element.FILLVAL === undefined ? "" : element.FILLVAL.toString(),
+						type: element.VALUE_TYPE === undefined ? "" : element.VALUE_TYPE.toString()
 					};
 					
 					resobj.parameters.push(paramobj);
@@ -94,11 +92,11 @@ function parsing(){
 			var buildobj = {
 				startDate : start_time,
 				stopDate : stop_time,
-				cadence : TIME_RESOLUTION,
-				description: paramarray[paramarray.length-1].DATASET_DESCRIPTION.toString(),
-				resourceURL : "https://csa.esac.esa.int/csa/aio/product-action?RETRIEVALTYPE=HEADER&DATASET_ID="+argv.file.replace('.CEF.XML',''),
+				cadence : "PT" + TIME_RESOLUTION,
+				description: paramarray[paramarray.length-1].DATASET_DESCRIPTION.toString().replace("\n","\\n"),
+				resourceURL : "https://csa.esac.esa.int/csa/aio/product-action?RETRIEVALTYPE=HEADER&DATASET_ID=" + argv.file.replace('.CEF.XML',''),
 				contact : paramarray[paramarray.length-1].CONTACT_COORDINATES.toString(),
-				x_original_metadata: res,
+				x_original_metadata: obj,
 				parameters: resobj.parameters
 			}
 			
