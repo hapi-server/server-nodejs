@@ -1,5 +1,5 @@
 # Usage:
-#   python Example.py --start START --stop STOP [-params PARAMETERS -fmt FORMAT]
+#   python2 Example.py --start START --stop STOP [-params PARAMETERS -fmt FORMAT]
 #
 # Generates a HAPI CSV file with a two parameters: a one-column scalar
 # and a 3-column vector. The scalar values are the number of minutes
@@ -15,10 +15,10 @@
 # FORMAT is either 'csv' or 'binary'. The default is 'csv'.
 #
 # Examples:
-#   python Example.py --start 1970-01-01 --stop 1970-01-01T00:10:00 
-#   python Example.py --fmt binary --start 1970-01-01 --stop 1970-01-01T00:10:00 
-#   python Example.py --params Time --start 1970-01-01 --stop 1970-01-01T00:10:00 
-#   python Example.py --params Time,vector --start 1970-01-01 --stop 1970-01-01T00:10:00 
+#   python2 Example.py --start 1970-01-01T00:00:00.000000Z --stop 1970-01-01T00:10:00.000000Z 
+#   python2 Example.py --fmt binary --start 1970-01-01T00:00:00.000000Z --stop 1970-01-01T00:10:00.000000Z 
+#   python2 Example.py --params Time --start 1970-01-01T00:00:00.000000Z --stop 1970-01-01T00:10:00.000000Z
+#   python2 Example.py --params Time,vector --start 1970-01-01T00:00:00.000000Z --stop 1970-01-01T00:10:00.000000Z
 
 import sys
 import struct
@@ -73,14 +73,25 @@ vector = False
 if 'scalar' in params_list: scalar = True
 if 'vector' in params_list: vector = True
 
+import os
+if fmt == 'binary' and sys.version_info[0] == 3:
+	stdout = os.fdopen(sys.stdout.fileno(), "wb", closefd=False)
+
 for i in range(0,mf-mo):
 	d1 = start + datetime.timedelta(minutes=i)
 	if fmt == 'binary':
-		sys.stdout.write("%sZ" % d1.isoformat())
-		if scalar == True:
-			sys.stdout.write(struct.pack('<d',mo+i))
-		if vector == True:
-			sys.stdout.write(struct.pack('<ddd',mo+i+1,mo+i+2,mo+i+3))
+		if sys.version_info[0] == 2:
+			sys.stdout.write("%sZ" % d1.isoformat())
+			if scalar == True:
+				sys.stdout.write(struct.pack('<d',mo+i))
+			if vector == True:
+				sys.stdout.write(struct.pack('<ddd',mo+i+1,mo+i+2,mo+i+3))
+		else:
+			stdout.write(bytes("%sZ" % d1.isoformat(),'ascii'))
+			if scalar == True:
+				stdout.write(struct.pack('<d',mo+i))
+			if vector == True:
+				stdout.write(struct.pack('<ddd',mo+i+1,mo+i+2,mo+i+3))
 	else:
 		sys.stdout.write("%sZ" % d1.isoformat())
 		if scalar == True:
@@ -88,3 +99,6 @@ for i in range(0,mf-mo):
 		if vector == True:
 			sys.stdout.write(",%d,%d,%d" % (mo+i+1,mo+i+2,mo+i+3))
 		sys.stdout.write("\n")
+
+if fmt == 'binary' and sys.version_info[0] == 3:
+	stdout.flush()
