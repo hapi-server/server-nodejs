@@ -27,8 +27,12 @@ if (parameters.trim() === '') {
 	var parameters = parameters.split(",");
 }
 
-var startsec = Math.ceil(new Date(start).valueOf()/1000);
-var stopsec  = Math.ceil(new Date(stop).valueOf()/1000);
+var tf = 1000;
+if (id === "dataset2") {
+	tf = 1000*3600;
+}
+var startsec = Math.ceil(new Date(start).valueOf()/tf);
+var stopsec  = Math.ceil(new Date(stop).valueOf()/tf);
 
 var records = ""; // Number of records (lines)
 var record  = ""; // A record with comma-separated fields (columns)
@@ -44,12 +48,12 @@ process.stdout._handle.setBlocking(true);
 for (var i = startsec; i < stopsec; i++) {
 	var record = "";
 
-	record = (new Date(i*1000).toISOString());
+	record = (new Date(i*tf).toISOString());
 	if (all || parameters.includes('scalar')) {
 		record = record + "," + Math.sin(Math.PI*i/600);
 	}
 	if (all || parameters.includes('scalarint')) {
-		record = record + "," + Math.round(1000*Math.sin(Math.PI*i/600));
+		record = record + "," + Math.round(tf*Math.sin(Math.PI*i/600));
 	}
 	if (all || parameters.includes('scalarstr')) {
 		record = record + "," + scalarstrs[(i-startsec) % scalarstrs.length];
@@ -58,7 +62,7 @@ for (var i = startsec; i < stopsec; i++) {
 		record = record + "," + scalarcats[(i-startsec) % scalarcats.length];
 	}
 	if (all || parameters.includes('scalariso')) {
-		record = record + "," + (new Date((i+1)*1000).toISOString()).slice(0,-5) + "Z";
+		record = record + "," + (new Date((i+1)*tf).toISOString()).slice(0,-5) + "Z";
 	}
 	if (id === "dataset0") {
 		if (all || parameters.includes('scalarmulti')) {
@@ -73,9 +77,9 @@ for (var i = startsec; i < stopsec; i++) {
 	}
 	if (all || parameters.includes('vectorint')) {
 		record = record 
-					+ "," + Math.round(1000*Math.sin(Math.PI*i/600))
-					+ "," + Math.round(1000*Math.sin(Math.PI*i/600))
-					+ "," + Math.round(1000*Math.sin(Math.PI*i/600));
+					+ "," + Math.round(tf*Math.sin(Math.PI*i/600))
+					+ "," + Math.round(tf*Math.sin(Math.PI*i/600))
+					+ "," + Math.round(tf*Math.sin(Math.PI*i/600));
 	}
 	if (all || parameters.includes('vectorstr')) {
 		record = record 
@@ -91,9 +95,9 @@ for (var i = startsec; i < stopsec; i++) {
 	}
 	if (all || parameters.includes('vectoriso')) {
 		record = record 
-					+ "," + (new Date((i+1)*1000).toISOString()).slice(0,-5) + "Z"
-					+ "," + (new Date((i+2)*1000).toISOString()).slice(0,-5) + "Z"
-					+ "," + (new Date((i+3)*1000).toISOString()).slice(0,-5) + "Z"	;
+					+ "," + (new Date((i+1)*tf).toISOString()).slice(0,-5) + "Z"
+					+ "," + (new Date((i+2)*tf).toISOString()).slice(0,-5) + "Z"
+					+ "," + (new Date((i+3)*tf).toISOString()).slice(0,-5) + "Z";
 	}
 	if (all || parameters.includes('vectormulti')) {
 		record = record 
