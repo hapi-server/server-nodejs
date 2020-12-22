@@ -73,8 +73,9 @@ vector = False
 if 'scalar' in params_list: scalar = True
 if 'vector' in params_list: vector = True
 
-import os
 if fmt == 'binary' and sys.version_info[0] == 3:
+	# Python 3
+	import os
 	stdout = os.fdopen(sys.stdout.fileno(), "wb", closefd=False)
 
 for i in range(0,mf-mo):
@@ -87,6 +88,7 @@ for i in range(0,mf-mo):
 			if vector == True:
 				sys.stdout.write(struct.pack('<ddd',mo+i+1,mo+i+2,mo+i+3))
 		else:
+			# Python 3
 			stdout.write(bytes("%sZ" % d1.isoformat(),'ascii'))
 			if scalar == True:
 				stdout.write(struct.pack('<d',mo+i))
