@@ -1,4 +1,9 @@
 var argv = process.argv;
+var id = "dataset2";
+var parameters = "scalar";
+var start = "1971-01-00T01:50:00Z";
+var stop = "1972-08-03T06:50:00Z";
+
 for (var i = 0; i < argv.length-1; i++) {
 	if (argv[i] == "--id") {
 		id = argv[i+1];
@@ -31,6 +36,10 @@ var tf = 1000;
 if (id === "dataset2") {
 	tf = 1000*3600;
 }
+if (id === "dataset3") {
+	tf = 1000*3600*24;
+}
+
 var startsec = Math.ceil(new Date(start).valueOf()/tf);
 var stopsec  = Math.ceil(new Date(stop).valueOf()/tf);
 
