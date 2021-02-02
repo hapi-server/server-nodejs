@@ -1,0 +1,16 @@
+{
+	"server": {
+		"id": "CAIO",
+		"prefix": "",
+		"contact": "rweigel@gmu.edu",
+		"landing": "",
+		"catalog-update": 86400,
+		"verify": "ace"
+	},
+    "data": {
+        "command": "START=$(echo ${start} | cut -c1-19,30-30); STOP=$(echo ${stop} | cut -c1-19,30-30); curl -s \"https://csa.esac.esa.int/csa/aio/streaming-action?DATASET_ID=${id}&START_DATE=$START&END_DATE=$STOP&NON_BROWSER&CSACOOKIE=391F56682C0D5F7D1F095D6A7A38466327015020370B4060650602652A1C522F27095D7D391F56682C0D5F412C05462F2E0C46\" | perl -pe 's/$\\n/\\n/g' | perl -pe 's/,\\n/,/g' | grep -E '^\\s+[0-9]{4}'",
+        "formats": ["csv"],
+        "contact": "rweigel@gmu.edu"
+    },
+    "catalog_command": "cd \"$HAPISERVERPATH/metadata/CAIO\" && \"$NODEEXE\" CAIO2HAPI.js"
+}
