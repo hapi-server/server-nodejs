@@ -17,6 +17,7 @@ process.on('SIGINT', function() {
 	process.exit(1);
 });
 
+const superagent = require('superagent');
 const express    = require('express'); 		// Client/server library
 const app        = express();
 const serveIndex = require('serve-index');
@@ -62,6 +63,7 @@ let argv = yargs
 			.alias('logdir','l')
 			.describe('open','Open web page on start')
 			.alias('open','o')
+			.describe('proxy','Allow requests to URLs in all.txt to be proxied (for server-ui).')
 			.describe('test','Run URL tests and exit')
 			.alias('test','t')
 			.describe('verify','Run verification tests on command line and exit')
@@ -85,6 +87,7 @@ let argv = yargs
 				'logdir': __dirname + "/log",
 				'file': __dirname + '/metadata/TestData2.0.json',
 				'port': 8999,
+				'proxy': false,
 				'conf': __dirname + '/conf/server.json',
 				'verifier': 'http://hapi-server.org/verify',
 				'plotserver': 'http://hapi-server.org/plot'
@@ -108,6 +111,7 @@ const PLOTSERVER  = argv.plotserver;
 const HTTPS       = argv.https;
 const KEY_PATH    = argv.key;
 const CERT_PATH   = argv.cert;
+const PROXY       = argv.proxy;
 
 let server;
 
@@ -233,7 +237,7 @@ function main() {
 		}
 	}
 
-	let i = 0;
+	var i = 0;
 	for (let key in metadata.cache) {
 		CATALOGS[i] = metadata.cache[key]['server']['id'];
 		PREFIXES[i] = metadata.cache[key]['server']['prefix'];
@@ -271,6 +275,40 @@ function main() {
 							+ s.contact + ","
 							+ d.contact + "\n";
 		}
+	}
+
+	if (PROXY) {
+		console.log(ds() + "Configuring proxy end point /proxy.");
+		var tmp = serverlist.split("\n");
+		var serverlistURLs = [];
+		for (var i in tmp) {
+			if (tmp[i] !== '') {
+				console.log(tmp[i].split(",")[0])
+				serverlistURLs.push(tmp[i].split(",")[0]);
+			}
+		}
+
+		app.get('/proxy', function (req, res) {
+			proxyOK = false;
+			if (req.query.url !== undefined) {
+				for (i in serverlistURLs) {
+					if (req.query.url.startsWith(serverlistURLs[i])) {
+						proxyOK = true;
+						break;
+					}
+				}
+			}
+			if (proxyOK == false) {
+				res.status(404).send("");
+				return;
+			}
+			cors(res);
+			superagent.get(req.query.url).end(function (err, res_proxy) {
+				console.log(ds() + "Proxied " + req.query.url);
+				res.set(res_proxy.headers);
+				res.send(res_proxy.text);
+			});
+		});
 	}
 
 	app.get('/all.txt', function (req, res) {res.send(serverlist);});
