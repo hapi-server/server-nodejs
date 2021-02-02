@@ -15,7 +15,7 @@
 		]
 	},
 	"HAPI": "2.1",
-	"catalog_inline" :
+	"catalog_inline":
 		[
 			{
 				"id": "dataset1",
