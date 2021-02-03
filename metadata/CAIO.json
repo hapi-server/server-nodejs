@@ -4,7 +4,6 @@
 		"prefix": "",
 		"contact": "rweigel@gmu.edu",
 		"landing": "",
-		"catalog-update": 86400,
 		"verify": "ace"
 	},
     "data": {
@@ -12,5 +11,5 @@
         "formats": ["csv"],
         "contact": "rweigel@gmu.edu"
     },
-    "catalog_command": "cd \"$HAPISERVERPATH/metadata/CAIO\" && \"$NODEEXE\" CAIO2HAPI.js"
+    "catalog_file": "$HAPISERVERPATH/metadata/CAIO/CAIO.json"
 }
