@@ -14,8 +14,8 @@
 			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10}
 		]
 	},
-	"HAPI": "2.1",
-	"catalog_inline":
+	"HAPI": "3.0",
+	"catalog_inline" :
 		[
 			{
 				"id": "dataset1",
