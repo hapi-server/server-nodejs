@@ -15,9 +15,14 @@ var failsFile = path.join(__dirname, 'CAIO2HAPI-fails.json');
 
 var fields  = "SELECTED_FIELDS=DATASET.DATASET_ID,DATASET.START_DATE,DATASET.END_DATE,DATASET.TITLE";
 var options = "&RESOURCE_CLASS=DATASET&RETURN_TYPE=JSON&QUERY=(DATASET.IS_CEF='true')";
-var baseurl = "https://csa.esac.esa.int/csa/aio/metadata-action?"
-
-var url = baseurl + fields + options;
+var qs = {
+    "SELECTED_FIELDS": "DATASET.DATASET_ID,DATASET.START_DATE,DATASET.END_DATE,DATASET.TITLE",
+    "RESOURCE_CLASS": "DATASET",
+    "RETURN_TYPE": "JSON",
+    "QUERY": "(DATASET.IS_CEF='true')"
+}
+var baseurl = "https://csa.esac.esa.int/csa/aio/metadata-action"
+var url = baseurl; //+ fields + options;
 
 if (fs.existsSync(logFile)) {
 	// TODO: Move to ./archive/logFile-YYYY-MM-DD.json.
@@ -52,7 +57,7 @@ function catalog() {
 		return datasetsCAIO;
 	}
 
-	var response = request(url);
+    var response = request('GET', url, {"qs": qs});
 	var body = response.getBody();
 
 	log("Writing " + datasetsFile);
