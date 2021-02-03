@@ -27,6 +27,7 @@
     "moment": "^2.18.1",
     "serve-index": "^1.9.1",
     "shelljs": "^0.8.4",
+    "superagent": "^6.1.0",
     "xml2js": "^0.4.23",
     "yargs": "^8.0.1"
   },

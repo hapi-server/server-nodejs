@@ -290,9 +290,10 @@ function main() {
 
 		app.get('/proxy', function (req, res) {
 			proxyOK = false;
-			if (req.query.url !== undefined) {
+			let url = decodeURI(req.query.url);
+			if (url !== undefined) {
 				for (i in serverlistURLs) {
-					if (req.query.url.startsWith(serverlistURLs[i])) {
+					if (url.startsWith(serverlistURLs[i])) {
 						proxyOK = true;
 						break;
 					}
@@ -303,8 +304,8 @@ function main() {
 				return;
 			}
 			cors(res);
-			superagent.get(req.query.url).end(function (err, res_proxy) {
-				console.log(ds() + "Proxied " + req.query.url);
+			superagent.get(url).end(function (err, res_proxy) {
+				console.log(ds() + "Proxied " + url);
 				res.set(res_proxy.headers);
 				res.send(res_proxy.text);
 			});
@@ -328,13 +329,24 @@ function main() {
 	});
 
 
-	let html = fs
-				.readFileSync(__dirname + "/node_modules/hapi-server-ui/index.htm", "utf8")
-				.toString()
-				.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
+	let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
+	// TODO: Re-read only if index.htm changed?
+	app.get('/', function (req,res) {
+		let html = fs
+					.readFileSync(indexFile, "utf8")
+					.toString()
+					.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
+		res.send(html);
+	});
 
-	// TODO: If index.htm changes, re-read it.
-	app.get('/', function (req,res) {res.send(html);});
+
+	if (false) {
+		let html = fs
+					.readFileSync(indexFile, "utf8")
+					.toString()
+					.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
+		app.get('/', function (req,res) {res.send(html);});
+	}
 
 	// Serve static files in ./public/data (no directory listing provided)
 	app.use("/data", express.static(__dirname + '/public/data'));
