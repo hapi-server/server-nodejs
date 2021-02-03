@@ -3,6 +3,7 @@ log/*
 public/meta/*
 node_modules/*
 *~
+ssl/*.pem
 pkg/bin
 pkg/dist
 pkg/python
