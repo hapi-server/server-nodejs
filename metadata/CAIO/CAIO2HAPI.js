@@ -3,23 +3,21 @@ var path = require('path');
 var request = require('sync-request');
 var fastXMLParser = require('fast-xml-parser');
 
-var debug = false;			 // Log to stdout and file.
+var debug = true;			 // Log to stdout and file.
 var logging = true;			 // Log to file.
 var update = false;			 // Re-download metadata from CAIO.
-var N = -1;					 // Number of IDs to process. -1 => all.
-var skipFails = true;		 // Skip processing IDs found in failsFile.
+var N = 2;					 // Number of IDs to process. -1 => all.
+var skipFails = false;		 // Skip processing IDs found in failsFile.
 var originalMetadata = true; // Store original metadata in x_original_metadata.
 
 var logFile = path.join(__dirname, "CAIO2HAPI.log");
 var failsFile = path.join(__dirname, 'CAIO2HAPI-fails.json');
 
-var fields  = "SELECTED_FIELDS=DATASET.DATASET_ID,DATASET.START_DATE,DATASET.END_DATE,DATASET.TITLE";
-var options = "&RESOURCE_CLASS=DATASET&RETURN_TYPE=JSON&QUERY=(DATASET.IS_CEF='true')";
 var qs = {
     "SELECTED_FIELDS": "DATASET.DATASET_ID,DATASET.START_DATE,DATASET.END_DATE,DATASET.TITLE",
     "RESOURCE_CLASS": "DATASET",
     "RETURN_TYPE": "JSON",
-    "QUERY": "(DATASET.IS_CEF='true')"
+    "QUERY": "(DATASET.IS_CEF='true' and DATASET.MAIN_GROUP='Science')"
 }
 var baseurl = "https://csa.esac.esa.int/csa/aio/metadata-action"
 var url = baseurl; //+ fields + options;
@@ -94,7 +92,7 @@ function info(datasets) {
 	var failIDs = [];
 	if (skipFails == true && fs.existsSync(failsFile)) {
 		var failIDs = JSON.parse(fs.readFileSync(failsFile).toString());
-		// TODO: Convert to object for faster look-up?
+		// TODO: Convert to object for faster look-up in loop? Check if matters.
 	}
 
 	function createObject(ds, infoFile) {
@@ -227,6 +225,9 @@ function infoResolve(infoObj) {
 			type: val.VALUE_TYPE === undefined ? "" : type,
 			size: val.SIZES === undefined ? [1] : val.SIZES
 		};
+		if (type === 'isotime') {
+			paramObj['length'] = paramObj['fill'] ? paramObj['fill'].length : 20
+		}
 		if (Number.isInteger(paramObj['size'])) {
 			paramObj['size'] = [paramObj['size']];
 		}
