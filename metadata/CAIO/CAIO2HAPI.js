@@ -6,7 +6,7 @@ var fastXMLParser = require('fast-xml-parser');
 var debug = true;			 // Log to stdout and file.
 var logging = true;			 // Log to file.
 var update = false;			 // Re-download metadata from CAIO.
-var N = 2;					 // Number of IDs to process. -1 => all.
+var N = -1;					 // Number of IDs to process. -1 => all.
 var skipFails = false;		 // Skip processing IDs found in failsFile.
 var originalMetadata = true; // Store original metadata in x_original_metadata.
 
@@ -149,7 +149,7 @@ function info(datasets) {
 		var tgzfile = "'"+ __dirname + "/tmp/" + id + ".tar.gz'";
 		var url = "https://csa.esac.esa.int/csa/aio/product-action?RETRIEVALTYPE=HEADER&DATASET_ID=";
 		var cmd = "cd " + tmpdir
-					+ "; curl '" + url + id + "'" + " > " + tgzfile;
+					+ "; curl '" + url + id + "'" + " > " + tgzfile
 					+ "; mkdir -p " + id 
 					+ "; tar zxvf " + tgzfile + " --strip-components 1 -C " + id;
 
