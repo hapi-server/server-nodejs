@@ -11,6 +11,7 @@ const excludes =
 	[
 		"INTERMAGNET",
 		"SuperMAG",
+		"CAIO",
 		"AutoplotExample1",
 		"AutoplotExample2",
 		"TestData3.0",
