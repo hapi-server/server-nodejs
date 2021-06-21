@@ -1,0 +1,173 @@
+# Dependencies:
+#   Python 3.6+
+#   pip install ftputil joblib
+#   sudo pip3 install geomagpy
+#
+# Usage:
+#   python3 WDC2HAPI.py
+#
+# Walks the directory tree of ftp.nmh.ac.uk/wdc to generate a
+# list of files and then writes WDC-manifest.{txt,pkl} and then
+# WDC-catalog.json, which is HAPI metadata.
+
+# Update WDC-manifest.txt file containing recursive directory
+# listing.
+from ftplib import FTP
+update_manifest = True
+import wget
+import shutil, zipfile
+from magpy.stream import *
+
+# Create a dictionary of the information in WDC-manifest.txt
+update_pkl = True
+
+# Write a HAPI JSON file using information in WDC-manifest.pkl
+# and information in first and last file for each magnetometer.
+update_json = True
+test_N = 2 # Run test on only first test_N datasets. If test_N = None, process all datasets.
+
+# Regenerate index.htm
+update_table = True
+
+server = 'ftp.nmh.ac.uk'
+ftp = FTP(server)
+
+import os
+import re
+import sys
+import gzip
+import json
+import shutil
+import pickle
+import tempfile
+import urllib.request
+import datetime as datetime
+
+
+def createmanifest(server, fnametxt):
+    print("In createmanifest : "+ server)
+    import ftputil
+    path = "/" + "wdc" + "/" + "obsdata"
+    allFiles= {}
+    def cadence_loop():
+        count = 0
+        fname_out = fnametxt
+        fh_out = open(fname_out, 'w')
+        host = ftputil.FTPHost(server, "anonymous", "anonymous")
+        names = host.listdir(host.curdir)
+        for (dirname, subdir, files) in host.walk(path + "/" + "1minval"):
+            if count < 3 :
+                print('%d files found under %s' % (len(files), dirname))
+                count = count + 1
+                for f in files:
+                    if f.endswith('.zip'):
+                        if f[0:3] in allFiles:
+                            allFiles[f[0:3]].append(dirname+ '/' + f )
+                        else :
+                            allFiles[f[0:3]] = [dirname+ '/' + f]
+                        fh_out.write(dirname+ '/' + f + '\n')
+                        url = server + dirname+ '/' + f + '\n'
+                        path1 = url.split("/")
+                        path1 = tmpdir + "/" + "/".join(path1[2:-1])
+                        if not os.path.exists(path1):
+                            os.makedirs(path1)
+                        filename = url.split("/")[-1][0:3]
+                        filename = os.path.join(path1, url.split("/")[-1])
+                        if not os.path.exists(filename):
+                            try:
+                                urllib.request.urlretrieve("ftp://" + url, filename)
+                                zip_ref = zipfile.ZipFile(filename)
+                                zip_ref.extractall(path1)
+                                zip_ref.close()
+                                os.remove(filename)
+                                files = os.listdir(path1)
+                                for f in files:
+                                    data = read(path1 + "/"+f)
+                                    print(data.header)
+
+                            except:
+                                error = "Could not download " + url
+                                print(error)
+            else :
+                break
+        host.close()
+        fh_out.close()
+        print("Wrote " + fname_out)
+        return fname_out
+    files = []
+    files.append(cadence_loop())
+
+
+def parsemanifest(fnametxt, fnamepkl):
+    """Extract list of datasets by parsing list of files in fnametxt"""
+
+    print('Reading ' + fnametxt)
+    with open(fnametxt) as f:
+        lines = f.readlines()
+
+    print('Parsing ' + str(len(lines)) + ' lines in ' + fnametxt)
+    s = {}
+    for line in lines:
+            ls = line.split("/")
+            file = ls[-1]
+            path = line.strip()
+            cadence = ls[3]
+            tlc = file[0:3]
+            date = file[3:7]
+            id = tlc + "/" + date
+            if not id in s:
+                s[id] = {}
+                s[id]['dates'] = {}
+                s[id]['dates'][date] = path
+                s[id]['first'] = path
+                s[id]['last'] = path
+            else:
+                s[id]['dates'][date] = path
+                s[id]['last'] = path
+
+    f = open(fnamepkl, 'wb')
+    pickle.dump(s, f, protocol=2)
+    f.close()
+
+
+def archive(fname):
+    ds = datetime.datetime.now().strftime('%Y-%m-%d')
+    if os.path.exists(fname):
+        fname_old = 'old/%s-%s.txt' % (fname[0:-5], ds)
+        print('Moving ./' + fname + ' to ' + fname_old)
+        os.makedirs('old/meta', exist_ok=True)
+        shutil.move(fname, fname_old)
+
+
+if len(sys.argv) == 2:
+    tmpdir = sys.argv[1]
+else:
+    tmpdir = os.path.dirname(os.path.abspath(__file__))
+
+
+if not os.path.exists('meta'):
+    os.makedirs('meta')
+
+fnametxt = 'meta/WDC-manifest.txt'
+fnamepkl = 'meta/WDC-manifest.pkl'
+fnamejson = 'WDC-catalog.json'
+fnametableinfo = 'meta/WDC-tableinfo.pkl'
+fnametable = 'meta/WDC-tableinfo.html'
+
+if update_manifest:
+    archive(fnametxt)
+    createmanifest(server, fnametxt)
+
+
+if update_pkl:
+    archive(fnamepkl)
+    parsemanifest(fnametxt, fnamepkl)
+
+
+
+# if update_json:
+#     archive(fnamejson)
+#     createjson(fnamepkl, fnamejson, fnametableinfo, tmpdir)
+
+# if update_table:
+#     createtable()
