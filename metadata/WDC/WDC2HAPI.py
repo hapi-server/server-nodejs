@@ -12,6 +12,7 @@
 
 # Update WDC-manifest.txt file containing recursive directory
 # listing.
+import glob
 from ftplib import FTP
 update_manifest = True
 import wget
@@ -44,11 +45,16 @@ import urllib.request
 import datetime as datetime
 
 
+list_dict = {}
+date_dict = {}
+
+
 def createmanifest(server, fnametxt):
-    print("In createmanifest : "+ server)
+    print("In createmanifest : " + server)
     import ftputil
     path = "/" + "wdc" + "/" + "obsdata"
-    allFiles= {}
+    allFiles = {}
+
     def cadence_loop():
         count = 0
         fname_out = fnametxt
@@ -56,17 +62,17 @@ def createmanifest(server, fnametxt):
         host = ftputil.FTPHost(server, "anonymous", "anonymous")
         names = host.listdir(host.curdir)
         for (dirname, subdir, files) in host.walk(path + "/" + "1minval"):
-            if count < 3 :
+            if count < 3:
                 print('%d files found under %s' % (len(files), dirname))
                 count = count + 1
                 for f in files:
                     if f.endswith('.zip'):
                         if f[0:3] in allFiles:
-                            allFiles[f[0:3]].append(dirname+ '/' + f )
-                        else :
-                            allFiles[f[0:3]] = [dirname+ '/' + f]
-                        fh_out.write(dirname+ '/' + f + '\n')
-                        url = server + dirname+ '/' + f + '\n'
+                            allFiles[f[0:3]].append(dirname + '/' + f)
+                        else:
+                            allFiles[f[0:3]] = [dirname + '/' + f]
+                        fh_out.write(dirname + '/' + f)
+                        url = server + dirname + '/' + f
                         path1 = url.split("/")
                         path1 = tmpdir + "/" + "/".join(path1[2:-1])
                         if not os.path.exists(path1):
@@ -75,20 +81,18 @@ def createmanifest(server, fnametxt):
                         filename = os.path.join(path1, url.split("/")[-1])
                         if not os.path.exists(filename):
                             try:
-                                urllib.request.urlretrieve("ftp://" + url, filename)
-                                zip_ref = zipfile.ZipFile(filename)
-                                zip_ref.extractall(path1)
-                                zip_ref.close()
-                                os.remove(filename)
+                                urllib.request.urlretrieve(
+                                    "ftp://" + url, filename)
                                 files = os.listdir(path1)
                                 for f in files:
-                                    data = read(path1 + "/"+f)
-                                    print(data.header)
-
+                                    if f[0:3] in list_dict.keys():
+                                        list_dict[f[0:3]].append(path1 + "/"+f)
+                                    else:
+                                        list_dict[f[0:3]] = [path1 + "/"+f]
                             except:
                                 error = "Could not download " + url
                                 print(error)
-            else :
+            else:
                 break
         host.close()
         fh_out.close()
@@ -130,6 +134,22 @@ def parsemanifest(fnametxt, fnamepkl):
     f.close()
 
 
+def createDateDict():
+    path = os.getcwd() + "/obsdata"
+    for (dirname, subdir, files) in os.walk(path + "/" + "1minval"):
+        for f in files:
+            if not f.startswith('.') and f.endswith('.zip'):
+                zip_ref = zipfile.ZipFile(dirname + "/" + f)
+                zip_ref.extractall(dirname)
+                zip_ref.close()
+                os.remove(dirname + "/" + f)
+    for key in list_dict:
+        path1 = os.getcwd() + "/obsdata/1minval/"+list_dict[key][0][-9:-5]
+        glob_list = glob(path1 + "/"+key + '*.wdc')
+        glob_list = sorted(glob_list)
+        date_dict[key] = {'startDate': list_dict[key][0][-9:-5] + '-' + glob_list[0][-7:-5] +
+                          '-01', 'endDate': list_dict[key][-1][-9:-5] + '-' + glob_list[-1][-7:-5] + '-01'}
+
 def archive(fname):
     ds = datetime.datetime.now().strftime('%Y-%m-%d')
     if os.path.exists(fname):
@@ -157,6 +177,9 @@ fnametable = 'meta/WDC-tableinfo.html'
 if update_manifest:
     archive(fnametxt)
     createmanifest(server, fnametxt)
+    createDateDict()
+    print(list_dict) #Dictionary1
+    print(date_dict)  #Dictionary2
 
 
 if update_pkl:
