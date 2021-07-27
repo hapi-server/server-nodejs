@@ -1,3 +1,12 @@
+# To create a release
+#   1. modify version on line 3 of package.json
+#   2. npm run package 			# Creates pkg/*.tgz files with needed binaries from previous release
+#   3. npm run test-packages	# Tests packages on locally running VMs
+#   4. npm run release         	# Tags release on github
+
+# If a new version of node or python is needed ...
+#   Need statically compiled node and python. See bottom of Makefile.
+
 NODEV=v6.16.0
 NODED=https://nodejs.org/dist/latest-v6.x
 # Do not modify following line. Version set by call to
@@ -62,6 +71,7 @@ files:
 	rm -rf dist/hapi-server-$(VERSION)
 	mkdir -p dist/hapi-server-$(VERSION)
 	rsync -aq \
+		--exclude metadata/CAIO \
 		--exclude pkg \
 		--exclude .git \
 		--exclude public/data/QinDenton \
@@ -87,7 +97,7 @@ docker:
 release:
 	cd ..; rm -rf node_modules; npm install --production;
 	make update VERSION=$(VERSION);
-	cd .. && source pkg/GITHUB_TOKEN && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
+	cd .. && GITHUB_TOKEN=$(GITHUB_OAUTH_TOKEN) && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
 
 docker-test:
 	docker exec -it hapi-server-$(VERSION) ./hapi-server test
@@ -159,7 +169,7 @@ node0:
 # (Some packages were not available and apparently were not needed. Need to document
 # the working command)
 node:
-	# apk add is for Apline Linux
+	# apk add is for Alpine Linux
 	sudo apk add curl python build-base gcc abuild binutils binutils-doc gcc-doc linux-headers
 	#sudo apt install curl python build-base gcc abuild binutils binutils-doc gcc-doc linux-headers
 	cd tgz; curl -O $(NODED)/node-$(NODEV).tar.gz;
