@@ -11,7 +11,7 @@ before_install:
   - npm i
 
 script:
-  - npm test
+#  - npm test
   - git checkout release; git merge master
   - cd pkg; make release TOKEN=$(GITHUB_OAUTH_TOKEN)
 
