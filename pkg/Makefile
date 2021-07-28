@@ -42,8 +42,8 @@ update:
 
 packages:
 	make package OS=darwin-x64 VERSION=$(VERSION)
-	make package OS=linux-x64 VERSION=$(VERSION)
-	make package OS=linux-armv7l VERSION=$(VERSION)
+	#make package OS=linux-x64 VERSION=$(VERSION)
+	#make package OS=linux-armv7l VERSION=$(VERSION)
 
 GITHUB=https://github.com/hapi-server/server-nodejs/releases/download
 package:
@@ -86,7 +86,7 @@ zip:
 	cd dist; zip -r hapi-server-$(VERSION)-$(OS).zip hapi-server-$(VERSION)
 
 targz:
-	cd dist; tar zcvf hapi-server-$(VERSION)-$(OS).tgz hapi-server-$(VERSION)
+	cd dist; tar zcf hapi-server-$(VERSION)-$(OS).tgz hapi-server-$(VERSION)
 
 docker:
 	- docker stop hapi-server
@@ -97,6 +97,7 @@ docker:
 release:
 	cd ..; rm -rf node_modules; npm install --production;
 	make update VERSION=$(VERSION);
+	npm install release-it;
 	cd .. && GITHUB_TOKEN=$(GITHUB_OAUTH_TOKEN) && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
 
 docker-test:
