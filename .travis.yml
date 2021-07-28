@@ -12,8 +12,11 @@ before_install:
 
 script:
 #  - npm test
+  - git config --local user.name "rweigel"
+  - git config --local user.email "rweigel@gmu.edu"
+  - export GITHUB_TOKEN=$GITHUB_OAUTH_TOKEN
   - git checkout release; git merge master
-  - cd pkg; make release GITHUB_OAUTH_TOKEN=$GITHUB_OAUTH_TOKEN
+  - cd pkg; make release GITHUB_OAUTH_TOKEN=$(GITHUB_OAUTH_TOKEN)
 
 # Trigger build only for these branches
 branches:
