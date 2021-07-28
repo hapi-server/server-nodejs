@@ -13,7 +13,7 @@ before_install:
 script:
 #  - npm test
   - git checkout release; git merge master
-  - cd pkg; make release GITHUB_OAUTH_TOKEN=$(GITHUB_OAUTH_TOKEN)
+  - cd pkg; make release GITHUB_OAUTH_TOKEN=$GITHUB_OAUTH_TOKEN
 
 # Trigger build only for these branches
 branches:
