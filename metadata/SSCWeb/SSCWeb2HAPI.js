@@ -39,6 +39,7 @@ function getUrlo(cb) {
 				} else {
 					cb(Error("Could not get " + urlo + " and no cached metadata."));
 				}
+				return;
 			}
 			var parser = new xml2js.Parser();
 			parser.parseString(body, function (err, jsonraw) {
