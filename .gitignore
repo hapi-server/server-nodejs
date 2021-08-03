@@ -3,6 +3,7 @@ log/*
 public/meta/*
 node_modules/*
 *~
+.DS_Store
 ssl/*.pem
 pkg/bin
 pkg/dist
