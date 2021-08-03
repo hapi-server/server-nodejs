@@ -1,4 +1,8 @@
-#Note : Make sure to manually bump the version number in package.json after every git push to master
+# Every commit to master leads to a new tagged release; a manual increment in the version number in
+# package.json is needed before every git push to master for the Travis build to succeed.
+# 
+# To prevent a tagged release from being created and also to remove the need to increment the
+# version number, use [skip travis] in the commit message.
 language: generic
 before_deploy:
   - git config --local user.name "rweigel"
