@@ -4,6 +4,13 @@
 # To prevent a tagged release from being created and also to remove the need to increment the
 # version number, use [skip travis] in the commit message.
 language: generic
+
+sudo: required
+
+jobs:
+  include:
+    - os: osx
+
 before_deploy:
   - git config --local user.name "rweigel"
   - git config --local user.email "rweigel@gmu.edu"
