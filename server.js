@@ -1136,17 +1136,19 @@ function csvTo(records,first,last,header,include) {
 					pos = pos + 4;
 				}
 				if (types[j] === 'string' || types[j] === 'isotime') {
-					if (record[j].length > lengths[j]) {
+					let buffer = Buffer.from(record[j],'utf8');
+					if (buffer.length > lengths[j]) {
+						console.log(ds() + clc.red("Truncated:",record[j],buffer.length,"bytes"));
 						truncated = truncated + 1;
 					}
-					recordbuff.write(record[j],pos)
+					recordbuff.write(record[j],pos,'utf8')
 					pos = pos + lengths[j];
 				}
 			}
 		}
 		if (truncated > 0) {
 			console.log(ds() + clc.red((truncated) 
-						+ " strings were truncated because they"
+						+ " string(s) were truncated because they"
 						+ " were longer than length given in metadata"));
 		}
 		return recordbuff;
