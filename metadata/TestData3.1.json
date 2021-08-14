@@ -44,6 +44,16 @@
                                         "description": "A scalar string where strings are Unicode"
                                     },
                                     { 
+                                        "name": "unicodescalar-1-byte-with-3-padding-nulls",
+                                        "type": "string",
+                                        "encoding": "utf-8",
+                                        "units": null,
+                                        "size": [1],
+                                        "length": 4,
+                                        "fill": null,
+                                        "description": "A scalar string where strings are Unicode"
+                                    },
+                                    { 
                                         "name": "unicodescalar-2-byte",
                                         "type": "string",
                                         "encoding": "utf-8",
@@ -53,6 +63,16 @@
                                         "fill": null,
                                         "description": "A scalar string where strings are Unicode"
                                     },
+                                    { 
+                                        "name": "unicodescalar-2-byte-with-2-padding-nulls",
+                                        "type": "string",
+                                        "encoding": "utf-8",
+                                        "units": null,
+                                        "size": [1],
+                                        "length": 4,
+                                        "fill": null,
+                                        "description": "A scalar string where strings are Unicode"
+                                    },                                
                                     { 
                                         "name": "unicodescalar-3-byte",
                                         "type": "string",
@@ -64,6 +84,15 @@
                                         "description": "A scalar string where strings are Unicode"
                                     },
                                     { 
+                                        "name": "unicodescalar-3-byte-with-1-padding-null",
+                                        "type": "string",
+                                        "encoding": "utf-8",
+                                        "units": null,
+                                        "size": [1],
+                                        "length": 4,
+                                        "fill": null,
+                                        "description": "A scalar string where strings are Unicode"
+                                    },                                    { 
                                         "name": "unicodescalar-4-byte",
                                         "type": "string",
                                         "encoding": "utf-8",
@@ -72,17 +101,7 @@
                                         "length": 4,
                                         "fill": null,
                                         "description": "A scalar string where strings are Unicode"
-                                    },                                
-                                    { 
-                                        "name": "unicodescalar-4-byte-with-2-padding-nulls",
-                                        "type": "string",
-                                        "encoding": "utf-8",
-                                        "units": null,
-                                        "size": [1],
-                                        "length": 6,
-                                        "fill": null,
-                                        "description": "A scalar string where strings are Unicode"
-                                    },                                
+                                    },                               
                                     { 
                                         "name": "unicodevector",
                                         "type": "string",

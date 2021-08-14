@@ -43,28 +43,27 @@ for (var i = startsec; i < stopsec; i++) {
 
     record = (new Date(i*1000).toISOString());
     if (all || parameters.includes('unicodescalar-1-byte (Z)') 
-            || parameters.includes('unicodescalar-1-byte')) {
+            || parameters.includes('unicodescalar-1-byte')
+            || parameters.includes('unicodescalar-1-byte-with-3-padding-nulls')) {
         record = record + ',Z';
     }
     if (all || parameters.includes('unicodescalar-2-byte (α)')
-            || parameters.includes('unicodescalar-2-byte')) {
+            || parameters.includes('unicodescalar-2-byte')
+            || parameters.includes('unicodescalar-2-byte-with-2-padding-nulls')) {
         record = record + ',α';
     }
     if (all || parameters.includes('unicodescalar-3-byte (☃)')
-            || parameters.includes('unicodescalar-3-byte')) {
+            || parameters.includes('unicodescalar-3-byte')
+            || parameters.includes('unicodescalar-3-byte-with-1-padding-null')) {
         record = record + ',☃';
     }
     if (all || parameters.includes('unicodescalar-4-byte (👍)')
             || parameters.includes('unicodescalar-4-byte')) {
         record = record + ',👍';
     }
-    if (all || parameters.includes('unicodescalar-4-byte-with-2-padding-nulls')) {
-        record = record + ',👍';
-    }
     if (all || parameters.includes('unicodevector (Z;α;☃;👍)')
             || parameters.includes('unicodevector')) {
         record = record + ',Z,α,☃,👍';
-        //record = record + ',a,b,c,d';
     }
 
     if (records.length > 0) {
