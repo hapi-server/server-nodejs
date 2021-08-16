@@ -22,7 +22,7 @@ jobs:
         only: master
 
 before_install:
-  - npm install && npm ls
+  - npm install && npm ls | grep hapi
   - head -30 node_modules/hapi-server-verifier/is.js
 
 script:

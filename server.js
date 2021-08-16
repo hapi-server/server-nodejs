@@ -68,6 +68,7 @@ let argv = yargs
 			.alias('test','t')
 			.describe('verify','Run verification tests on command line and exit')
 			.alias('verify','v')
+			.option('file',{'type': 'string'})
 			.option('ignore',{'type': 'boolean'})
 			.option('https',{'type': 'boolean'})
 			.option('open',{'type': 'boolean'})
@@ -558,7 +559,6 @@ function apiInit(CATALOGS, PREFIXES, i) {
 
 	// /info
 	app.get(PREFIX + '/hapi/info', function (req, res) {
-
 		cors(res);
 		res.contentType("application/json");
 
@@ -573,8 +573,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
 		// infoCheck() is more consistent with other code.
 		var header = info(req,res,CATALOG);
 		if (typeof(header) === "number") {
-			error(req, res, hapiversion, 1406,
-					"At least one parameter not found in dataset.");
+			error(req, res, hapiversion, 1407);
 			return;
 		} else {
 			res.send(header);
@@ -596,8 +595,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
 		var header = info(req,res,CATALOG);
 		if (typeof(header) === "number") {
 			// One or more of the requested parameters are invalid.
-			error(req, res, hapiversion, 1406,
-					"At least one parameter not found in dataset.");
+			error(req, res, hapiversion, 1407);
 			return;
 		};
 
@@ -660,7 +658,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
 			// instead of triggering a download dialog.
 			res.contentType("text");
 		} else {
-			res.setHeader("Content-Disposition", "attachment;filename=" + fname);
+			res.setHeader("Content-Disposition", "attachment;filename=" + encodeURIComponent(fname));
 		}
 
 		// Send the data
