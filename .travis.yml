@@ -34,7 +34,7 @@ jobs:
         only: master
 
 before_install:
-  - npm i
+  - npm install
 
 script:
   - npm test
