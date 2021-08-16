@@ -15,18 +15,6 @@ dist: xenial
 
 jobs:
   include:
-    - os: linux
-      language: node_js
-      node_js: "6.16"
-      branches:
-         only: master
-
-    - os: windows
-      language: node_js
-      node_js: "8.11.3"
-      branches:
-        only: master
-
     - os: osx
       language: node_js
       node_js: "6.16"
@@ -34,7 +22,8 @@ jobs:
         only: master
 
 before_install:
-  - npm install
+  - npm install && npm ls
+  - head -30 node_modules/hapi-server-verifier/is.js
 
 script:
   - npm test
