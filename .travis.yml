@@ -1,26 +1,48 @@
-# Every commit to master leads to a new tagged release; a manual increment in the version number in
-# package.json is needed before every git push to master for the Travis build to succeed.
-# 
-# To prevent a tagged release from being created and also to remove the need to increment the
-# version number, use [skip travis] in the commit message.
-language: generic
+# To create a release
+#   git checkout master
+#   git pull
+# modify version number in package.json in master branch
+#   git checkout -b deploy
+#   git pull
+#   git rebase origin/master
+#   git commit -a -m "Release"
+#   git push
+#   git checkout master
 
-sudo: required
+language: generic
+os: linux
+dist: xenial
 
 jobs:
   include:
+    - os: linux
+      language: node_js
+      node_js: "6.16"
+      branches:
+         only: master
+
+    - os: windows
+      language: node_js
+      node_js: "8.11.3"
+      branches:
+        only: master
+
     - os: osx
+      language: node_js
+      node_js: "6.16"
+      branches:
+        only: master
 
-before_deploy:
-  - git config --local user.name "rweigel"
-  - git config --local user.email "rweigel@gmu.edu"
-  - cd pkg && make update VERSION=`node -p "require('../package.json').version"`
-  - export TRAVIS_TAG=`node -p "require('./package.json').version"`
-  - git tag `node -p "require('../package.json').version"`
+before_install:
+  - npm i
 
-deploy:
-  provider: releases
-  api_key: $GITHUB_OAUTH_TOKEN
-  file_glob: true
-  file: dist/*
-  skip_cleanup: true
+script:
+  - npm test
+
+notifications:
+  email:
+    recipients:
+      - ksreddy9945@gmail.com
+      - rweigel@gmu.edu
+  on_success: change
+  on_failure: always
