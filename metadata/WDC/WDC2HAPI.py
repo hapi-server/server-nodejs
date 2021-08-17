@@ -15,7 +15,6 @@
 import glob
 from ftplib import FTP
 update_manifest = True
-import wget
 import shutil, zipfile
 from magpy.stream import *
 
@@ -25,7 +24,7 @@ update_pkl = True
 # Write a HAPI JSON file using information in WDC-manifest.pkl
 # and information in first and last file for each magnetometer.
 update_json = True
-test_N = 2 # Run test on only first test_N datasets. If test_N = None, process all datasets.
+test_N = 3 # Run test on only first test_N datasets. If test_N = None, process all datasets.
 
 # Regenerate index.htm
 update_table = True
@@ -34,13 +33,9 @@ server = 'ftp.nmh.ac.uk'
 ftp = FTP(server)
 
 import os
-import re
 import sys
-import gzip
-import json
 import shutil
 import pickle
-import tempfile
 import urllib.request
 import datetime as datetime
 
@@ -54,7 +49,6 @@ def createmanifest(server, fnametxt):
     import ftputil
     path = "/" + "wdc" + "/" + "obsdata"
     allFiles = {}
-
     def cadence_loop():
         count = 0
         fname_out = fnametxt
@@ -62,7 +56,7 @@ def createmanifest(server, fnametxt):
         host = ftputil.FTPHost(server, "anonymous", "anonymous")
         names = host.listdir(host.curdir)
         for (dirname, subdir, files) in host.walk(path + "/" + "1minval"):
-            if count < 3:
+            if count < test_N:
                 print('%d files found under %s' % (len(files), dirname))
                 count = count + 1
                 for f in files:
@@ -81,8 +75,7 @@ def createmanifest(server, fnametxt):
                         filename = os.path.join(path1, url.split("/")[-1])
                         if not os.path.exists(filename):
                             try:
-                                urllib.request.urlretrieve(
-                                    "ftp://" + url, filename)
+                                urllib.request.urlretrieve("ftp://" + url, filename)
                                 files = os.listdir(path1)
                                 for f in files:
                                     if f[0:3] in list_dict.keys():
@@ -135,6 +128,7 @@ def parsemanifest(fnametxt, fnamepkl):
 
 
 def createDateDict():
+
     path = os.getcwd() + "/obsdata"
     for (dirname, subdir, files) in os.walk(path + "/" + "1minval"):
         for f in files:
@@ -176,9 +170,16 @@ fnametable = 'meta/WDC-tableinfo.html'
 
 if update_manifest:
     archive(fnametxt)
+    path1 = os.getcwd() + "/obsdata/1minval/"
+    try:
+        shutil.rmtree(path1)
+    except OSError as e:
+        print("Error!")
     createmanifest(server, fnametxt)
     createDateDict()
+    print("List DICT : ")
     print(list_dict) #Dictionary1
+    print("DATE_DICT : ")
     print(date_dict)  #Dictionary2
 
 
