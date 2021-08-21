@@ -25,6 +25,9 @@ update_pkl = True
 # Write a HAPI JSON file using information in WDC-manifest.pkl
 # and information in first and last file for each magnetometer.
 update_json = True
+
+N_years = 3
+
 test_N = 2 # Run test on only first test_N datasets. If test_N = None, process all datasets.
 
 # Regenerate index.htm
@@ -62,7 +65,7 @@ def createmanifest(server, fnametxt):
         host = ftputil.FTPHost(server, "anonymous", "anonymous")
         names = host.listdir(host.curdir)
         for (dirname, subdir, files) in host.walk(path + "/" + "1minval"):
-            if count < 3:
+            if count < N_years:
                 print('%d files found under %s' % (len(files), dirname))
                 count = count + 1
                 for f in files:
@@ -71,7 +74,7 @@ def createmanifest(server, fnametxt):
                             allFiles[f[0:3]].append(dirname + '/' + f)
                         else:
                             allFiles[f[0:3]] = [dirname + '/' + f]
-                        fh_out.write(dirname + '/' + f)
+                        fh_out.write(dirname + '/' + f + "\n")
                         url = server + dirname + '/' + f
                         path1 = url.split("/")
                         path1 = tmpdir + "/" + "/".join(path1[2:-1])
@@ -153,7 +156,7 @@ def createDateDict():
 def archive(fname):
     ds = datetime.datetime.now().strftime('%Y-%m-%d')
     if os.path.exists(fname):
-        fname_old = 'old/%s-%s.txt' % (fname[0:-5], ds)
+        fname_old = 'old/%s-%s.txt' % (fname[0:-4   ], ds)
         print('Moving ./' + fname + ' to ' + fname_old)
         os.makedirs('old/meta', exist_ok=True)
         shutil.move(fname, fname_old)
