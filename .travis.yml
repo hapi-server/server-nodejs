@@ -1,49 +1,28 @@
-# To create a release
-#   git checkout master
-#   git pull
-# modify version number in package.json in master branch
-#   git checkout -b deploy
-#   git pull
-#   git rebase origin/master
-#   git commit -a -m "Release"
-#   git push # This will trigger a build of deploy
-
 language: generic
 os: linux
 dist: xenial
 env:
   global:
     - npm_ver=`node -p "require('./package.json').version"`
-
 jobs:
   include:
+    # - os: linux
+    #   language: node_js
+    #   node_js: "6.16"
+    #   branches:
+    #      only: master
 
-language: generic
-os: linux
-dist: xenial
+    # - os: windows
+    #   language: node_js
+    #   node_js: "8.11.3"
+    #   branches:
+    #     only: master
 
-jobs:
-  include:
-    - os: linux
-      language: node_js
-      node_js: "6.16"
-      python: "2.7"
-      branches:
-         only: master
-
-    - os: windows
-      language: node_js
-      node_js: "8.11.3"
-      python: "2.7"
-      branches:
-        only: master
-
-    - os: osx
-      language: node_js
-      node_js: "6.16"
-      python: "2.7"
-      branches:
-        only: master
+    # - os: osx
+    #   language: node_js
+    #   node_js: "6.16"
+    #   branches:
+    #     only: master
 
     - stage: deploy
       os: osx
@@ -57,6 +36,7 @@ jobs:
       before_deploy:
         - git config --local user.name "rweigel"
         - git config --local user.email "rweigel@gmu.edu"
+        - npm i
         - cd pkg && make update
         - export TRAVIS_TAG=$npm_ver
         - git tag $npm_ver
@@ -106,12 +86,8 @@ jobs:
           - deploy
       script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-win-x64.tgz; tar zxvf hapi-server-$npm_ver-win-x64.tgz; cd hapi-server-$npm_ver; .\\bin\node test\hapi-server.js;
 
-# npm cache clean is b/c sometimes most recent master
-# is not pulled by travis when npm install is executed.
-# Not sure if it works.
 before_install:
-  - npm install
-  - npm cache clean --force
+  - npm i
 
 script:
   - npm test
