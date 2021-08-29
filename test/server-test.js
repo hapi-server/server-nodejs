@@ -13,7 +13,7 @@ if (process.platform.startsWith("win")) {
 	metadir = __dirname + '/../metadata';
 }
 
-let testAll = false;
+let testAll = true;
 
 metadir = path.normalize(metadir);
 
