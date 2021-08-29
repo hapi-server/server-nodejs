@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/hapi-server/server-nodejs.png?branch=master)](https://travis-ci.com/hapi-server/server-nodejs)
+[![Build Status](https://app.travis-ci.com/hapi-server/server-nodejs.svg?branch=master)](https://travis-ci.com/hapi-server/server-nodejs)
 
 # HAPI Server Front-End
 
