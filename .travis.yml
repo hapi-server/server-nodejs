@@ -79,18 +79,11 @@ jobs:
 
     - stage: win-x64
       os: windows
-      language: node_js
       before_install: skip
       branches:
         only:
           - deploy
-      script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-win-x64.tgz; tar zxvf hapi-server-$npm_ver-win-x64.tgz; cd hapi-server-$npm_ver; .\\bin\node test\hapi-server.js;
-
-before_install:
-  - npm i
-
-script:
-  - npm test
+      script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-win-x64.tgz; tar zxvf hapi-server-$npm_ver-win-x64.tgz; cd hapi-server-$npm_ver; ./hapi-server test;
 
 notifications:
   email:
