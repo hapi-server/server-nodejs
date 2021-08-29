@@ -89,16 +89,24 @@ console.log('_________');
 
 let fails = 0;
 for (var i = 0; i < files.length; i++) {
+	let slash = "/";
+	if (process.platform.startsWith("win")) {
+		slash = "\\";
+	}
 	// Run node server.js --test -f metadata/CATALOG.json
-	let comt = nodeexe + " --test " + server_args + " -f " + '"' + metadir + "/" + files[i] + '"';
+	let comt = nodeexe + " --test " + server_args + " -f " + '"' + metadir + slash + files[i] + '"';
 	fails = fails + execute(comt,2*i);
 
 	// Run node server.js --verify -f metadata/CATALOG.json
-	let comv = nodeexe + " --verify " + server_args + " -f " + metadir + "/" + files[i];
+	let comv = nodeexe + " --verify " + server_args + " -f " + metadir + slash + files[i];
 	fails = fails + execute(comv,2*i+1);
 	if (argv.https || !testAll) {
 		// Only run one test.
-		process.exit(0);
+		if (fails == 0) {
+			process.exit(0);
+		} else {
+			process.exit(1);
+		}
 	}
 }
 
