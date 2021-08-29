@@ -31,12 +31,14 @@ ifeq ($(OS),darwin-x64)
 	SERVER=pro2
 endif
 
-# When NodeJS and Python binaries do not need to be updated.
-update:
+version:
 	sed -E -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' ../README.md	
 	sed -E -i '' 's/hapi-server:v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server:$(VERSION)/g' ../README.md	
 	sed -E -i '' 's/VERSION=v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/VERSION=$(VERSION)/g' Makefile
 	sed -E -i '' 's/VERSION="v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}"/VERSION="$(VERSION)"/g' ../server.js
+	
+# When NodeJS and Python binaries do not need to be updated.
+update:
 	make packages
 	rm -rf dist/hapi-server-$(VERSION)/
 
@@ -86,7 +88,7 @@ files:
 	rm -rf dist/hapi-server-$(VERSION)/node_modules/moment/locale
 
 zip:
-	cd dist; zip -r hapi-server-$(VERSION)-$(OS).zip hapi-server-$(VERSION)
+	cd dist; zip -q -r hapi-server-$(VERSION)-$(OS).zip hapi-server-$(VERSION)
 
 targz:
 	cd dist; tar zcf hapi-server-$(VERSION)-$(OS).tgz hapi-server-$(VERSION)
