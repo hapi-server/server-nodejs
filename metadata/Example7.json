@@ -7,7 +7,7 @@
 		"catalog-update": 10
 	},
 	"data": {
-		"command": "curl -s \"http://hapi-server.org/servers/TestData2.0/hapi/data?id=${id}&parameters=${parameters}&time.min=${start}&time.max=${stop}&format=${format}\"",
+		"command": "curl -s \"http://hapi-server.org/servers/TestData2.0/hapi/data?id=${{id}}&parameters=${{parameters}}&time.min=${start}&time.max=${stop}&format=${format}\"",
 		"formats": ["csv","binary","json"],
 		"contact": "rweigel@gmu.edu",
 		"testcommands": [

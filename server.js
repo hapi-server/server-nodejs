@@ -801,13 +801,15 @@ function data(req,res,catalog,header,include) {
 
 	function replacevars(com) {
 
+		com = com.replace("${{id}}",req.query["id"]);
+		com = com.replace("${{parameters}}",req.query["parameters"]);
+		com = com.replace("${start}",start);
+		com = com.replace("${stop}",stop);
 		if (process.platform.startsWith("win")) {
 			com = com.replace("${id}",'"' + req.query["id"] + '"');
 		} else {
 			com = com.replace("${id}","'" + req.query["id"] + "'");
 		}
-		com = com.replace("${start}",start);
-		com = com.replace("${stop}",stop);
 		if (req.query["parameters"]) {
 			if (process.platform.startsWith("win")) {
 				com = com.replace("${parameters}",'"' + req.query["parameters"] + '"');
