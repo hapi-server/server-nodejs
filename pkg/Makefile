@@ -39,7 +39,7 @@ version:
 	
 # When NodeJS and Python binaries do not need to be updated.
 update:
-	make packages
+	make packages VERSION=$(VERSION)
 	rm -rf dist/hapi-server-$(VERSION)/
 
 packages:

@@ -69,7 +69,7 @@ jobs:
         - git config --local user.name "rweigel"
         - git config --local user.email "rweigel@gmu.edu"
         - npm i
-        - cd pkg && make update
+        - npm run package
         - export TRAVIS_TAG=$npm_ver
         - git tag $npm_ver
 
@@ -79,7 +79,7 @@ jobs:
           branch: deploy
         api_key: $GITHUB_OAUTH_TOKEN
         file_glob: true
-        file: dist/*
+        file: pkg/dist/*
         skip_cleanup: true
 
     # - stage: darwin-x64
