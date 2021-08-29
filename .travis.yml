@@ -15,9 +15,23 @@ dist: xenial
 
 jobs:
   include:
+    - os: linux
+      language: node_js
+      node_js: "6.16"
+      python: "2.7"
+      branches:
+         only: master
+
     - os: windows
       language: node_js
       node_js: "8.11.3"
+      python: "2.7"
+      branches:
+        only: master
+
+    - os: osx
+      language: node_js
+      node_js: "6.16"
       python: "2.7"
       branches:
         only: master
