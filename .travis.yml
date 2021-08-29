@@ -35,7 +35,7 @@ jobs:
     #      only: master
 
     - os: windows
-      if: branch = deploy
+      if: branch = master
       language: node_js
       node_js: "8.11.3"
       python: "2.7"
@@ -104,6 +104,7 @@ jobs:
     #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && ./hapi-server test;
 
     - stage: win-x64
+      if: branch = deploy
       os: windows
       before_install: skip
       branches:
