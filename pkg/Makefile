@@ -41,9 +41,10 @@ update:
 	rm -rf dist/hapi-server-$(VERSION)/
 
 packages:
+	make package OS=win-x64 VERSION=$(VERSION)
 	make package OS=darwin-x64 VERSION=$(VERSION)
-	#make package OS=linux-x64 VERSION=$(VERSION)
-	#make package OS=linux-armv7l VERSION=$(VERSION)
+	make package OS=linux-x64 VERSION=$(VERSION)
+	make package OS=linux-armv7l VERSION=$(VERSION)
 
 GITHUB=https://github.com/hapi-server/server-nodejs/releases/download
 package:

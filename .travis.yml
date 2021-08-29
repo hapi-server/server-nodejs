@@ -49,6 +49,7 @@ jobs:
     #     only: master
 
     - stage: deploy
+      if: branch = deploy
       os: osx
       language: generic
       before_install: skip
