@@ -11,10 +11,10 @@
 #   git checkout deploy
 #   git pull
 #   git rebase origin/master
-#   git commit -a -m "Release"
+#   git commit -a -m "1.0.0 Release"
 #   git push
 #   git checkout master
-# Then manuall trigger build of deploy branch at
+# Then manually trigger build of deploy branch at
 # https://app.travis-ci.com/github/hapi-server/server-nodejs/ 
 
 language: generic
