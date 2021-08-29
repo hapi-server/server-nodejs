@@ -147,7 +147,10 @@ if (HTTPS === false) {
 		server = require("https").createServer(options, app);
 	} else {
 		// Genererate key and cert file
-
+		if (process.platform.startsWith("win")) {
+			console.log(ds() + clc.red("Generation of SSL key and certifications files not implemented on Windows"));
+			process.exit(1);
+		}
 		let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
 		
 		// execSync requires a callback. Replaced it with spawnSync.
@@ -797,11 +800,20 @@ function data(req,res,catalog,header,include) {
 	var d = metadata(catalog,'data');
 
 	function replacevars(com) {
-		com = com.replace("${id}",req.query["id"]);
+
+		if (process.platform.startsWith("win")) {
+			com = com.replace("${id}",'"' + req.query["id"] + '"');
+		} else {
+			com = com.replace("${id}","'" + req.query["id"] + "'");
+		}
 		com = com.replace("${start}",start);
 		com = com.replace("${stop}",stop);
 		if (req.query["parameters"]) {
-			com = com.replace("${parameters}",req.query["parameters"]);
+			if (process.platform.startsWith("win")) {
+				com = com.replace("${parameters}",'"' + req.query["parameters"] + '"');
+			} else {
+				com = com.replace("${parameters}","'" + req.query["parameters"] + "'");
+			}
 		} else {
 			com = com.replace("${parameters}",'');
 		}
@@ -893,10 +905,10 @@ function data(req,res,catalog,header,include) {
 
 		if (subsetcols || subsettime) {
 			com = com
-					+ " | '"
+					+ ' | "'
 					+ config.NODEEXE
-					+ "' '" + __dirname
-					+ "/lib/subset.js'";
+					+ '" "' + __dirname
+					+ '/lib/subset.js"';
 			if (subsettime) {
 				com = com + " --start " + start;
 				com = com + " --stop " + stop;
@@ -923,13 +935,25 @@ function data(req,res,catalog,header,include) {
 		}
 	}
 
+	if (process.platform.startsWith("win")) {
+		if (com.startsWith('"')) {
+			com = '"' + com + '"';
+		}
+	}
 	console.log(ds() + "Executing: " + com);
 
 	// Call the CL command and send output.
 	var coms  = com.split(/\s+/);
 	var coms0 = coms.shift();
-	var child = require('child_process')
-					.spawn('sh', ['-c', com], {"encoding": "buffer"});
+	if (process.platform.startsWith("win")) {
+		var child = require('child_process').
+						spawn('cmd.exe',
+							['/s','/c', com],
+							{shell: true, stdio: "pipe", encoding: "buffer"});
+	} else {
+		var child = require('child_process')
+						.spawn('sh', ['-c', com], {"encoding": "buffer"});
+	}
 
 	var wroteheader = false; // If header already sent.
 	var gotdata = false; // First chunk of data received.

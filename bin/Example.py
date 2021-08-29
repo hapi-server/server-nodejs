@@ -26,15 +26,20 @@ import argparse
 import datetime
 import re
 
-if sys.platform == 'win32':
-  from signal import signal, SIG_DFL
-else:
-  from signal import signal, SIGPIPE, SIG_DFL
+# On windows, error is
+#   close failed in file object destructor:
+#   sys.excepthook is missing
+#   lost sys.stderr
+# This is due to
+#   https://bugs.python.org/issue11380
+# The error message can be ignored.
+
 # Trap broke pipe signal so usage in the form of
 # python ./bin/Example.py | python lib/subset.py ...
 # does not throw error when subset.py terminates read
 # of output of Example.py.
 if sys.platform != 'win32':
+    from signal import signal, SIGPIPE, SIG_DFL
     signal(SIGPIPE, SIG_DFL)
 
 parser = argparse.ArgumentParser()

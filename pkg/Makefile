@@ -150,12 +150,22 @@ linux-x64:
 	make python OS=linux-x64
 	make package OS=linux-x64
 
-# This was working at one point.
+# Do this on Windows 10
+# First install
+# https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi
+# https://github.com/coreybutler/nvm/releases
+# https://chocolatey.org/install
+# choco install make
+# then
+#   make win-x64 should work.
 win-x64:
-	copy bin/node-$(NODEV)-$(OS).exe dist/hapi-server-$(VERSION)/bin/node.exe
-	copy python.py python/
-	cd python/; C:\Python2.7\Scripts\pyinstaller python.py --onefile
-	copy python/dist/python.exe bin/python-$(OS).exe
+	C:\Python27\Scripts\pip.exe install pyinstaller==3.6
+	C:\Python27\Scripts\pyinstaller.exe python.py --onefile
+	copy dist\python.exe dist\hapi-server-$(VERSION)\bin
+	nvm install 8.17.0
+	cd ..;npm install
+	npm test
+	copy copy "C:\Program Files\nodejs\node.exe" dist/hapi-server-$(VERSION)/bin
 	make package OS=win-x64
 
 node0:

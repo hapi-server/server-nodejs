@@ -7,7 +7,7 @@
 		"catalog-update": null
 	},
 	"data": {
-		"command": "\"$PYTHONEXE\" \"$HAPISERVERPATH/bin/Example.py\" --params '${parameters}' --start ${start} --stop ${stop} --fmt ${format}",
+		"command": "\"$PYTHONEXE\" \"$HAPISERVERPATH/bin/Example.py\" --params ${parameters} --start ${start} --stop ${stop} --fmt ${format}",
 		"contact": "rweigel@gmu.edu",
 		"formats": ["csv","binary"],
 		"testcommands": [
