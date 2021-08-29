@@ -96,7 +96,7 @@ for (var i = 0; i < files.length; i++) {
 	// Run node server.js --verify -f metadata/CATALOG.json
 	let comv = nodeexe + " --verify " + server_args + " -f " + metadir + "/" + files[i];
 	fails = fails + execute(comv,2*i+1);
-	if (argv.https !== "" || !testAll) {
+	if (argv.https || !testAll) {
 		// Only run one test.
 		process.exit(0);
 	}
