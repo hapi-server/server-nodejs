@@ -1,3 +1,16 @@
+# To create a release
+#   git checkout master
+#   git pull
+# This may be needed
+#   git tag -d 1.0.0; git push --delete origin 1.0.0
+# modify version number in package.json in master branch
+#   git checkout deploy
+#   git pull
+#   git rebase origin/master
+#   git commit -a -m "Release"
+#   git push
+#   git checkout master
+
 language: generic
 os: linux
 dist: xenial
@@ -68,7 +81,7 @@ jobs:
     #   branches:
     #     only:
     #       - deploy
-    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-darwin-x64.tgz && tar zxvf hapi-server-$npm_ver-darwin-x64.tgz && cd hapi-server-$npm_ver && ./hapi-server test;
+    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-darwin-x64.tgz && tar zxf hapi-server-$npm_ver-darwin-x64.tgz && cd hapi-server-$npm_ver && ./hapi-server test;
 
     # - stage: linux-armv7l
     #   os: osx
@@ -77,7 +90,7 @@ jobs:
     #   branches:
     #     only:
     #       - deploy
-    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-armv7l.tgz && tar zxvf hapi-server-$npm_ver-linux-armv7l.tgz && cd hapi-server-$npm_ver && ./hapi-server test;
+    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-armv7l.tgz && tar zxf hapi-server-$npm_ver-linux-armv7l.tgz && cd hapi-server-$npm_ver && ./hapi-server test;
 
     # - stage: linux-x64
     #   os: osx
@@ -86,7 +99,7 @@ jobs:
     #   branches:
     #     only:
     #       - deploy
-    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxvf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && ./hapi-server test;
+    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && ./hapi-server test;
 
     - stage: win-x64
       os: windows

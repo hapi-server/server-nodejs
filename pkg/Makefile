@@ -52,6 +52,8 @@ package:
 	#cp bin/node-$(NODEV)-$(OS) dist/hapi-server-$(VERSION)/bin/node
 ifeq ($(OS),win-x64)
 	# Not tested
+	curl --output dist/hapi-server-$(VERSION)/bin/python.exe http://mag.gmu.edu/tmp/python.exe
+	curl --output dist/hapi-server-$(VERSION)/bin/node.exe http://mag.gmu.edu/tmp/node.exe 
 else
 	# Use comiled binaries from a previous release
 	cd /tmp; curl -L -O $(GITHUB)/v0.9.5/hapi-server-v0.9.5-$(OS).tgz
