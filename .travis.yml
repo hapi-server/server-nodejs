@@ -83,7 +83,7 @@ jobs:
       branches:
         only:
           - deploy
-      script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-win-x64.tgz; tar zxvf hapi-server-$npm_ver-win-x64.tgz; cd hapi-server-$npm_ver; ./hapi-server test;
+      script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-win-x64.tgz; tar zxf hapi-server-$npm_ver-win-x64.tgz; cd hapi-server-$npm_ver; ./hapi-server test;
 
 notifications:
   email:
