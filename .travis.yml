@@ -6,8 +6,17 @@
 #   git pull
 #   git rebase origin/master
 #   git commit -a -m "Release"
-#   git push
-#   git checkout master
+#   git push # This will trigger a build of deploy
+
+language: generic
+os: linux
+dist: xenial
+env:
+  global:
+    - npm_ver=`node -p "require('./package.json').version"`
+
+jobs:
+  include:
 
 language: generic
 os: linux
@@ -35,6 +44,67 @@ jobs:
       python: "2.7"
       branches:
         only: master
+
+    - stage: deploy
+      os: osx
+      language: generic
+      before_install: skip
+      script: skip
+      branches:
+        only:
+          deploy
+
+      before_deploy:
+        - git config --local user.name "rweigel"
+        - git config --local user.email "rweigel@gmu.edu"
+        - cd pkg && make update
+        - export TRAVIS_TAG=$npm_ver
+        - git tag $npm_ver
+
+      deploy:
+        provider: releases
+        on:
+          branch: deploy
+        api_key: $GITHUB_OAUTH_TOKEN
+        file_glob: true
+        file: dist/*
+        skip_cleanup: true
+
+    # - stage: darwin-x64
+    #   os: osx
+    #   language: generic
+    #   before_install: skip
+    #   branches:
+    #     only:
+    #       - deploy
+    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-darwin-x64.tgz && tar zxvf hapi-server-$npm_ver-darwin-x64.tgz && cd hapi-server-$npm_ver && ./hapi-server test;
+
+    # - stage: linux-armv7l
+    #   os: osx
+    #   language: generic
+    #   before_install: skip
+    #   branches:
+    #     only:
+    #       - deploy
+    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-armv7l.tgz && tar zxvf hapi-server-$npm_ver-linux-armv7l.tgz && cd hapi-server-$npm_ver && ./hapi-server test;
+
+    # - stage: linux-x64
+    #   os: osx
+    #   language: generic
+    #   before_install: skip
+    #   branches:
+    #     only:
+    #       - deploy
+    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxvf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && ./hapi-server test;
+
+    - stage: win-x64
+      os: windows
+      language: node_js
+      before_install: skip
+      branches:
+        only:
+          - deploy
+      script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-win-x64.tgz; tar zxvf hapi-server-$npm_ver-win-x64.tgz; cd hapi-server-$npm_ver; .\\bin\node test\hapi-server.js;
 
 # npm cache clean is b/c sometimes most recent master
 # is not pulled by travis when npm install is executed.
