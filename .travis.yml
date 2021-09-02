@@ -6,7 +6,7 @@
 #   git commit -a -m "Final 1.0.0 commit"
 #   git push
 # This may be needed
-#   git tag -d 1.0.0; git push --delete origin 1.0.0
+#   git tag -d v1.0.0; git push --delete origin 1.0.0
 # modify version number in package.json in master branch
 #   git checkout deploy
 #   git pull
@@ -112,6 +112,7 @@ jobs:
     - stage: win-x64
       if: branch = deploy
       os: windows
+      language: deploy
       before_install: skip
       branches:
         only:
