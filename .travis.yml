@@ -17,6 +17,11 @@
 # Then manually trigger build of deploy branch at
 # https://app.travis-ci.com/github/hapi-server/server-nodejs/ 
 
+branches:
+  only:
+  - master
+  - deploy
+
 env:
   global:
     - npm_ver=v`cat package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
