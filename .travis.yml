@@ -112,7 +112,7 @@ jobs:
     - stage: win-x64
       if: branch = deploy
       os: windows
-      language: deploy
+      language: julia
       before_install: skip
       branches:
         only:
