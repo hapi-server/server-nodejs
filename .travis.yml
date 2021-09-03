@@ -59,13 +59,10 @@ jobs:
 
     - stage: deploy
       if: branch = deploy
-      os: osx
+      os: linux
       language: generic
       before_install: skip
       script: skip
-      branches:
-        only:
-          deploy
 
       before_deploy:
         - git config --local user.name "rweigel"
@@ -76,21 +73,18 @@ jobs:
         - git tag $npm_ver
 
       deploy:
+        if: branch = deploy
         provider: releases
-        on:
-          branch: deploy
         api_key: $GITHUB_OAUTH_TOKEN
         file_glob: true
         file: pkg/dist/*
         skip_cleanup: true
 
     - stage: darwin-x64
+      if: branch = deploy
       os: osx
       language: generic
       before_install: skip
-      branches:
-        only:
-          - deploy
       script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-darwin-x64.tgz && tar zxf hapi-server-$npm_ver-darwin-x64.tgz && cd hapi-server-$npm_ver && bin/node server.js test/server-test.js --test
 
     # - stage: linux-armv7l
@@ -103,12 +97,10 @@ jobs:
     #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-armv7l.tgz && tar zxf hapi-server-$npm_ver-linux-armv7l.tgz && cd hapi-server-$npm_ver && bin/node server.js test/server-test.js --test
 
     - stage: linux-x64
+      if: branch = deploy
       os: osx
       language: generic
       before_install: skip
-      branches:
-        only:
-          - deploy
       script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && bin/node server.js test/server-test.js --test
 
     - stage: win-x64
@@ -116,9 +108,6 @@ jobs:
       language: shell
       os: windows
       before_install: skip
-      branches:
-        only:
-          - deploy
       script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-win-x64.zip; unzip -q hapi-server-$npm_ver-win-x64.zip; cd hapi-server-$npm_ver; bin/node server.js test/server-test.js --test
 
 notifications:
