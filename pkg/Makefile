@@ -9,10 +9,11 @@
 
 NODEV=v6.16.0
 NODED=https://nodejs.org/dist/latest-v6.x
+
 # Do not modify following line. Version set by call to
-#   npm run update
+#   npm run version
 # which uses version in package.json
-VERSION=v1.0.0
+VERSION=v1.0.1 # Do not modify
 
 # To get other OS-X versions, see
 # https://developer.apple.com/forums/thread/111322
@@ -93,17 +94,20 @@ zip:
 targz:
 	cd dist; tar zcf hapi-server-$(VERSION)-$(OS).tgz hapi-server-$(VERSION)
 
+release:
+	cd ..; rm -rf node_modules; npm install --production;
+	make update VERSION=$(VERSION);
+	npm install release-it;
+	cd .. && GITHUB_TOKEN=$(GITHUB_OAUTH_TOKEN) && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
+
 docker:
 	- docker stop hapi-server
 	- docker rm hapi-server
 	docker build --file Dockerfile -t rweigel/hapi-server:$(VERSION) ../
 	docker run -dit --name hapi-server-$(VERSION) --expose 8999 -p 8999:8999 rweigel/hapi-server:$(VERSION)
 
-release:
-	cd ..; rm -rf node_modules; npm install --production;
-	make update VERSION=$(VERSION);
-	npm install release-it;
-	cd .. && GITHUB_TOKEN=$(GITHUB_OAUTH_TOKEN) && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
+# To log in to server, use, e.g.,
+# docker exec -it hapi-server-v1.0.0 /bin/bash
 
 docker-test:
 	docker exec -it hapi-server-$(VERSION) ./hapi-server test

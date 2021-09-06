@@ -1,20 +1,22 @@
 # To create a release
+
 #   git checkout master
 #   git pull
-#   Edit version in package.json to 1.0.0
+#   npm test
+#   cd pkg; make docker && make docker-test && make docker-release
+# Edit version in package.json to 1.0.0
 #   npm run version
+#   git tag -d v1.0.0 # May not be needed.
 #   git commit -a -m "Final 1.0.0 commit"
 #   git push
-# This may be needed
-#   git tag -d v1.0.0; git push --delete origin v1.0.0
-# modify version number in package.json in master branch
+
+# A commit to the deploy branch will trigger creation of release
+# on travis and then testing of release assests.
 #   git checkout deploy
 #   git rebase origin/master
 #   git commit -a -m "v1.0.0 Release"
 #   git push
 #   git checkout master
-# Then manually trigger build of deploy branch at
-# https://app.travis-ci.com/github/hapi-server/server-nodejs/ 
 
 env:
   global:
