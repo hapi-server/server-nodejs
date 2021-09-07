@@ -1,5 +1,5 @@
 {
-  "name": "hapi-server",
+  "name": "@hapi-server/server",
   "version": "1.0.1",
   "license": "MIT",
   "engine-strict": true,
