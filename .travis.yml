@@ -149,11 +149,7 @@ jobs:
       branches:
         only:
           - deploy
-<<<<<<< HEAD
-      script: npm install "@hapi-server/server@$npm_ver0"
-=======
       script: npm install "@hapi-server/server@$npm_ver0" && hapi-server --test
->>>>>>> origin/master
 
 notifications:
   email:
