@@ -11,9 +11,12 @@
     "email": "rweigel@gmu.edu",
     "url": "https://github.com/rweigel"
   },
-   "repository": {
+  "repository": {
     "type": "git",
     "url": "https://github.com/hapi-server/server-nodejs.git"
+  },
+  "bin": {
+    "hapi-server": "./server.js"
   },
   "dependencies": {
     "chalk": "^2.4.1",
@@ -45,7 +48,6 @@
     "test-packages": "cd pkg; make test-packages VERSION=v$npm_package_version",
     "release": "cd pkg; make release VERSION=v$npm_package_version"
   },
-  "bin": "server.js",
   "release-it": {
     "github": {
       "release": true,

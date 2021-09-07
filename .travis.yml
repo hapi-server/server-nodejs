@@ -6,9 +6,8 @@
 #   cd pkg; make docker && make docker-test && make docker-release
 # Edit version in package.json to 1.0.0
 #   npm run version
-# This may be needed
+# The next command is only needed if tag already exists
 #   git tag -d v1.0.0; git push --delete origin v1.0.0
-#   git tag -d v1.0.0
 #   git commit -a -m "Final 1.0.0 commit"
 #   git push
 # modify version number in package.json in master branch
@@ -22,7 +21,8 @@
 
 env:
   global:
-    - npm_ver=v`cat package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
+    - npm_ver0=`cat package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
+    - npm_ver=v$npm_ver
 
 before_install:
   - npm install
@@ -140,6 +140,16 @@ jobs:
         on:
           branch: deploy
         skip_cleanup: true
+
+    - stage: npm-deploy-test
+      if: branch = deploy
+      language: shell
+      os: linux
+      before_install: skip
+      branches:
+        only:
+          - deploy
+      script: npm install "@hapi-server/server@$npm_ver0"
 
 notifications:
   email:
