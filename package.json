@@ -11,7 +11,7 @@
     "email": "rweigel@gmu.edu",
     "url": "https://github.com/rweigel"
   },
-  "repository": {
+   "repository": {
     "type": "git",
     "url": "https://github.com/hapi-server/server-nodejs.git"
   },
