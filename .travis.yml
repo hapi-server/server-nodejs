@@ -13,7 +13,7 @@
 #   git push
 # modify version number in package.json in master branch
 #   git checkout deploy
-#   git rebase origin/master -Xtheirs
+#   git merge origin/master --squash
 #   git commit -a -m "v1.0.0 Release"
 #   git push
 #   git checkout master
