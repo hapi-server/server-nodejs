@@ -73,6 +73,12 @@ docker exec -it hapi-server-v1.0.8 ./hapi-server
 # Open http://localhost:8999/TestData/hapi in a web browser
 ```
 
+npm:
+
+```
+npm install -g "@hapi-server/server"
+```
+
 <a name="Examples"></a>
 ## 2. Examples
 
