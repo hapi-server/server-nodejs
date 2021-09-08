@@ -40,10 +40,13 @@ jobs:
       node_js: "6.16"
       os: linux
       before_install: skip
+      git:
+        clone: false
+      install: npm install "@hapi-server/server@$npm_ver0"
       branches:
         only:
           - deploy
-      script: npm install "@hapi-server/server@$npm_ver0" && hapi-server --test
+      script: hapi-server --test
 
 notifications:
   email:
