@@ -42,7 +42,7 @@ jobs:
       before_install: skip
       git:
         clone: false
-      install: npm cache clean --force; npm install -g "@hapi-server/server@1.0.5"
+      install: npm uninstall "@hapi-server/server"; npm install -g "@hapi-server/server@1.0.5"
       branches:
         only:
           - deploy
