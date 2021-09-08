@@ -13,7 +13,7 @@ NODED=https://nodejs.org/dist/latest-v6.x
 # Do not modify following line. Version set by call to
 #   npm run version
 # which uses version in package.json
-VERSION=v1.0.2 # Do not modify
+VERSION=v1.0.6 # Do not modify
 
 # To get other OS-X versions, see
 # https://developer.apple.com/forums/thread/111322
@@ -35,6 +35,7 @@ endif
 version:
 	sed -E -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' ../README.md	
 	sed -E -i '' 's/hapi-server:v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server:$(VERSION)/g' ../README.md	
+	sed -E -i '' 's/download\/v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/download\/$(VERSION)/g' ../README.md	
 	sed -E -i '' 's/VERSION=v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/VERSION=$(VERSION)/g' Makefile
 	sed -E -i '' 's/VERSION="v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}"/VERSION="$(VERSION)"/g' ../server.js
 	
