@@ -127,6 +127,7 @@ docker-release-test:
 	docker pull rweigel/hapi-server:$(VERSION)
 	docker run -dit --name hapi-server-release-$(VERSION) --expose 8998 -p 8998:8998 rweigel/hapi-server:$(VERSION)
 	docker exec -it hapi-server-release-$(VERSION) ./hapi-server test
+	docker stop hapi-server-release-$(VERSION)
 
 test-packages:
 	make test-package VERSION=$(VERSION) OS=darwin-x64
