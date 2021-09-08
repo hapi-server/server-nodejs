@@ -33,27 +33,11 @@ script:
 
 jobs:
   include:
-    - stage: npm-deploy
-      if: branch = deploy
-      os: linux
-      language: generic
-      before_install: skip
-      script: skip
-      branches:
-        only:
-          deploy
-
-      deploy:
-        provider: npm
-        email: '$NPM_EMAIL'
-        api_key: '$NPM_TOKEN'
-        on:
-          branch: deploy
-        skip_cleanup: true
 
     - stage: npm-deploy-test
       if: branch = deploy
       language: node_js
+      node_js: "6.16"
       os: linux
       before_install: skip
       branches:
