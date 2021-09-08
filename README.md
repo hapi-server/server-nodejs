@@ -43,33 +43,33 @@ Installation and startup commands are given below the binary packages and docker
 OS-X x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.5/hapi-server-v1.0.2-darwin-x64.tgz | tar zxf -
- cd hapi-server-v1.0.2
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.6/hapi-server-v1.0.6-darwin-x64.tgz | tar zxf -
+ cd hapi-server-v1.0.6
  ./hapi-server --open
 ```
 
 Linux x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.5/hapi-server-v1.0.2-linux-x64.tgz | tar zxf -
- cd hapi-server-v1.0.2
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.6/hapi-server-v1.0.6-linux-x64.tgz | tar zxf -
+ cd hapi-server-v1.0.6
  ./hapi-server --open
 ```
 
 Linux ARMv7l:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.5/hapi-server-v1.0.2-linux-armv7l.tgz | tar zxf -
- cd hapi-server-v1.0.2
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.6/hapi-server-v1.0.6-linux-armv7l.tgz | tar zxf -
+ cd hapi-server-v1.0.6
  ./hapi-server --open
 ```
 
 Docker:
 
 ```
-docker pull rweigel/hapi-server:v1.0.2
-docker run -dit --name hapi-server-v1.0.2 --expose 8999 -p 8999:8999 rweigel/hapi-server:v1.0.2
-docker exec -it hapi-server-v1.0.2 ./hapi-server
+docker pull rweigel/hapi-server:v1.0.6
+docker run -dit --name hapi-server-v1.0.6 --expose 8999 -p 8999:8999 rweigel/hapi-server:v1.0.6
+docker exec -it hapi-server-v1.0.6 ./hapi-server
 # Open http://localhost:8999/TestData/hapi in a web browser
 ```
 
