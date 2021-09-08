@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+console.log("Here");
+
 const fs   = require('fs');
 if (!fs.existsSync(__dirname + "/node_modules")) {
 	//console.log("Dependencies not found. Execute npm install before starting server.");
