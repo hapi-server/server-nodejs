@@ -155,6 +155,7 @@ jobs:
           - deploy
       script: hapi-server --test
 
+
 notifications:
   email:
     recipients:
