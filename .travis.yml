@@ -21,8 +21,8 @@
 
 env:
   global:
-    - npm_ver0=`https://raw.githubusercontent.com/hapi-server/server-nodejs/master/package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
-    - npm_ver=v`https://raw.githubusercontent.com/hapi-server/server-nodejs/master/package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
+    - npm_ver0=`curl https://raw.githubusercontent.com/hapi-server/server-nodejs/master/package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
+    - npm_ver=v`curl https://raw.githubusercontent.com/hapi-server/server-nodejs/master/package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
 
 before_install:
   - npm install
@@ -149,7 +149,7 @@ jobs:
       before_install: skip
       git:
         clone: false
-      install: npm uninstall "@hapi-server/server"; npm install -g "@hapi-server/server@1.0.6"
+      install: npm uninstall "@hapi-server/server"; npm install -g "@hapi-server/server@$npm_ver0"
       branches:
         only:
           - deploy
