@@ -16,8 +16,7 @@
 #   git commit -a -m "v1.0.0 Release"
 #   git push
 #   git checkout master
-# Then manually trigger build of deploy branch at
-# https://app.travis-ci.com/github/hapi-server/server-nodejs/ 
+# Manually bump version in package.json to next minor-beta, e.g., 1.0.1-beta.
 
 env:
   global:
