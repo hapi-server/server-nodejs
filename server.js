@@ -2,8 +2,8 @@
 
 const fs   = require('fs');
 if (!fs.existsSync(__dirname + "/node_modules")) {
-	console.log("Dependencies not found. Execute npm install before starting server.");
-	process.exit(1);
+	//console.log("Dependencies not found. Execute npm install before starting server.");
+	//process.exit(1);
 }
 
 const clc  = require('chalk'); // Colorize command line output
