@@ -34,24 +34,6 @@ script:
 jobs:
   include:
 
-    - stage: npm-deploy
-      if: branch = deploy
-      os: linux
-      language: generic
-      before_install: skip
-      script: skip
-      branches:
-        only:
-          deploy
-
-      deploy:
-        provider: npm
-        email: '$NPM_EMAIL'
-        api_key: '$NPM_TOKEN'
-        on:
-          branch: deploy
-        skip_cleanup: true
-
     - stage: npm-deploy-test
       if: branch = deploy
       language: node_js
@@ -60,7 +42,7 @@ jobs:
       before_install: skip
       git:
         clone: false
-      install: npm install -g "@hapi-server/server@1.0.2"
+      install: npm install -g "@hapi-server/server@1.0.4"
       branches:
         only:
           - deploy
