@@ -7,6 +7,13 @@ versionmin="6"
 # From https://unix.stackexchange.com/a/76518
 path=$(exec 2>/dev/null;cd -- $(dirname "$0"); unset PWD; /usr/bin/pwd || /bin/pwd || pwd)
 
+# https://stackoverflow.com/a/22013932
+# Try the following command and continue if fails
+(
+set -e
+$path/bin/node $path/server.js $@ > /dev/null 2>&1
+)
+
 if test "$1" = "test"; then
     # ./hapi-server test
     com="$path/test/server-test.js $@"
