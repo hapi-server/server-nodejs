@@ -17,17 +17,17 @@ parallelize = True
 # listing. Takes ~30 minutes when parallelize=True. Set to False if
 # only making corrections to HAPI JSON and not updating list
 # of available files.
-update_manifest = False
+update_manifest = True
 
 # Create a dictionary of the information in INTERMAGNET-manifest.txt
 # Takes ~10 seconds.
-update_pkl = False
+update_pkl = True
 
 # Write a HAPI JSON file using information in INTERMAGNET-manifest.pkl
 # and information in first and last file for each magnetometer.
 # Takes ~3.5 hours (1 minute if first and last files found in TMPDIR).
-update_json = False 
-test_N = None # Run test on only first test_N datasets. If test_N = None, process all datasets.
+update_json = True 
+test_N = 2 # Run test on only first test_N datasets. If test_N = None, process all datasets.
 
 # Regenerate index.htm
 update_table = True 
@@ -553,7 +553,7 @@ if not os.path.exists('meta'):
     
 fnametxt = 'meta/INTERMAGNET-manifest.txt'
 fnamepkl = 'meta/INTERMAGNET-manifest.pkl'
-fnamejson = 'INTERMAGNET-catalog.json'
+fnamejson = 'meta/INTERMAGNET-catalog.json'
 fnametableinfo = 'meta/INTERMAGNET-tableinfo.pkl'
 fnametable = 'meta/INTERMAGNET-tableinfo.html'
 
