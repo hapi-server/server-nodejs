@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "fast-xml-parser": "^3.17.6",
-    "yargs": "*",
-    "sync-request": "^6.1.0"
+    "shell-escape": "^0.2.0",
+    "sync-request": "^6.1.0",
+    "yargs": "*"
   }
 }

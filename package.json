@@ -1,6 +1,6 @@
 {
-  "name": "hapi-server",
-  "version": "1.0.1",
+  "name": "@hapi-server/server",
+  "version": "1.0.9",
   "license": "MIT",
   "engine-strict": true,
   "engines": {
@@ -14,6 +14,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/hapi-server/server-nodejs.git"
+  },
+  "bin": {
+    "hapi-server": "./server.js"
   },
   "dependencies": {
     "chalk": "^2.4.1",
@@ -45,7 +48,6 @@
     "test-packages": "cd pkg; make test-packages VERSION=v$npm_package_version",
     "release": "cd pkg; make release VERSION=v$npm_package_version"
   },
-  "bin": "server.js",
   "release-it": {
     "github": {
       "release": true,
