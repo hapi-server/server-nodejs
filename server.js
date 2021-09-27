@@ -1,8 +1,10 @@
+#!/usr/bin/env node
+
 const fs   = require('fs');
-if (!fs.existsSync(__dirname + "/node_modules")) {
-	console.log("Dependencies not found. Execute npm install before starting server.");
-	process.exit(1);
-}
+//if (!fs.existsSync(__dirname + "/node_modules")) {
+	//console.log("Dependencies not found. Execute npm install before starting server.");
+	//process.exit(1);
+//}
 
 const clc  = require('chalk'); // Colorize command line output
 const ver  = parseInt(process.version.slice(1).split('.')[0]);
@@ -68,6 +70,7 @@ let argv = yargs
 			.alias('test','t')
 			.describe('verify','Run verification tests on command line and exit')
 			.alias('verify','v')
+			.option('file',{'type': 'string'})
 			.option('ignore',{'type': 'boolean'})
 			.option('https',{'type': 'boolean'})
 			.option('open',{'type': 'boolean'})
@@ -146,7 +149,10 @@ if (HTTPS === false) {
 		server = require("https").createServer(options, app);
 	} else {
 		// Genererate key and cert file
-
+		if (process.platform.startsWith("win")) {
+			console.log(ds() + clc.red("Generation of SSL key and certifications files not implemented on Windows"));
+			process.exit(1);
+		}
 		let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
 		
 		// execSync requires a callback. Replaced it with spawnSync.
@@ -558,7 +564,6 @@ function apiInit(CATALOGS, PREFIXES, i) {
 
 	// /info
 	app.get(PREFIX + '/hapi/info', function (req, res) {
-
 		cors(res);
 		res.contentType("application/json");
 
@@ -573,8 +578,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
 		// infoCheck() is more consistent with other code.
 		var header = info(req,res,CATALOG);
 		if (typeof(header) === "number") {
-			error(req, res, hapiversion, 1406,
-					"At least one parameter not found in dataset.");
+			error(req, res, hapiversion, 1407);
 			return;
 		} else {
 			res.send(header);
@@ -596,8 +600,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
 		var header = info(req,res,CATALOG);
 		if (typeof(header) === "number") {
 			// One or more of the requested parameters are invalid.
-			error(req, res, hapiversion, 1406,
-					"At least one parameter not found in dataset.");
+			error(req, res, hapiversion, 1407);
 			return;
 		};
 
@@ -660,7 +663,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
 			// instead of triggering a download dialog.
 			res.contentType("text");
 		} else {
-			res.setHeader("Content-Disposition", "attachment;filename=" + fname);
+			res.setHeader("Content-Disposition", "attachment;filename=" + encodeURIComponent(fname));
 		}
 
 		// Send the data
@@ -799,11 +802,22 @@ function data(req,res,catalog,header,include) {
 	var d = metadata(catalog,'data');
 
 	function replacevars(com) {
-		com = com.replace("${id}",req.query["id"]);
+
+		com = com.replace("${{id}}",req.query["id"]);
+		com = com.replace("${{parameters}}",req.query["parameters"]);
 		com = com.replace("${start}",start);
 		com = com.replace("${stop}",stop);
+		if (process.platform.startsWith("win")) {
+			com = com.replace("${id}",'"' + req.query["id"] + '"');
+		} else {
+			com = com.replace("${id}","'" + req.query["id"] + "'");
+		}
 		if (req.query["parameters"]) {
-			com = com.replace("${parameters}",req.query["parameters"]);
+			if (process.platform.startsWith("win")) {
+				com = com.replace("${parameters}",'"' + req.query["parameters"] + '"');
+			} else {
+				com = com.replace("${parameters}","'" + req.query["parameters"] + "'");
+			}
 		} else {
 			com = com.replace("${parameters}",'');
 		}
@@ -895,10 +909,10 @@ function data(req,res,catalog,header,include) {
 
 		if (subsetcols || subsettime) {
 			com = com
-					+ " | '"
+					+ ' | "'
 					+ config.NODEEXE
-					+ "' '" + __dirname
-					+ "/lib/subset.js'";
+					+ '" "' + __dirname
+					+ '/lib/subset.js"';
 			if (subsettime) {
 				com = com + " --start " + start;
 				com = com + " --stop " + stop;
@@ -925,13 +939,25 @@ function data(req,res,catalog,header,include) {
 		}
 	}
 
+	if (process.platform.startsWith("win")) {
+		if (com.startsWith('"')) {
+			com = '"' + com + '"';
+		}
+	}
 	console.log(ds() + "Executing: " + com);
 
 	// Call the CL command and send output.
 	var coms  = com.split(/\s+/);
 	var coms0 = coms.shift();
-	var child = require('child_process')
-					.spawn('sh', ['-c', com], {"encoding": "buffer"});
+	if (process.platform.startsWith("win")) {
+		var child = require('child_process').
+						spawn('cmd.exe',
+							['/s','/c', com],
+							{shell: true, stdio: "pipe", encoding: "buffer"});
+	} else {
+		var child = require('child_process')
+						.spawn('sh', ['-c', com], {"encoding": "buffer"});
+	}
 
 	var wroteheader = false; // If header already sent.
 	var gotdata = false; // First chunk of data received.

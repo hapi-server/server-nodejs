@@ -9,10 +9,11 @@
 
 NODEV=v6.16.0
 NODED=https://nodejs.org/dist/latest-v6.x
+
 # Do not modify following line. Version set by call to
-#   npm run update
+#   npm run version
 # which uses version in package.json
-VERSION=v1.0.0
+VERSION=v1.0.9 # Do not modify
 
 # To get other OS-X versions, see
 # https://developer.apple.com/forums/thread/111322
@@ -31,19 +32,23 @@ ifeq ($(OS),darwin-x64)
 	SERVER=pro2
 endif
 
-# When NodeJS and Python binaries do not need to be updated.
-update:
+version:
 	sed -E -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' ../README.md	
 	sed -E -i '' 's/hapi-server:v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server:$(VERSION)/g' ../README.md	
+	sed -E -i '' 's/download\/v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/download\/$(VERSION)/g' ../README.md	
 	sed -E -i '' 's/VERSION=v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/VERSION=$(VERSION)/g' Makefile
 	sed -E -i '' 's/VERSION="v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}"/VERSION="$(VERSION)"/g' ../server.js
-	make packages
+	
+# When NodeJS and Python binaries do not need to be updated.
+update:
+	make packages VERSION=$(VERSION)
 	rm -rf dist/hapi-server-$(VERSION)/
 
 packages:
+	make package OS=win-x64 VERSION=$(VERSION)
 	make package OS=darwin-x64 VERSION=$(VERSION)
-	#make package OS=linux-x64 VERSION=$(VERSION)
-	#make package OS=linux-armv7l VERSION=$(VERSION)
+	make package OS=linux-x64 VERSION=$(VERSION)
+	make package OS=linux-armv7l VERSION=$(VERSION)
 
 GITHUB=https://github.com/hapi-server/server-nodejs/releases/download
 package:
@@ -52,6 +57,8 @@ package:
 	#cp bin/node-$(NODEV)-$(OS) dist/hapi-server-$(VERSION)/bin/node
 ifeq ($(OS),win-x64)
 	# Not tested
+	curl --output dist/hapi-server-$(VERSION)/bin/python.exe http://mag.gmu.edu/tmp/python.exe
+	curl --output dist/hapi-server-$(VERSION)/bin/node.exe http://mag.gmu.edu/tmp/node.exe 
 else
 	# Use comiled binaries from a previous release
 	cd /tmp; curl -L -O $(GITHUB)/v0.9.5/hapi-server-v0.9.5-$(OS).tgz
@@ -83,10 +90,16 @@ files:
 	rm -rf dist/hapi-server-$(VERSION)/node_modules/moment/locale
 
 zip:
-	cd dist; zip -r hapi-server-$(VERSION)-$(OS).zip hapi-server-$(VERSION)
+	cd dist; zip -q -r hapi-server-$(VERSION)-$(OS).zip hapi-server-$(VERSION)
 
 targz:
 	cd dist; tar zcf hapi-server-$(VERSION)-$(OS).tgz hapi-server-$(VERSION)
+
+release:
+	cd ..; rm -rf node_modules; npm install --production;
+	make update VERSION=$(VERSION);
+	npm install release-it;
+	cd .. && GITHUB_TOKEN=$(GITHUB_OAUTH_TOKEN) && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
 
 docker:
 	- docker stop hapi-server
@@ -94,11 +107,8 @@ docker:
 	docker build --file Dockerfile -t rweigel/hapi-server:$(VERSION) ../
 	docker run -dit --name hapi-server-$(VERSION) --expose 8999 -p 8999:8999 rweigel/hapi-server:$(VERSION)
 
-release:
-	cd ..; rm -rf node_modules; npm install --production;
-	make update VERSION=$(VERSION);
-	npm install release-it;
-	cd .. && GITHUB_TOKEN=$(GITHUB_OAUTH_TOKEN) && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
+# To log in to server, use, e.g.,
+# docker exec -it hapi-server-v1.0.0 /bin/bash
 
 docker-test:
 	docker exec -it hapi-server-$(VERSION) ./hapi-server test
@@ -117,6 +127,7 @@ docker-release-test:
 	docker pull rweigel/hapi-server:$(VERSION)
 	docker run -dit --name hapi-server-release-$(VERSION) --expose 8998 -p 8998:8998 rweigel/hapi-server:$(VERSION)
 	docker exec -it hapi-server-release-$(VERSION) ./hapi-server test
+	docker stop hapi-server-release-$(VERSION)
 
 test-packages:
 	make test-package VERSION=$(VERSION) OS=darwin-x64
@@ -150,12 +161,22 @@ linux-x64:
 	make python OS=linux-x64
 	make package OS=linux-x64
 
-# This was working at one point.
+# Do this on Windows 10
+# First install
+# https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi
+# https://github.com/coreybutler/nvm/releases
+# https://chocolatey.org/install
+# choco install make
+# then
+#   make win-x64 should work.
 win-x64:
-	copy bin/node-$(NODEV)-$(OS).exe dist/hapi-server-$(VERSION)/bin/node.exe
-	copy python.py python/
-	cd python/; C:\Python2.7\Scripts\pyinstaller python.py --onefile
-	copy python/dist/python.exe bin/python-$(OS).exe
+	C:\Python27\Scripts\pip.exe install pyinstaller==3.6
+	C:\Python27\Scripts\pyinstaller.exe python.py --onefile
+	copy dist\python.exe dist\hapi-server-$(VERSION)\bin
+	nvm install 8.17.0
+	cd ..;npm install
+	npm test
+	copy copy "C:\Program Files\nodejs\node.exe" dist/hapi-server-$(VERSION)/bin
 	make package OS=win-x64
 
 node0:

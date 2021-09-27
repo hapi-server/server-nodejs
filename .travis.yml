@@ -1,26 +1,163 @@
-# Every commit to master leads to a new tagged release; a manual increment in the version number in
-# package.json is needed before every git push to master for the Travis build to succeed.
-# 
-# To prevent a tagged release from being created and also to remove the need to increment the
-# version number, use [skip travis] in the commit message.
-language: generic
+# To create a release
 
-sudo: required
+#   git checkout master
+#   git pull
+#   npm test
+#   cd pkg; make docker && make docker-test && make docker-release
+# Edit version in package.json to 1.0.0
+#   npm run version
+# The next command is only needed if tag already exists
+#   git tag -d v1.0.0; git push --delete origin v1.0.0
+#   git commit -a -m "Final 1.0.0 commit"
+#   git push
+# modify version number in package.json in master branch
+#   git checkout deploy
+#   git merge origin/master --squash
+#   git commit -a -m "v1.0.0 Release"
+#   git push
+#   git checkout master
+# Manually bump version in package.json to next minor-beta, e.g., 1.0.1-beta.
+
+env:
+  global:
+    - npm_ver0=`curl https://raw.githubusercontent.com/hapi-server/server-nodejs/master/package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
+    - npm_ver=v`curl https://raw.githubusercontent.com/hapi-server/server-nodejs/master/package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
+
+before_install:
+  - npm install
+  - npm cache clean --force
+
+script:
+  - npm test
 
 jobs:
   include:
+    - os: linux
+      if: branch = master
+      language: node_js
+      node_js: "6.16"
+      python: "2.7"
+      branches:
+         only: master
+
+    - os: windows
+      if: branch = master
+      language: node_js
+      node_js: "8.11.3"
+      python: "2.7"
+      branches:
+        only: master
+
     - os: osx
+      if: branch = master
+      language: node_js
+      node_js: "6.16"
+      python: "2.7"
+      branches:
+        only: master
 
-before_deploy:
-  - git config --local user.name "rweigel"
-  - git config --local user.email "rweigel@gmu.edu"
-  - cd pkg && make update VERSION=`node -p "require('../package.json').version"`
-  - export TRAVIS_TAG=`node -p "require('./package.json').version"`
-  - git tag `node -p "require('../package.json').version"`
+    - stage: deploy
+      if: branch = deploy
+      os: linux
+      language: generic
+      before_install: skip
+      script: skip
+      on:
+        branch: deploy
 
-deploy:
-  provider: releases
-  api_key: $GITHUB_OAUTH_TOKEN
-  file_glob: true
-  file: dist/*
-  skip_cleanup: true
+      before_deploy:
+        - git config --local user.name "rweigel"
+        - git config --local user.email "rweigel@gmu.edu"
+        - npm i
+        - npm run package
+        - export TRAVIS_TAG=$npm_ver
+        - git tag $npm_ver
+
+      deploy:
+        provider: releases
+        on:
+          branch: deploy
+        api_key: $GITHUB_OAUTH_TOKEN
+        file_glob: true
+        file: pkg/dist/*
+        skip_cleanup: true
+
+    - stage: darwin-x64
+      if: branch = deploy
+      os: osx
+      language: generic
+      before_install: skip
+      branches:
+        only:
+          - deploy
+      script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-darwin-x64.tgz && tar zxf hapi-server-$npm_ver-darwin-x64.tgz && cd hapi-server-$npm_ver && bin/node server.js test/server-test.js --test
+
+    # - stage: linux-armv7l
+    #   os: osx
+    #   language: generic
+    #   before_install: skip
+    #   branches:
+    #     only:
+    #       - deploy
+    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-armv7l.tgz && tar zxf hapi-server-$npm_ver-linux-armv7l.tgz && cd hapi-server-$npm_ver && bin/node server.js test/server-test.js --test
+
+    - stage: win-x64
+      if: branch = deploy
+      language: shell
+      os: windows
+      before_install: skip
+      branches:
+        only:
+          - deploy
+      script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-win-x64.zip; unzip -q hapi-server-$npm_ver-win-x64.zip; cd hapi-server-$npm_ver; bin/node server.js test/server-test.js --test
+
+
+    - stage: linux-x64
+      if: branch = deploy
+      os: osx
+      language: generic
+      before_install: skip
+      branches:
+        only:
+          - deploy
+      script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && node server.js test/server-test.js --test
+
+    - stage: npm-deploy
+      if: branch = deploy
+      os: linux
+      language: generic
+      before_install: skip
+      script: skip
+      branches:
+        only:
+          deploy
+
+      deploy:
+        provider: npm
+        email: '$NPM_EMAIL'
+        api_key: '$NPM_TOKEN'
+        on:
+          branch: deploy
+        skip_cleanup: true
+
+    - stage: npm-deploy-test
+      if: branch = deploy
+      language: node_js
+      node_js: "6.16"
+      os: linux
+      before_install: skip
+      git:
+        clone: false
+      install: npm uninstall "@hapi-server/server"; npm install -g "@hapi-server/server@$npm_ver0"
+      branches:
+        only:
+          - deploy
+      script: hapi-server --test
+
+notifications:
+  email:
+    recipients:
+      - ksreddy9945@gmail.com
+      - rweigel@gmu.edu
+  on_success: change
+  on_failure: always

@@ -18,7 +18,7 @@ fi
 # Use node in path if version > versionmin
 if command -v node > /dev/null 2>&1; then
 	version=$(node -v)
-	versionf=${version//v/}
+	versionf=${version#v}
 	version="${versionf%%.*}"
     if test $version -gt $(($versionmin-1)); then
     	echo "hapi-server: Using system node binary with version = $versionf."
@@ -29,7 +29,7 @@ if command -v node > /dev/null 2>&1; then
     fi
 elif command -v nodejs > /dev/null 2>&1; then
 	version=$(node -v)
-	versionf=${version//v/}
+	versionf=${version#v}
 	version="${versionf%%.*}"
     if test $version -gt $(($versionmin-1)); then
     	echo "hapi-server: Using system nodejs binary with version = $versionf."

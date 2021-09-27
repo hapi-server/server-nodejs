@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/hapi-server/server-nodejs.png?branch=master)](https://travis-ci.com/hapi-server/server-nodejs)
+[![Build Status](https://app.travis-ci.com/hapi-server/server-nodejs.svg?branch=master)](https://app.travis-ci.com/github/hapi-server/server-nodejs)
 
 # HAPI Server Front-End
 
@@ -43,34 +43,40 @@ Installation and startup commands are given below the binary packages and docker
 OS-X x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.5/hapi-server-v0.9.5-darwin-x64.tgz | tar zxf -
- cd hapi-server-v0.9.5
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.9/hapi-server-v1.0.9-darwin-x64.tgz | tar zxf -
+ cd hapi-server-v1.0.9
  ./hapi-server --open
 ```
 
 Linux x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.5/hapi-server-v0.9.5-linux-x64.tgz | tar zxf -
- cd hapi-server-v0.9.5
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.9/hapi-server-v1.0.9-linux-x64.tgz | tar zxf -
+ cd hapi-server-v1.0.9
  ./hapi-server --open
 ```
 
 Linux ARMv7l:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v0.9.5/hapi-server-v0.9.5-linux-armv7l.tgz | tar zxf -
- cd hapi-server-v0.9.5
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.9/hapi-server-v1.0.9-linux-armv7l.tgz | tar zxf -
+ cd hapi-server-v1.0.9
  ./hapi-server --open
 ```
 
 Docker:
 
 ```
-docker pull rweigel/hapi-server:v0.9.5
-docker run -dit --name hapi-server-v0.9.5 --expose 8999 -p 8999:8999 rweigel/hapi-server:v0.9.5
-docker exec -it hapi-server-v0.9.5 ./hapi-server
+docker pull rweigel/hapi-server:v1.0.9
+docker run -dit --name hapi-server-v1.0.9 --expose 8999 -p 8999:8999 rweigel/hapi-server:v1.0.9
+docker exec -it hapi-server-v1.0.9 ./hapi-server
 # Open http://localhost:8999/TestData/hapi in a web browser
+```
+
+npm:
+
+```
+npm install -g "@hapi-server/server"
 ```
 
 <a name="Examples"></a>
