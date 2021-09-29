@@ -26,7 +26,7 @@ update_pkl = False
 # Write a HAPI JSON file using information in INTERMAGNET-manifest.pkl
 # and information in first and last file for each magnetometer.
 # Takes ~3.5 hours (1 minute if first and last files found in TMPDIR).
-update_json = False 
+update_json = True 
 test_N = None # Run test on only first test_N datasets. If test_N = None, process all datasets.
 
 # Regenerate index.htm
@@ -553,7 +553,7 @@ if not os.path.exists('meta'):
     
 fnametxt = 'meta/INTERMAGNET-manifest.txt'
 fnamepkl = 'meta/INTERMAGNET-manifest.pkl'
-fnamejson = 'INTERMAGNET-catalog.json'
+fnamejson = 'meta/INTERMAGNET-catalog.json'
 fnametableinfo = 'meta/INTERMAGNET-tableinfo.pkl'
 fnametable = 'meta/INTERMAGNET-tableinfo.html'
 
