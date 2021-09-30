@@ -35,7 +35,8 @@ function getUrlo(cb) {
 			if (error) {
 				if (fs.existsSync(cfile)) {
 					console.error("Could not get " + urlo + ". Returning cached metadata.")
-					cb(null, fs.readFileSync(cfile));
+					//cb(null, fs.readFileSync(cfile));
+					console.log(fs.readFileSync(cfile, 'utf8'));
 				} else {
 					cb(Error("Could not get " + urlo + " and no cached metadata."));
 				}
