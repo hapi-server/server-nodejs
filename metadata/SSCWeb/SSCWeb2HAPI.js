@@ -30,9 +30,10 @@ SSCWeb2HAPI(
 function getUrlo(cb) {
 	//Fetches the urlo writes it to the cfile
 	console.error("Getting " + urlo)
-	request({urlo, strictSSL: false},
+	request({uri: urlo, strictSSL: false},
 		function (error, response, body) {
 			if (error) {
+				console.error(error);
 				if (fs.existsSync(cfile)) {
 					console.error("Could not get " + urlo + ". Returning cached metadata.")
 					//cb(null, fs.readFileSync(cfile));
