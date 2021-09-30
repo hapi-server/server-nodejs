@@ -30,7 +30,7 @@ SSCWeb2HAPI(
 function getUrlo(cb) {
 	//Fetches the urlo writes it to the cfile
 	console.error("Getting " + urlo)
-	request(urlo,
+	request({urlo, strictSSL: false},
 		function (error, response, body) {
 			if (error) {
 				if (fs.existsSync(cfile)) {
