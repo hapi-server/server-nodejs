@@ -1,36 +1,30 @@
-# To create a release
+# To create a release manually
 #   1. modify version on line 3 of package.json
-#   2. npm run package 			# Creates pkg/*.tgz files with needed binaries from previous release
+#   2. npm run package 		# Creates pkg/*.tgz files with needed binaries from previous release
 #   3. npm run test-packages	# Tests packages on locally running VMs
 #   4. npm run release         	# Tags release on github
 
 # If a new version of node or python is needed ...
-#   Need statically compiled node and python. See bottom of Makefile.
+#   Need statically compiled node and python.
+
+SHELL := /bin/bash
 
 NODEV=v6.16.0
-NODED=https://nodejs.org/dist/latest-v6.x
+NODED=https://nodejs.org/dist/
+
+PYTHONV=3.8.5
 
 # Do not modify following line. Version set by call to
 #   npm run version
 # which uses version in package.json
-VERSION=v1.0.9 # Do not modify
+VERSION=v1.0.9
 
 # To get other OS-X versions, see
 # https://developer.apple.com/forums/thread/111322
-OS=darwin-x64
-#OS=linux-x64
+#OS=darwin-x64
+OS=linux-x64
 #OS=linux-armv7l
 #OS=win-x64
-
-ifeq ($(OS),linux-x64)
-	SERVER=alpine3o
-endif
-ifeq ($(OS),linux-armv7l)
-	SERVER=pi3
-endif
-ifeq ($(OS),darwin-x64)
-	SERVER=pro2
-endif
 
 version:
 	sed -E -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' ../README.md	
@@ -38,7 +32,7 @@ version:
 	sed -E -i '' 's/download\/v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/download\/$(VERSION)/g' ../README.md	
 	sed -E -i '' 's/VERSION=v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/VERSION=$(VERSION)/g' Makefile
 	sed -E -i '' 's/VERSION="v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}"/VERSION="$(VERSION)"/g' ../server.js
-	
+
 # When NodeJS and Python binaries do not need to be updated.
 update:
 	make packages VERSION=$(VERSION)
@@ -50,24 +44,13 @@ packages:
 	make package OS=linux-x64 VERSION=$(VERSION)
 	make package OS=linux-armv7l VERSION=$(VERSION)
 
-GITHUB=https://github.com/hapi-server/server-nodejs/releases/download
+BINARIES=http://mag.gmu.edu/git-data/server-nodejs/bin
 package:
 	make files
-	#Do this if compiled binaries change.
-	#cp bin/node-$(NODEV)-$(OS) dist/hapi-server-$(VERSION)/bin/node
-ifeq ($(OS),win-x64)
-	# Not tested
-	curl --output dist/hapi-server-$(VERSION)/bin/python.exe http://mag.gmu.edu/tmp/python.exe
-	curl --output dist/hapi-server-$(VERSION)/bin/node.exe http://mag.gmu.edu/tmp/node.exe 
-else
-	# Use comiled binaries from a previous release
-	cd /tmp; curl -L -O $(GITHUB)/v0.9.5/hapi-server-v0.9.5-$(OS).tgz
-	cd /tmp; tar zxf hapi-server-v0.9.5-$(OS).tgz \
-		hapi-server-v0.9.5/bin/node hapi-server-v0.9.5/bin/python
-	mv /tmp/hapi-server-v0.9.5/bin/node dist/hapi-server-$(VERSION)/bin
-	mv /tmp/hapi-server-v0.9.5/bin/python dist/hapi-server-$(VERSION)/bin
-	rm -f /tmp/hapi-server-v0.9.5-$(OS).tgz
-endif
+	cd dist/hapi-server-$(VERSION)/bin/; curl -O $(BINARIES)/python-$(PYTHONV)-$(OS)
+	cd dist/hapi-server-$(VERSION)/bin/; ln -s python-$(PYTHONV)-$(OS) python
+	cd dist/hapi-server-$(VERSION)/bin/; curl -O $(BINARIES)/node-$(NODEV)-$(OS)
+	cd dist/hapi-server-$(VERSION)/bin/; ln -s node-$(NODEV)-$(OS) node
 ifeq ($(OS),win-x64)
 	make zip OS=$(OS)
 else
@@ -99,7 +82,8 @@ release:
 	cd ..; rm -rf node_modules; npm install --production;
 	make update VERSION=$(VERSION);
 	npm install release-it;
-	cd .. && GITHUB_TOKEN=$(GITHUB_OAUTH_TOKEN) && release-it $(VERSION) --preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
+	cd .. && GITHUB_TOKEN=$(GITHUB_OAUTH_TOKEN) && release-it $(VERSION) \
+		--preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
 
 docker:
 	- docker stop hapi-server
@@ -118,7 +102,7 @@ docker-release:
 	docker login
 	docker tag rweigel/hapi-server:$(VERSION) rweigel/hapi-server:$(VERSION)
 	docker push rweigel/hapi-server:$(VERSION)
-	#make docker-release-test VERSION=$(VERSION)
+	- #make docker-release-test VERSION=$(VERSION)
 
 docker-release-test:
 	- docker stop hapi-server-release-$(VERSION)
@@ -142,70 +126,75 @@ test-package:
 clean:
 	rm -rf dist/
 
+########################################################################################################
+# Stand-alone node executables
+########################################################################################################
 
-
-# Did this on High Sierra
-darwin-x64: 
-	make node0 OS=darwin-x64
-	make package OS=darwin-x64
-
-# Did this on Pi 3+
-linux-armv7l:
-	make node0 OS=linux-armv7l
-	make python OS=linux-armv7l
-	make package OS=linux-armv7l
-
-# Did this on Alpine 3.8
-linux-x64:
-	make node OS=linux-x64
-	make python OS=linux-x64
-	make package OS=linux-x64
-
-# Do this on Windows 10
-# First install
-# https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi
-# https://github.com/coreybutler/nvm/releases
-# https://chocolatey.org/install
-# choco install make
-# then
-#   make win-x64 should work.
-win-x64:
-	C:\Python27\Scripts\pip.exe install pyinstaller==3.6
-	C:\Python27\Scripts\pyinstaller.exe python.py --onefile
-	copy dist\python.exe dist\hapi-server-$(VERSION)\bin
+node:
+ifeq ($(OS),win-x64)
 	nvm install 8.17.0
 	cd ..;npm install
 	npm test
-	copy copy "C:\Program Files\nodejs\node.exe" dist/hapi-server-$(VERSION)/bin
-	make package OS=win-x64
-
-node0:
-	cd tgz; curl -O $(NODED)/node-$(NODEV)-$(OS).tar.gz;
+	scp "C:\Program Files\nodejs\node.exe" \
+		weigel@mag.gmu.edu:/var/www/git-data/server-nodejs/bin/node-8.17.0-win-x64.exe
+else
+	cd tgz; curl -O $(NODED)/$(NODEV)/node-$(NODEV)-$(OS).tar.gz;
 	cd tgz; tar zxf node-$(NODEV)-$(OS).tar.gz
-	cp tgz/node-$(NODEV)-$(OS)/bin/node bin/node-$(NODEV)-$(OS)
+	scp tgz/node-$(NODEV)-$(OS)/bin/node \
+		weigel@mag.gmu.edu:/var/www/git-data/server-nodejs/bin/node-$(NODEV)-$(OS)
+endif
 
-# Did this on Alpine Linux 3.8 and executable worked on
-# Mint 18/19 and Ubuntu 10.04. Will not work for OS-X (as per
-# note in configure file in node tarball). Compile also worked on
-# Raspberry Pi 3+, but the apt install command below had to be modified.
-# (Some packages were not available and apparently were not needed. Need to document
-# the working command)
-node:
-	# apk add is for Alpine Linux
+node-static:
+	- # apk add is for Alpine Linux
+	- # Will staticx work for node binary so that compilation is not needed?
 	sudo apk add curl python build-base gcc abuild binutils binutils-doc gcc-doc linux-headers
-	#sudo apt install curl python build-base gcc abuild binutils binutils-doc gcc-doc linux-headers
-	cd tgz; curl -O $(NODED)/node-$(NODEV).tar.gz;
+	- mkdir tgz;
+	cd tgz; curl -O $(NODED)/$(NODEV)/node-$(NODEV).tar.gz;
 	cd tgz; tar zxvf node-$(NODEV).tar.gz
 	cd node-$(NODEV); ./configure --fully-static
 	cd node-$(NODEV); make -j4
 	cp node-$(NODEV)/bin/node bin/node-$(NODEV)-$(OS)
 
-# Use old Linux system to compile.
-# Don't need to do for OS-X as it ships with OS. Smaller Linux
-# distros don't include Python, so have it in case needed.
-# TODO: Finish python.py.
-# Works, but no easy way to copy binary to local ...
-pythoni:
+########################################################################################################
+
+########################################################################################################
+# Stand-alone Python executables
+########################################################################################################
+python:
+ifeq ($(OS),win-x64)
+	- # Do this on Windows 10
+	- # First install
+	- # https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi
+	- # https://github.com/coreybutler/nvm/releases
+	- # https://chocolatey.org/install
+	- # choco install make
+	- # then
+	- #   make python
+	- # should work.
+	C:\Python27\Scripts\pip.exe install pyinstaller==3.6
+	C:\Python27\Scripts\pyinstaller.exe python.py --onefile
+	scp dist\python.exe weigel@mag.gmu.edu:/var/www/git-data/server-nodejs/bin/python-2.7-win-x64
+endif
+ifeq ($(OS),linux-x64)
+	-#conda create -y --name $(PYTHONV) python=$(PYTHONV)
+	source /home/parallels/miniconda3/etc/profile.d/conda.sh
+	conda env list
+	- rm -rf tmp/;
+	mkdir tmp;
+	cp python.py tmp/
+	pip install pyinstaller
+	cd tmp; pyinstaller --onefile --clean python.py
+	pip install staticx
+	sudo apt install patchelf
+	staticx tmp/dist/python tmp/python
+	./tmp/python ../bin/Example.py | head -1
+	test $(shell ./python ../bin/Example.py | head -1) = "1970-01-01T00:00:00Z,0,1,2,3"
+	scp tmp/python weigel@mag.gmu.edu:/var/www/git-data/server-nodejs/bin/python-$(PYTHONV)-$(OS)
+endif
+########################################################################################################
+
+
+python-alpine:
 	docker pull six8/pyinstaller-alpine
 	docker run --rm \
 		-v "${PWD}:/src" \
@@ -216,9 +205,4 @@ pythoni:
 		--clean \
 		python/python.py
 
-pv=`python --version 2>&1 | cut -d' ' -f2`
-python:
-	cd python/; mkdir tmp; cp python.py tmp/
-	cd python/tmp; pyinstaller python.py --onefile
-	cp python/tmp/dist/python bin/python-$(pv)-$(OS)
-	ln -s bin/python-$(pv)-$(OS) bin/python
+
