@@ -1,11 +1,21 @@
+# See .travis.yml for creating a release through Travis
+
 # To create a release manually
 #   1. modify version on line 3 of package.json
-#   2. npm run package 		# Creates pkg/*.tgz files with needed binaries from previous release
+#   2. npm run package 			# Creates pkg/*.tgz files with needed binaries from previous release
 #   3. npm run test-packages	# Tests packages on locally running VMs
 #   4. npm run release         	# Tags release on github
 
-# If a new version of node or python is needed ...
-#   Need statically compiled node and python.
+# If a new version of node or python is needed
+# On Linux
+#   make python
+#   make node
+# On OS-X (python 2.7 is part of OS distribution, so `make python` not needed.)
+#   make node
+# On Windows -- Follow instructions for installing dependencies
+# in "python" target below. Then
+#   make python
+#   make node
 
 SHELL := /bin/bash
 
@@ -21,10 +31,17 @@ VERSION=v1.0.9
 
 # To get other OS-X versions, see
 # https://developer.apple.com/forums/thread/111322
-#OS=darwin-x64
-OS=linux-x64
+ifeq ($(shell uname),Darwin)
+	OS=darwin-x64
+endif
+ifeq ($(shell uname),Linux)
+	OS=linux-x64
+endif
+ifeq ($(shell uname),Windows_NT)
+	# Not tested
+	OS=win-x64
+endif
 #OS=linux-armv7l
-#OS=win-x64
 
 version:
 	sed -E -i '' 's/hapi-server-v[0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}/hapi-server-$(VERSION)/g' ../README.md	
@@ -47,10 +64,19 @@ packages:
 BINARIES=http://mag.gmu.edu/git-data/server-nodejs/bin
 package:
 	make files
-	cd dist/hapi-server-$(VERSION)/bin/; curl -O $(BINARIES)/python-$(PYTHONV)-$(OS)
-	cd dist/hapi-server-$(VERSION)/bin/; ln -s python-$(PYTHONV)-$(OS) python
-	cd dist/hapi-server-$(VERSION)/bin/; curl -O $(BINARIES)/node-$(NODEV)-$(OS)
-	cd dist/hapi-server-$(VERSION)/bin/; ln -s node-$(NODEV)-$(OS) node
+ifeq ($(OS),win-x64)
+	curl --output dist/hapi-server-$(VERSION)/bin/python.exe $(BINARIES)/python-2.7-win-x64.exe
+	curl --output dist/hapi-server-$(VERSION)/bin/node.exe $(BINARIES)/node-v8.17.0-win-x64.exe
+else
+	cd dist/hapi-server-$(VERSION)/bin/ \
+		curl -O $(BINARIES)/python-$(PYTHONV)-$(OS)
+		ln -s python-$(PYTHONV)-$(OS) python
+		chmod 744 bin/python*
+	cd dist/hapi-server-$(VERSION)/bin/ \
+		curl -O $(BINARIES)/node-$(NODEV)-$(OS)
+		ln -s node-$(NODEV)-$(OS) node
+		chmod 744 bin/node*
+endif
 ifeq ($(OS),win-x64)
 	make zip OS=$(OS)
 else
@@ -85,14 +111,15 @@ release:
 	cd .. && GITHUB_TOKEN=$(GITHUB_OAUTH_TOKEN) && release-it $(VERSION) \
 		--preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
 
-docker:
-	- docker stop hapi-server
-	- docker rm hapi-server
-	docker build --file Dockerfile -t rweigel/hapi-server:$(VERSION) ../
-	docker run -dit --name hapi-server-$(VERSION) --expose 8999 -p 8999:8999 rweigel/hapi-server:$(VERSION)
 
 # To log in to server, use, e.g.,
 # docker exec -it hapi-server-v1.0.0 /bin/bash
+docker:
+	- docker stop hapi-server-$(VERSION)
+	- docker rm hapi-server-$(VERSION)
+	docker build --file Dockerfile -t rweigel/hapi-server:$(VERSION) ../
+	docker run -dit --name hapi-server-$(VERSION) --expose 8999 -p 8999:8999 rweigel/hapi-server:$(VERSION)
+
 
 docker-test:
 	docker exec -it hapi-server-$(VERSION) ./hapi-server test
@@ -138,6 +165,7 @@ ifeq ($(OS),win-x64)
 	scp "C:\Program Files\nodejs\node.exe" \
 		weigel@mag.gmu.edu:/var/www/git-data/server-nodejs/bin/node-8.17.0-win-x64.exe
 else
+	- mkdir tgz
 	cd tgz; curl -O $(NODED)/$(NODEV)/node-$(NODEV)-$(OS).tar.gz;
 	cd tgz; tar zxf node-$(NODEV)-$(OS).tar.gz
 	scp tgz/node-$(NODEV)-$(OS)/bin/node \
@@ -173,7 +201,7 @@ ifeq ($(OS),win-x64)
 	- # should work.
 	C:\Python27\Scripts\pip.exe install pyinstaller==3.6
 	C:\Python27\Scripts\pyinstaller.exe python.py --onefile
-	scp dist\python.exe weigel@mag.gmu.edu:/var/www/git-data/server-nodejs/bin/python-2.7-win-x64
+	scp dist\python.exe weigel@mag.gmu.edu:/var/www/git-data/server-nodejs/bin/python-2.7-win-x64.exe
 endif
 ifeq ($(OS),linux-x64)
 	-#conda create -y --name $(PYTHONV) python=$(PYTHONV)
@@ -192,7 +220,6 @@ ifeq ($(OS),linux-x64)
 	scp tmp/python weigel@mag.gmu.edu:/var/www/git-data/server-nodejs/bin/python-$(PYTHONV)-$(OS)
 endif
 ########################################################################################################
-
 
 python-alpine:
 	docker pull six8/pyinstaller-alpine

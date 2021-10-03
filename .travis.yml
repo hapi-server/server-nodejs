@@ -3,25 +3,33 @@
 #   git checkout master
 #   git pull
 #   npm test
-#   cd pkg; make docker && make docker-test && make docker-release
+
 # Edit version in package.json to 1.0.0
 #   npm run version
+
+# Create docker release
+#   cd pkg; make docker && make docker-test && make docker-release
+
 # The next command is only needed if tag already exists
 #   git tag -d v1.0.0; git push --delete origin v1.0.0
+
+# Make final commit
 #   git commit -a -m "Final 1.0.0 commit"
 #   git push
-# modify version number in package.json in master branch
+
 #   git checkout deploy
 #   git merge origin/master --squash
 #   git commit -a -m "v1.0.0 Release"
 #   git push
 #   git checkout master
+
 # Manually bump version in package.json to next minor-beta, e.g., 1.0.1-beta.
 
 env:
   global:
     - npm_ver0=`curl https://raw.githubusercontent.com/hapi-server/server-nodejs/master/package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
     - npm_ver=v`curl https://raw.githubusercontent.com/hapi-server/server-nodejs/master/package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
+    - tgz=https://github.com/hapi-server/server-nodejs/releases/download
 
 before_install:
   - npm install
@@ -90,16 +98,7 @@ jobs:
       branches:
         only:
           - deploy
-      script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-darwin-x64.tgz && tar zxf hapi-server-$npm_ver-darwin-x64.tgz && cd hapi-server-$npm_ver && bin/node server.js test/server-test.js --test
-
-    # - stage: linux-armv7l
-    #   os: osx
-    #   language: generic
-    #   before_install: skip
-    #   branches:
-    #     only:
-    #       - deploy
-    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-armv7l.tgz && tar zxf hapi-server-$npm_ver-linux-armv7l.tgz && cd hapi-server-$npm_ver && bin/node server.js test/server-test.js --test
+      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-darwin-x64.tgz && tar zxf hapi-server-$npm_ver-darwin-x64.tgz && cd hapi-server-$npm_ver && bin/node test/server-test.js
 
     - stage: win-x64
       if: branch = deploy
@@ -109,8 +108,7 @@ jobs:
       branches:
         only:
           - deploy
-      script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-win-x64.zip; unzip -q hapi-server-$npm_ver-win-x64.zip; cd hapi-server-$npm_ver; bin/node server.js test/server-test.js --test
-
+      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-win-x64.zip; unzip -q hapi-server-$npm_ver-win-x64.zip; cd hapi-server-$npm_ver; bin/node test/server-test.js
 
     - stage: linux-x64
       if: branch = deploy
@@ -120,7 +118,16 @@ jobs:
       branches:
         only:
           - deploy
-      script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && node server.js test/server-test.js --test
+      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && bin/node test/server-test.js
+
+    # - stage: linux-armv7l
+    #   os: osx
+    #   language: generic
+    #   before_install: skip
+    #   branches:
+    #     only:
+    #       - deploy
+    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-armv7l.tgz && tar zxf hapi-server-$npm_ver-linux-armv7l.tgz && cd hapi-server-$npm_ver && bin/node server.js test/server-test.js --test
 
     - stage: npm-deploy
       if: branch = deploy
@@ -152,7 +159,7 @@ jobs:
       branches:
         only:
           - deploy
-      script: hapi-server --test
+      script: hapi-server test
 
 notifications:
   email:
