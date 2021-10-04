@@ -7,9 +7,6 @@
 # Edit version in package.json to 1.0.0
 #   npm run version
 
-# Create docker release
-#   cd pkg; make docker && make docker-test && make docker-release
-
 # The next command is only needed if tag already exists
 #   git tag -d v1.0.0; git push --delete origin v1.0.0
 
@@ -22,6 +19,10 @@
 #   git commit -a -m "v1.0.0 Release"
 #   git push
 #   git checkout master
+
+# Create docker release
+#   cd /tmp; git clone https://github.com/hapi-server/server-nodejs
+#   cd server-nodejs/pkg; make docker && make docker-test && make docker-release
 
 # Manually bump version in package.json to next minor-beta, e.g., 1.0.1-beta.
 
