@@ -91,6 +91,16 @@ jobs:
         file: pkg/dist/*
         skip_cleanup: true
 
+    - stage: linux-x64
+      if: branch = deploy
+      os: osx
+      language: generic
+      before_install: skip
+      branches:
+        only:
+          - deploy
+      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && ls -l bin && ldd bin/node && bin/node test/server-test.js
+
     - stage: darwin-x64
       if: branch = deploy
       os: osx
@@ -100,16 +110,6 @@ jobs:
         only:
           - deploy
       script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-darwin-x64.tgz && tar zxf hapi-server-$npm_ver-darwin-x64.tgz && cd hapi-server-$npm_ver && bin/node test/server-test.js
-
-    - stage: linux-x64
-      if: branch = deploy
-      os: osx
-      language: generic
-      before_install: skip
-      branches:
-        only:
-          - deploy
-      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && bin/node test/server-test.js
 
     - stage: win-x64
       if: branch = deploy

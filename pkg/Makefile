@@ -59,7 +59,6 @@ packages:
 	make package OS=win-x64 VERSION=$(VERSION)
 	make package OS=darwin-x64 VERSION=$(VERSION)
 	make package OS=linux-x64 VERSION=$(VERSION)
-	make package OS=linux-armv7l VERSION=$(VERSION)
 
 BINARIES=http://mag.gmu.edu/git-data/server-nodejs/bin
 package:
