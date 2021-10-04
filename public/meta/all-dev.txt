@@ -1,1 +1,8 @@
-../../node_modules/hapi-server-ui/all-dev.txt
+http://jfaden.net/HapiServerDemo/hapi, FadenTemp, Faden's Temperature Sensors (dev), FadenTemp, Jeremy Faden, faden@cottagesystems.com
+http://hapi.ftecs.com/hapi, FTECS, FTECS NASA Mission Data (dev), Jerry Manweiler, Manweiler@ftecs.com
+https://pds-ppi.igpp.ucla.edu/hapi, PDS, PDS (dev), Todd King, tking@igpp.ucla.edu
+http://hapi-server.org/servers-dev/CAIO/hapi, CAIO, CAIO (dev),,
+http://hapi-server.org/servers-dev/TestData2.0/hapi, TestData2.0, 2.0 Test Data (dev), Bob Weigel, rweigel@gmu.edu
+http://hapi-server.org/servers-dev/TestData2.1/hapi, TestData2.1, 2.1 Test Data (dev), Bob Weigel, rweigel@gmu.edu
+http://hapi-server.org/servers-dev/TestData3.0/hapi, TestData3.0, 3.0 Test Data (dev), Bob Weigel, rweigel@gmu.edu
+http://hapi-server.org/servers-dev/TestData3.1/hapi, TestData3.1, 3.1 Test Data (dev), Bob Weigel, rweigel@gmu.edu

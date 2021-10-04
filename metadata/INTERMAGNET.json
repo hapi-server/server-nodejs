@@ -13,5 +13,5 @@
 			{"url": "data?id=minute/definitive/ams&parameters=X&time.min=1991-01-01Z&time.max=1991-01-01T00:10:00.000Z", "Nlines": 10}
 		]
 	},
-	"catalog_file": "$HAPISERVERPATH/metadata/INTERMAGNET/INTERMAGNET-catalog.json"
+	"catalog_url": "http://mag.gmu.edu/git-data/server-nodejs/metadata/INTERMAGNET/meta/INTERMAGNET-catalog.json"
 }

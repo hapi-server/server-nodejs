@@ -27,7 +27,11 @@ update_pkl = True
 # and information in first and last file for each magnetometer.
 # Takes ~3.5 hours (1 minute if first and last files found in TMPDIR).
 update_json = True 
+<<<<<<< HEAD
 test_N = 2 # Run test on only first test_N datasets. If test_N = None, process all datasets.
+=======
+test_N = None # Run test on only first test_N datasets. If test_N = None, process all datasets.
+>>>>>>> origin/master
 
 # Regenerate index.htm
 update_table = True 
