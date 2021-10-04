@@ -151,7 +151,7 @@ jobs:
       branches:
         only:
           - deploy
-      script: hapi-server test
+      script: hapi-server-test
 
 notifications:
   email:

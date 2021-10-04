@@ -16,7 +16,8 @@
     "url": "https://github.com/hapi-server/server-nodejs.git"
   },
   "bin": {
-    "hapi-server": "./server.js"
+    "hapi-server": "./server.js",
+    "hapi-server-test": "./test/server-test.js"
   },
   "dependencies": {
     "chalk": "^2.4.1",
