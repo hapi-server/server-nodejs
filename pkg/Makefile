@@ -65,6 +65,8 @@ BINARIES=http://mag.gmu.edu/git-data/server-nodejs/bin
 package:
 	echo "$(shell uname)"
 	echo "$(OS)"
+	rm -rf dist/hapi-server-$(VERSION)
+	mkdir -p dist/hapi-server-$(VERSION)/bin
 ifeq ($(OS),win-x64)
 	curl --output dist/hapi-server-$(VERSION)/bin/python.exe $(BINARIES)/python-2.7-win-x64.exe
 	curl --output dist/hapi-server-$(VERSION)/bin/node.exe $(BINARIES)/node-v8.17.0-win-x64.exe
@@ -78,8 +80,6 @@ else
 		ln -s node-$(NODEV)-$(OS) node \
 		chmod 744 node*
 endif
-	rm -rf dist/hapi-server-$(VERSION)
-	mkdir -p dist/hapi-server-$(VERSION)/bin
 	make files
 ifeq ($(OS),win-x64)
 	make zip OS=$(OS)
