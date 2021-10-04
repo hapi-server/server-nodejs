@@ -99,7 +99,7 @@ jobs:
       branches:
         only:
           - deploy
-      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && ls -l bin && ldd bin/node && bin/node test/server-test.js
+      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && ls -l bin && bin/node test/server-test.js
 
     - stage: darwin-x64
       if: branch = deploy
