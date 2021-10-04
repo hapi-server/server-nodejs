@@ -69,13 +69,13 @@ ifeq ($(OS),win-x64)
 	curl --output dist/hapi-server-$(VERSION)/bin/node.exe $(BINARIES)/node-v8.17.0-win-x64.exe
 else
 	cd dist/hapi-server-$(VERSION)/bin/ \
-		curl -O $(BINARIES)/python-$(PYTHONV)-$(OS)
-		ln -s python-$(PYTHONV)-$(OS) python
-		chmod 744 bin/python*
+		curl -O $(BINARIES)/python-$(PYTHONV)-$(OS) \
+		ln -s python-$(PYTHONV)-$(OS) python \
+		chmod 744 python*
 	cd dist/hapi-server-$(VERSION)/bin/ \
-		curl -O $(BINARIES)/node-$(NODEV)-$(OS)
-		ln -s node-$(NODEV)-$(OS) node
-		chmod 744 bin/node*
+		curl -O $(BINARIES)/node-$(NODEV)-$(OS) \
+		ln -s node-$(NODEV)-$(OS) node \
+		chmod 744 node*
 endif
 ifeq ($(OS),win-x64)
 	make zip OS=$(OS)
