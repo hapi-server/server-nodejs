@@ -78,6 +78,8 @@ else
 		ln -s node-$(NODEV)-$(OS) node \
 		chmod 744 node*
 endif
+	rm -rf dist/hapi-server-$(VERSION)
+	mkdir -p dist/hapi-server-$(VERSION)/bin
 	make files
 ifeq ($(OS),win-x64)
 	make zip OS=$(OS)
@@ -86,8 +88,6 @@ else
 endif
 
 files:
-	rm -rf dist/hapi-server-$(VERSION)
-	mkdir -p dist/hapi-server-$(VERSION)
 	rsync -aq \
 		--exclude metadata/CAIO \
 		--exclude pkg \
