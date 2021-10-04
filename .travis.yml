@@ -93,7 +93,7 @@ jobs:
 
     - stage: linux-x64
       if: branch = deploy
-      os: osx
+      os: linux
       language: generic
       before_install: skip
       branches:
