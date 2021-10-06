@@ -55,16 +55,6 @@ Linux x64:
  ./hapi-server --open
 ```
 
-Linux ARMv7l:
-
-```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.9/hapi-server-v1.0.9-linux-armv7l.tgz | tar zxf -
- cd hapi-server-v1.0.9
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.10/hapi-server-v1.0.10-linux-armv7l.tgz | tar zxf -
- cd hapi-server-v1.0.10
- ./hapi-server --open
-```
-
 Docker:
 
 ```

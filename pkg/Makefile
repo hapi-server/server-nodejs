@@ -114,7 +114,6 @@ release:
 	cd .. && GITHUB_TOKEN=$(GITHUB_OAUTH_TOKEN) && release-it $(VERSION) \
 		--preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
 
-
 # To log in to server, use, e.g.,
 # docker exec -it hapi-server-v1.0.0 /bin/bash
 docker:
