@@ -43,24 +43,24 @@ Installation and startup commands are given below the binary packages and docker
 OS-X x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.10/hapi-server-v1.0.10-darwin-x64.tgz | tar zxf -
- cd hapi-server-v1.0.10
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.11/hapi-server-v1.0.11-darwin-x64.tgz | tar zxf -
+ cd hapi-server-v1.0.11
  ./hapi-server --open
 
 Linux x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.10/hapi-server-v1.0.10-linux-x64.tgz | tar zxf -
- cd hapi-server-v1.0.10
+ curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.11/hapi-server-v1.0.11-linux-x64.tgz | tar zxf -
+ cd hapi-server-v1.0.11
  ./hapi-server --open
 ```
 
 Docker:
 
 ```
-docker pull rweigel/hapi-server:v1.0.10
-docker run -dit --name hapi-server-v1.0.10 --expose 8999 -p 8999:8999 rweigel/hapi-server:v1.0.10
-docker exec -it hapi-server-v1.0.10 ./hapi-server
+docker pull rweigel/hapi-server:v1.0.11
+docker run -dit --name hapi-server-v1.0.11 --expose 8999 -p 8999:8999 rweigel/hapi-server:v1.0.11
+docker exec -it hapi-server-v1.0.11 ./hapi-server
 # Open http://localhost:8999/TestData/hapi in a web browser
 ```
 
