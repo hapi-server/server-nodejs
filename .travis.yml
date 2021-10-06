@@ -14,7 +14,7 @@
 #   git commit -a -m "Final 1.0.0 commit"
 #   git push
 
-#   git checkout deploy
+#   git checkout deploy; git pull
 #   git merge origin/master --squash
 #   git commit -a -m "v1.0.0 Release"
 #   git push
