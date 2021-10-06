@@ -91,6 +91,16 @@ jobs:
         file: pkg/dist/*
         skip_cleanup: true
 
+    - stage: linux-x64
+      if: branch = deploy
+      os: linux
+      language: generic
+      before_install: skip
+      branches:
+        only:
+          - deploy
+      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && ls -l bin && bin/node test/server-test.js
+
     - stage: darwin-x64
       if: branch = deploy
       os: osx
@@ -110,25 +120,6 @@ jobs:
         only:
           - deploy
       script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-win-x64.zip; unzip -q hapi-server-$npm_ver-win-x64.zip; cd hapi-server-$npm_ver; bin/node test/server-test.js
-
-    - stage: linux-x64
-      if: branch = deploy
-      os: osx
-      language: generic
-      before_install: skip
-      branches:
-        only:
-          - deploy
-      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && bin/node test/server-test.js
-
-    # - stage: linux-armv7l
-    #   os: osx
-    #   language: generic
-    #   before_install: skip
-    #   branches:
-    #     only:
-    #       - deploy
-    #   script: curl -O -L https://github.com/hapi-server/server-nodejs/releases/download/$npm_ver/hapi-server-$npm_ver-linux-armv7l.tgz && tar zxf hapi-server-$npm_ver-linux-armv7l.tgz && cd hapi-server-$npm_ver && bin/node server.js test/server-test.js --test
 
     - stage: npm-deploy
       if: branch = deploy
@@ -160,7 +151,7 @@ jobs:
       branches:
         only:
           - deploy
-      script: hapi-server test
+      script: hapi-server-test
 
 notifications:
   email:

@@ -17,11 +17,11 @@ parallelize = True
 # listing. Takes ~30 minutes when parallelize=True. Set to False if
 # only making corrections to HAPI JSON and not updating list
 # of available files.
-update_manifest = False
+update_manifest = True
 
 # Create a dictionary of the information in INTERMAGNET-manifest.txt
 # Takes ~10 seconds.
-update_pkl = False
+update_pkl = True
 
 # Write a HAPI JSON file using information in INTERMAGNET-manifest.pkl
 # and information in first and last file for each magnetometer.

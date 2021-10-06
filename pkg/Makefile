@@ -59,24 +59,29 @@ packages:
 	make package OS=win-x64 VERSION=$(VERSION)
 	make package OS=darwin-x64 VERSION=$(VERSION)
 	make package OS=linux-x64 VERSION=$(VERSION)
-	make package OS=linux-armv7l VERSION=$(VERSION)
 
 BINARIES=http://mag.gmu.edu/git-data/server-nodejs/bin
 package:
-	make files
+	echo "$(shell uname)"
+	echo "$(OS)"
+	rm -rf dist/hapi-server-$(VERSION)
+	mkdir -p dist/hapi-server-$(VERSION)/bin
 ifeq ($(OS),win-x64)
 	curl --output dist/hapi-server-$(VERSION)/bin/python.exe $(BINARIES)/python-2.7-win-x64.exe
 	curl --output dist/hapi-server-$(VERSION)/bin/node.exe $(BINARIES)/node-v8.17.0-win-x64.exe
 else
-	cd dist/hapi-server-$(VERSION)/bin/ \
-		curl -O $(BINARIES)/python-$(PYTHONV)-$(OS)
-		ln -s python-$(PYTHONV)-$(OS) python
-		chmod 744 bin/python*
-	cd dist/hapi-server-$(VERSION)/bin/ \
-		curl -O $(BINARIES)/node-$(NODEV)-$(OS)
-		ln -s node-$(NODEV)-$(OS) node
-		chmod 744 bin/node*
+	cd dist/hapi-server-$(VERSION)/bin/; \
+		curl -O $(BINARIES)/node-$(NODEV)-$(OS); \
+		ln -s node-$(NODEV)-$(OS) node; \
+		chmod 744 node*
 endif
+ifeq ($(OS),linux-x64)
+	cd dist/hapi-server-$(VERSION)/bin/; \
+		curl -O $(BINARIES)/python-$(PYTHONV)-$(OS); \
+		ln -s python-$(PYTHONV)-$(OS) python; \
+		chmod 744 python*
+endif
+	make files
 ifeq ($(OS),win-x64)
 	make zip OS=$(OS)
 else
@@ -84,8 +89,6 @@ else
 endif
 
 files:
-	rm -rf dist/hapi-server-$(VERSION)
-	mkdir -p dist/hapi-server-$(VERSION)
 	rsync -aq \
 		--exclude metadata/CAIO \
 		--exclude pkg \
@@ -110,7 +113,6 @@ release:
 	npm install release-it;
 	cd .. && GITHUB_TOKEN=$(GITHUB_OAUTH_TOKEN) && release-it $(VERSION) \
 		--preRelease=beta --no-git.requireCleanWorkingDir --no-npm.publish
-
 
 # To log in to server, use, e.g.,
 # docker exec -it hapi-server-v1.0.0 /bin/bash
