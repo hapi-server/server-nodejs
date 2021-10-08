@@ -27,7 +27,7 @@ PYTHONV=3.8.5
 # Do not modify following line. Version set by call to
 #   npm run version
 # which uses version in package.json
-VERSION=v1.0.10
+VERSION=v1.0.11
 
 # To get other OS-X versions, see
 # https://developer.apple.com/forums/thread/111322
