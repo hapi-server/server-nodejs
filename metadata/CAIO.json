@@ -11,5 +11,5 @@
         "formats": ["csv"],
         "contact": "rweigel@gmu.edu"
     },
-    "catalog_file": "$HAPISERVERPATH/metadata/CAIO/CAIO.json"
+    "catalog_url": "http://mag.gmu.edu/git-data/server-nodejs/metadata/CAIO/CAIO.json"
 }
