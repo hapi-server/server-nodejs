@@ -5,7 +5,7 @@
 # sudo systemctl enable hapi-server
 
 [Unit]
-Description=Development HAPI Server
+Description=Production HAPI Server
 Documentation=https://github.com/rweigel/hapi-server/server-nodejs
 
 [Service]
