@@ -305,10 +305,12 @@ function main() {
 				return;
 			}
 			cors(res);
-			superagent.get(url).end(function (err, res_proxy) {
-				console.log(ds() + "Proxied " + url);
-				res.set(res_proxy.headers);
-				res.send(res_proxy.text);
+		        superagent.get(url).end(function (err, res_proxy) {
+			    console.log(ds() + "Proxied " + url);
+			    console.log(res_proxy.headers);
+			    delete res_proxy.headers['content-encoding'];
+			    res.set(res_proxy.headers);
+			    res.send(res_proxy.text);
 			});
 		});
 	}
