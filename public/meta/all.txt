@@ -1,0 +1,8 @@
+https://cdaweb.gsfc.nasa.gov/hapi, CDAWeb, CDAWeb, Robert Candey, NASA-SPDF-Support@nasa.onmicrosoft.com
+http://hapi-server.org/servers/SSCWeb/hapi, SSCWeb, SSCWeb, Bob Weigel, rweigel@gmu.edu
+http://datashop.elasticbeanstalk.com/hapi, DataShop, DataShop, Jon Vandegriff, jon.vandegriff@jhuapl.edu
+http://planet.physics.uiowa.edu/das/das2Server/hapi, DAS 2, DAS2, Jeremy Faden, jeremy-faden@uiowa.edu
+https://iswa.gsfc.nasa.gov/IswaSystemWebApp/hapi, CCMC ISWA, CCMC_ISWA, Darren De Zeeuw, darrens@umich.edu
+http://lasp.colorado.edu/lisird/hapi, LISIRD, LISIRD, Doug Lindholm, Doug.Lindholm@lasp.colorado.edu
+http://hapi-server.org/servers/TestData2.0/hapi, 2.0 Test Data, TestData2.0, Bob Weigel, rweigel@gmu.edu
+http://amda.irap.omp.eu/service/hapi, AMDA, AMDA, Vincent Génot, vincent.genot@irap.omp.eu
