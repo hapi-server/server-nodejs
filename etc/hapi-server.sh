@@ -6,7 +6,8 @@
 
 /home/ubuntu/.nvm/versions/node/v8.17.0/bin/node \
     /home/ubuntu/server-nodejs/server.js \
-    --port 8999 --ignore --proxy true \
+    --port 8999 --ignore \
+    --proxy-whitelist /home/ubuntu/server-nodejs-dev/public/meta/all.txt \
     -f /home/ubuntu/server-nodejs/metadata/TestData2.0.json \
     -f /home/ubuntu/server-nodejs/metadata/TestData2.1.json \
     -f /home/ubuntu/server-nodejs/metadata/TestData3.0.json \
