@@ -60,7 +60,7 @@ let argv = yargs
 			.alias('logdir','l')
 			.describe('open','Open web page on start')
 			.alias('open','o')
-			.describe('proxy','Allow requests to URLs in all.txt to be proxied (for server-ui).')
+			.describe('proxy-whitelist','Allow requests to URLs in this file to be proxied (for server-ui).')
 			.describe('test','Run URL tests and exit')
 			.alias('test','t')
 			.describe('verify','Run verification tests on command line and exit')
@@ -85,7 +85,7 @@ let argv = yargs
 				'logdir': __dirname + "/log",
 				'file': __dirname + '/metadata/TestData2.0.json',
 				'port': 8999,
-				'proxy': false,
+				'proxy-whitelist': '',
 				'conf': __dirname + '/conf/server.json',
 				'verifier': 'http://hapi-server.org/verify',
 				'plotserver': 'http://hapi-server.org/plot'
@@ -109,7 +109,8 @@ const PLOTSERVER  = argv.plotserver;
 const HTTPS       = argv.https;
 const KEY_PATH    = argv.key;
 const CERT_PATH   = argv.cert;
-const PROXY       = argv.proxy;
+const PROXYFILE   = argv["proxy-whitelist"];
+const METADIR     = __dirname + "/public/meta";
 
 let server;
 
@@ -216,8 +217,6 @@ function main() {
 	let CATALOGS = [];
 	let PREFIXES = [];
 
-	let METADIR = __dirname + "/public/meta";
-
 	if (!fs.existsSync(METADIR)){
 		fs.mkdirSync(METADIR);
 		console.log(ds() + "Created " + METADIR);
@@ -257,34 +256,34 @@ function main() {
 	})
 
 	let serverlist = "";
-	if (fs.existsSync(METADIR + "/all.txt")) {
-		console.log(ds() + "Reading " + METADIR + "/all.txt.");
-		serverlist = fs
-						.readFileSync(METADIR + "/all.txt")
-						.toString();
-	} else {
-		console.log(ds() + "Did not find "
-					+ METADIR + "/all.txt. Will generate.");
-
-		for (let i = 0; i < CATALOGS.length; i++) {
-			let s = metadata(CATALOGS[i],'server');
-			let d = metadata(CATALOGS[i],'data');
-			serverlist = serverlist
-							+ PREFIXES[i] + "/hapi,"
-							+ CATALOGS[i] + ","
-							+ CATALOGS[i] + ","
-							+ s.contact + ","
-							+ d.contact + "\n";
-		}
+	// TODO: Get contact and other info from catalog file.
+	for (let i = 0; i < CATALOGS.length; i++) {
+		let s = metadata(CATALOGS[i],'server');
+		let d = metadata(CATALOGS[i],'data');
+		serverlist = serverlist
+						+ PREFIXES[i] + "/hapi,"
+						+ CATALOGS[i] + ","
+						+ CATALOGS[i] + ","
+						+ s.contact + ","
+						+ d.contact + "\n";
 	}
 
-	if (PROXY) {
-		console.log(ds() + "Configuring proxy end point /proxy.");
-		var tmp = serverlist.split("\n");
+	if (PROXYFILE !== '') {
+		// TODO: Allow PROXYFILE to be a URL.
+		if (fs.existsSync(PROXYFILE)) {
+			console.log(ds() + "Reading " + PROXYFILE + ".");
+			proxylist = fs.readFileSync(PROXYFILE).toString();
+		} else {
+			console.log(ds() + clc.red("Did not find " + PROXYFILE));
+			process.exit(1);
+		}
+
+		console.log(ds() + "Configuring proxy end-point /proxy.");
+		var tmp = proxylist.split("\n");
 		var serverlistURLs = [];
 		for (var i in tmp) {
 			if (tmp[i] !== '') {
-				console.log(tmp[i].split(",")[0])
+				console.log(ds() + "Allowing proxy of " + tmp[i].split(",")[0])
 				serverlistURLs.push(tmp[i].split(",")[0]);
 			}
 		}
@@ -305,32 +304,19 @@ function main() {
 				return;
 			}
 			cors(res);
-		        superagent.get(url).end(function (err, res_proxy) {
-			    console.log(ds() + "Proxied " + url);
-			    console.log(res_proxy.headers);
-			    delete res_proxy.headers['content-encoding'];
-			    res.set(res_proxy.headers);
-			    res.send(res_proxy.text);
+			superagent.get(url).end(function (err, res_proxy) {
+				console.log(ds() + "Proxied " + url);
+				delete res_proxy.headers['content-encoding'];
+				res.set(res_proxy.headers);
+				res.send(res_proxy.text);
 			});
 		});
+
+		app.get('/all-proxy.txt', function (req, res) {res.send(proxylist);});
+		app.get('/all-combined.txt', function (req, res) {res.send(serverlist + proxylist);});
 	}
 
 	app.get('/all.txt', function (req, res) {res.send(serverlist);});
-
-	app.get('/all-dev.txt', function (req,res) {
-		// TODO: Should be async.
-		if (fs.existsSync(METADIR + "/all-dev.txt")) {
-			console.log(ds() + "Reading " + METADIR + "/all-dev.txt.");
-			let serverlist_dev = fs
-									.readFileSync(METADIR + "/all-dev.txt")
-									.toString()
-			res.send(serverlist_dev);
-		} else {
-			console.log(ds() + "Did not find " + METADIR + "/all-dev.txt.");
-			res.status(404).send("");
-		}
-	});
-
 
 	let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
 	// TODO: Re-read only if index.htm changed?
