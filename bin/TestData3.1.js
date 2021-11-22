@@ -38,6 +38,8 @@ var Nwrote  = 0;  // Number of records flushed
 // https://github.com/nodejs/node/issues/1741#issuecomment-190649817
 process.stdout._handle.setBlocking(true);
 
+let array = ["Z", "α", "☃", "👍"];
+
 for (var i = startsec; i < stopsec; i++) {
     var record = "";
 
@@ -60,6 +62,9 @@ for (var i = startsec; i < stopsec; i++) {
     if (all || parameters.includes('unicodescalar-4-byte (👍)')
             || parameters.includes('unicodescalar-4-byte')) {
         record = record + ',👍';
+    }
+    if (all || parameters.includes('unicodescalar-1-4-byte')) {
+        record = record + ',' + array[i % 4];
     }
     if (all || parameters.includes('unicodevector (Z;α;☃;👍)')
             || parameters.includes('unicodevector')) {
