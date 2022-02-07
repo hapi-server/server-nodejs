@@ -5,6 +5,7 @@
 # so logger -t is not actually needed (and would do nothing).
 
 /home/ubuntu/.nvm/versions/node/v8.17.0/bin/node \
+    --max-old-space-size=256 \
     /home/ubuntu/server-nodejs-dev/server.js \
     --port 8998 --ignore \
     --proxy-whitelist /home/ubuntu/server-nodejs-dev/public/meta/all-dev.txt \

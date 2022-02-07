@@ -4,6 +4,10 @@
 # sudo systemctl status hapi-server-dev
 # sudo systemctl enable hapi-server-dev
 
+# After edits,
+#   sudo cp hapi-server-dev.service /lib/systemd/system
+#   sudo systemctl daemon-reload
+
 [Unit]
 Description=Development HAPI Server
 Documentation=https://github.com/rweigel/hapi-server/server-nodejs
@@ -13,7 +17,7 @@ Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu/server-nodejs-dev
 ExecStart=/usr/bin/sh -c etc/hapi-server-dev.sh
-Restart=on-failure
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
