@@ -25,6 +25,7 @@ const excludes =
 		"AutoplotExample1",
 		"AutoplotExample2",
 		"TestData3.0",
+		"TestData3.1",
 		"TestDataBad"
 	];
 
