@@ -8,7 +8,7 @@
     --max-old-space-size=256 \
     /home/ubuntu/server-nodejs-dev/server.js \
     --port 8998 --ignore \
-    --proxy-whitelist /home/ubuntu/server-nodejs-dev/public/meta/all-dev.txt \
+    --server-ui-include https://raw.githubusercontent.com/hapi-server/servers/master/dev.txt \
     -f /home/ubuntu/server-nodejs-dev/metadata/TestData2.0.json \
     -f /home/ubuntu/server-nodejs-dev/metadata/TestData2.1.json \
     -f /home/ubuntu/server-nodejs-dev/metadata/TestData3.0.json \
