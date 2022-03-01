@@ -60,7 +60,6 @@ let argv = yargs
 			.alias('logdir','l')
 			.describe('open','Open web page on start')
 			.alias('open','o')
-			.describe('proxy-whitelist','Allow requests to URLs in this file to be proxied (for server-ui).')
 			.describe('test','Run URL tests and exit')
 			.alias('test','t')
 			.describe('verify','Run verification tests on command line and exit')
@@ -74,6 +73,8 @@ let argv = yargs
 			.option('verifier',{'description': 'Verifier server URL on landing page'})
 			.option('plotserver',{'description': 'Plot server URL on landing page'})
 			.option('help', {alias: 'h'})
+			.describe('server-ui-include','Also include these servers in server-ui server drop-down.')
+			.describe('server-ui-whitelist','Allow proxying of these servers (so one can use server=http://... in addressbar of server-ui).')
 			.epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
 			.usage('Usage: ' + usage + ' [options]')
 			.default({
@@ -86,6 +87,7 @@ let argv = yargs
 				'file': __dirname + '/metadata/TestData2.0.json',
 				'port': 8999,
 				'proxy-whitelist': '',
+				'server-ui-include': '',
 				'conf': __dirname + '/conf/server.json',
 				'verifier': 'http://hapi-server.org/verify',
 				'plotserver': 'http://hapi-server.org/plot'
@@ -109,8 +111,10 @@ const PLOTSERVER  = argv.plotserver;
 const HTTPS       = argv.https;
 const KEY_PATH    = argv.key;
 const CERT_PATH   = argv.cert;
-const PROXYFILE   = argv["proxy-whitelist"];
 const METADIR     = __dirname + "/public/meta";
+
+const PROXY_WHITELIST   = argv["proxy-whitelist"];
+const SERVER_UI_INCLUDE = argv["server-ui-include"];
 
 let server;
 
@@ -214,14 +218,11 @@ prepmetadata(FILES, FORCE_START, VERIFIER, PLOTSERVER, main);
 
 function main() {
 
-	let CATALOGS = [];
-	let PREFIXES = [];
-
 	if (!fs.existsSync(METADIR)){
 		fs.mkdirSync(METADIR);
 		console.log(ds() + "Created " + METADIR);
 	} else {
-		console.log(ds() + "-all.json directory = " + METADIR);
+		console.log(ds() + "*-all.json directory = " + METADIR);
 	}
 
 	// Eventually HAPI spec may support request for all metadata associated
@@ -237,6 +238,8 @@ function main() {
 		}
 	}
 
+	let CATALOGS = [];
+	let PREFIXES = [];
 	var i = 0;
 	for (let key in metadata.cache) {
 		CATALOGS[i] = metadata.cache[key]['server']['id'];
@@ -267,152 +270,118 @@ function main() {
 						+ s.contact + ","
 						+ d.contact + "\n";
 	}
-
-	if (PROXYFILE !== '') {
-		// TODO: Allow PROXYFILE to be a URL.
-		if (fs.existsSync(PROXYFILE)) {
-			console.log(ds() + "Reading " + PROXYFILE + ".");
-			proxylist = fs.readFileSync(PROXYFILE).toString();
-		} else {
-			console.log(ds() + clc.red("Did not find " + PROXYFILE));
-			process.exit(1);
-		}
-
-		console.log(ds() + "Configuring proxy end-point /proxy.");
-		var tmp = proxylist.split("\n");
-		var serverlistURLs = [];
-		for (var i in tmp) {
-			if (tmp[i] !== '') {
-				console.log(ds() + "Allowing proxy of " + tmp[i].split(",")[0])
-				serverlistURLs.push(tmp[i].split(",")[0]);
-			}
-		}
-
-		app.get('/proxy', function (req, res) {
-			proxyOK = false;
-			let url = decodeURI(req.query.url);
-			if (url !== undefined) {
-				for (i in serverlistURLs) {
-					if (url.startsWith(serverlistURLs[i])) {
-						proxyOK = true;
-						break;
-					}
-				}
-			}
-			if (proxyOK == false) {
-				res.status(404).send("");
-				return;
-			}
-			cors(res);
-			superagent.get(url).end(function (err, res_proxy) {
-				console.log(ds() + "Proxied " + url);
-				delete res_proxy.headers['content-encoding'];
-				res.set(res_proxy.headers);
-				res.send(res_proxy.text);
-			});
-		});
-
-		app.get('/all-proxy.txt', function (req, res) {res.send(proxylist);});
-		app.get('/all-combined.txt', function (req, res) {res.send(serverlist + proxylist);});
-	}
-
 	app.get('/all.txt', function (req, res) {res.send(serverlist);});
 
-	let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
-	// TODO: Re-read only if index.htm changed?
-	app.get('/', function (req,res) {
-		let html = fs
-					.readFileSync(indexFile, "utf8")
-					.toString()
-					.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
-		res.send(html);
-	});
-
-
-	if (false) {
-		let html = fs
-					.readFileSync(indexFile, "utf8")
-					.toString()
-					.replace(/__CATALOG_LIST__/, JSON.stringify(CATALOGS));
-		app.get('/', function (req,res) {res.send(html);});
+    if (PROXY_WHITELIST !== '' || SERVER_UI_INCLUDE !== '') {
+		const proxy = require('./lib/proxy.js');
+		proxy.proxyInit(PROXY_WHITELIST, SERVER_UI_INCLUDE, serverlist, app, cors, apiInit);
+	} else {
+        app.get('/proxy', function (req, res) {
+            res.status(403).send("Server is not configured to proxy URLs.");
+        });
+		apiInit();
 	}
+		
+}
 
-	// Serve static files in ./public/data (no directory listing provided)
-	app.use("/data", express.static(__dirname + '/public/data'));
-
-	// Serve content needed in index.htm (no directory listing provided)
-	app.use("/css",
-		express.static(__dirname + '/node_modules/hapi-server-ui/css'));
-	app.use("/js",
-		express.static(__dirname + '/node_modules/hapi-server-ui/js'));
-	app.use("/scripts",
-		express.static(__dirname + '/node_modules/hapi-server-ui/scripts'));
-
-	apiInit(CATALOGS, PREFIXES);
-
-
-	function startupMessages(url_prefix){
-		console.log(ds() + clc.blue("Listening on port " + argv.port));
-	
-		let url = url_prefix + argv.port;
-		console.log(ds() + "HAPI server list is at");
-		console.log(ds() + "  " + url);
-		console.log(ds() + "Listed datasets are at");
-		for (var i = 0;i < CATALOGS.length;i++) {
-			console.log(ds() + "  " + url + "/" + PREFIXES[i] + "/hapi");
-		}
-	
-		console.log(ds() + "To open a browser at " + url + ", use the --open option.");
-		console.log(ds() + "To run test URLs and exit, use the --test option.");
-		console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
-	
-		if (OPEN) {
-			// Open browser window
-			var start = (process.platform == 'darwin'
-							? 'open': process.platform == 'win32'
-							? 'start': 'xdg-open');
-			require('child_process').exec(start + ' ' + url);
-		}
-	
-		if (TEST) {
-			// Exits with signal 0 or 1
-			test.urls(CATALOGS, PREFIXES, url, TEST);
-		}
-		if (VERIFY) {
-			// TODO: This only verifies first
-			let s = metadata(PREFIXES[0],'server');
-			// verify() exits with code 0 or 1.
-			if (s.verify) {
-				// If server has many datasets, select subset to verify.
-				verify(url + "/" + PREFIXES[0] + "/hapi", s.verify);
-			} else {
-				verify(url + "/" + PREFIXES[0] + "/hapi");
+function serverInit(CATALOGS, PREFIXES) {
+		function startupMessages(url_prefix){
+			console.log(ds() + clc.blue("Listening on port " + argv.port));
+		
+			let url = url_prefix + argv.port;
+			console.log(ds() + "HAPI server list is at");
+			console.log(ds() + "  " + url);
+			console.log(ds() + "This server provides");
+			for (var i = 0;i < CATALOGS.length;i++) {
+				console.log(ds() + "  " + url + "/" + PREFIXES[i] + "/hapi");
+			}
+		
+			console.log(ds() + "To open a browser at " + url + ", use the --open option.");
+			console.log(ds() + "To run test URLs and exit, use the --test option.");
+			console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
+		
+			if (OPEN) {
+				// Open browser window
+				var start = (process.platform == 'darwin'
+								? 'open': process.platform == 'win32'
+								? 'start': 'xdg-open');
+				require('child_process').exec(start + ' ' + url);
+			}
+		
+			if (TEST) {
+				// Exits with signal 0 or 1
+				test.urls(CATALOGS, PREFIXES, url, TEST);
+			}
+			if (VERIFY) {
+				// TODO: This only verifies first
+				let s = metadata(PREFIXES[0],'server');
+				// verify() exits with code 0 or 1.
+				if (s.verify) {
+					// If server has many datasets, select subset to verify.
+					verify(url + "/" + PREFIXES[0] + "/hapi", s.verify);
+				} else {
+					verify(url + "/" + PREFIXES[0] + "/hapi");
+				}
 			}
 		}
-	
-	}
-	
-	// TODO: Server startup should be a callback to apiInit.
-	if (HTTPS) {
-		// In-case of HTTPS, server.listen is used. app.listen() can only listen to HTTP requests
-		var url_prefix = 'https://localhost:';
-		server.listen(argv.port, function () {
-			startupMessages(url_prefix);
-		});
-	} else {
-		// HTTP connection
-		var url_prefix = 'http://localhost:';
-		app.listen(argv.port, function () {
-			startupMessages(url_prefix);
-		});
-	}
-	
+		
+		// TODO: Server startup should be a callback to apiInit.
+		if (HTTPS) {
+			// In-case of HTTPS, server.listen is used. app.listen() can only listen to HTTP requests
+			var url_prefix = 'https://localhost:';
+			server.listen(argv.port, function () {
+				startupMessages(url_prefix);
+			});
+		} else {
+			// HTTP connection
+			var url_prefix = 'http://localhost:';
+			app.listen(argv.port, function () {
+				startupMessages(url_prefix);
+			});
+		}
 }
 
 function apiInit(CATALOGS, PREFIXES, i) {
 
-	if (arguments.length == 2) {
-		i = 0;
+	if (arguments.length == 0) {
+
+		let CATALOGS = [];
+		let PREFIXES = [];
+		let j = 0;
+		for (let key in metadata.cache) {
+			CATALOGS[j] = metadata.cache[key]['server']['id'];
+			PREFIXES[j] = metadata.cache[key]['server']['prefix'];
+			j = j + 1;
+		}
+
+		let i = 0;
+
+		let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
+		app.get('/', function (req,res) {
+			// TODO: read file async
+			let html = fs.readFileSync(indexFile, "utf8").toString()
+			res.send(html);
+		});
+
+		// Read at start-up only.
+		if (false) {
+			let html = fs.readFileSync(indexFile, "utf8").toString()
+			app.get('/', function (req,res) {res.send(html);});
+		}
+
+		// Serve static files in ./public/data (no directory listing provided)
+		app.use("/data", express.static(__dirname + '/public/data'));
+
+		// Serve content needed in index.htm (no directory listing provided)
+		app.use("/css",
+			express.static(__dirname + '/node_modules/hapi-server-ui/css'));
+		app.use("/js",
+			express.static(__dirname + '/node_modules/hapi-server-ui/js'));
+		app.use("/scripts",
+			express.static(__dirname + '/node_modules/hapi-server-ui/scripts'));
+
+		apiInit(CATALOGS, PREFIXES, i);
+		return;
 	}
 
 	if (i == CATALOGS.length) {
@@ -431,6 +400,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
 
 		// Handle uncaught errors in API request code.
 		app.use(errorHandler);
+		serverInit(CATALOGS, PREFIXES);
 		return;
 	}
 
