@@ -92,9 +92,12 @@ function extractData(data) {
 							.replace(/^([0-9]{4}),([0-9][0-9]),/,"$1-0$2T")
 							.replace(/^([0-9]{4}),([0-9][0-9][0-9]),/,"$1-$2T")
 							.replace(/,\s*$/,"");
-					if (allparameters) {return line;};
 					linearr = line.split(",");
 					var linenew = linearr[0] + "Z"; // Always return time
+					if (allparameters) {
+						linearr[0] = linearr[0] + "Z";
+						return linearr.join(',');
+					}
 					if (timeonly) {return linenew;}
 					for (var i = 1;i < pn.length;i++) {
 						linenew = linenew + "," + linearr[pn[i]];
