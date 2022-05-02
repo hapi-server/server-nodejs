@@ -1,5 +1,3 @@
-[![Build Status](https://app.travis-ci.com/hapi-server/server-nodejs.svg?branch=master)](https://app.travis-ci.com/github/hapi-server/server-nodejs)
-
 # HAPI Server Front-End
 
 A generic HAPI front-end server.
@@ -58,9 +56,9 @@ Linux x64:
 Docker:
 
 ```
-docker pull rweigel/hapi-server:v1.0.11
-docker run -dit --name hapi-server-v1.0.11 --expose 8999 -p 8999:8999 rweigel/hapi-server:v1.0.11
-docker exec -it hapi-server-v1.0.11 ./hapi-server
+docker pull rweigel/hapi-server:v1.0.8
+docker run -dit --name hapi-server-v1.0.8 --expose 8999 -p 8999:8999 rweigel/hapi-server:v1.0.8
+docker exec -it hapi-server-v1.0.8 ./hapi-server
 # Open http://localhost:8999/TestData/hapi in a web browser
 ```
 
