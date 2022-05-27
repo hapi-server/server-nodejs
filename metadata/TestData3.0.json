@@ -89,7 +89,7 @@
 										"units": "m",
 										"fill": "-1e31",
 										"size" : [2,10],
-										"description": "A 10x3 element with time-independent bins",
+										"description": "A 10x2 element with time-independent bins",
 										"bins": [
 													{
 														"name": "frequency",
@@ -111,7 +111,7 @@
 										"units": "m",
 										"fill": "-1e31",
 										"size" : [2,10],
-										"description": "A 10x3 element with time-independent bins",
+										"description": "A 10x2 element with time-independent bins",
 										"bins": [
 													{
 														"name": "frequency",
