@@ -1,6 +1,6 @@
-from magpy.stream import *
 import os
 
+from magpy.stream import read
 from fnmatch import fnmatch
 
 root = os.getcwd() + "/obsdata/1minval"
@@ -14,6 +14,7 @@ for path, subdirs, files in os.walk(root):
             name = os.path.join(path, name)
             data = read(os.path.join(path, name))
             print(os.path.join(path, name))
+            print(data)
             print(data.header)
             print()
             print()

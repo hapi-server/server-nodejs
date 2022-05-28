@@ -65,7 +65,7 @@ def createmanifest(server, fnametxt):
                             allFiles[f[0:3]].append(dirname + '/' + f)
                         else:
                             allFiles[f[0:3]] = [dirname + '/' + f]
-                        fh_out.write(dirname + '/' + f)
+                        fh_out.write(dirname + '/' + f + '\n')
                         url = server + dirname + '/' + f
                         path1 = url.split("/")
                         path1 = tmpdir + "/" + "/".join(path1[2:-1])
@@ -122,6 +122,7 @@ def parsemanifest(fnametxt, fnamepkl):
                 s[id]['dates'][date] = path
                 s[id]['last'] = path
 
+    print(s)
     f = open(fnamepkl, 'wb')
     pickle.dump(s, f, protocol=2)
     f.close()
@@ -147,7 +148,7 @@ def createDateDict():
 def archive(fname):
     ds = datetime.datetime.now().strftime('%Y-%m-%d')
     if os.path.exists(fname):
-        fname_old = 'old/%s-%s.txt' % (fname[0:-5], ds)
+        fname_old = 'old/%s-%s.txt' % (fname[0:-4], ds)
         print('Moving ./' + fname + ' to ' + fname_old)
         os.makedirs('old/meta', exist_ok=True)
         shutil.move(fname, fname_old)
@@ -171,15 +172,16 @@ fnametable = 'meta/WDC-tableinfo.html'
 if update_manifest:
     archive(fnametxt)
     path1 = os.getcwd() + "/obsdata/1minval/"
-    try:
-        shutil.rmtree(path1)
-    except OSError as e:
-        print("Error!")
+    if os.path.exists(path1):
+        try:
+            shutil.rmtree(path1)
+        except OSError as e:
+            print("Could not remove " + path1)
     createmanifest(server, fnametxt)
     createDateDict()
     print("List DICT : ")
     print(list_dict) #Dictionary1
-    print("DATE_DICT : ")
+    print("Date DICT : ")
     print(date_dict)  #Dictionary2
 
 
