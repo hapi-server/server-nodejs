@@ -1,0 +1,16 @@
+{
+	"server": {
+		"id": "SSCWeb",
+		"prefix": "",
+		"contact": "rweigel@gmu.edu",
+		"landing": "",
+		"catalog-update": 86400,
+		"verify": "ace"
+	},
+    "data": {
+        "command": "curl -s 'http://44.197.104.135/servers/SSCWeb/hapi/data?id=${{id}}&parameters=${{parameters}}&time.min=${start}&time.max=${stop}'",
+        "formats": ["csv"],
+        "contact": "rweigel@gmu.edu"
+    },
+    "catalog_command": "cd \"$HAPISERVERPATH/metadata/SSCWeb\" && \"$NODEEXE\" SSCWeb2HAPI.js"
+}
