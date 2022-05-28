@@ -756,11 +756,17 @@ function data(req,res,catalog,header,include) {
 
 	function replacevars(com) {
 
+	        // Double {{ }} means don't quote
 		com = com.replace("${{id}}",req.query["id"]);
-		com = com.replace("${{parameters}}",req.query["parameters"]);
+	        com = com.replace("${{parameters}}",req.query["parameters"]);
+
+	        // Times don't need to be quoted
 		com = com.replace("${start}",start);
-		com = com.replace("${stop}",stop);
-		if (process.platform.startsWith("win")) {
+		com = com.replace("${{start}}",start);
+	        com = com.replace("${stop}",stop);
+	        com = com.replace("${{stop}}",stop);
+
+	        if (process.platform.startsWith("win")) {
 			com = com.replace("${id}",'"' + req.query["id"] + '"');
 		} else {
 			com = com.replace("${id}","'" + req.query["id"] + "'");
@@ -783,7 +789,7 @@ function data(req,res,catalog,header,include) {
 		// always outputs all variables. Subset the output using subset.js.
 
 		let fieldstr = "";
-		if (req.query["parameters"] && !/\$\{parameters\}/.test(d.command)) {
+		if (req.query["parameters"] && !/\$\{{1,2}parameters\}{1,2}/.test(d.command)) {
 			var params = req.query["parameters"].split(",");
 			var headerfull = metadata(catalog,'info',req.query.id);
 			if (params[0] !== headerfull.parameters[0].name) {
@@ -829,10 +835,10 @@ function data(req,res,catalog,header,include) {
 		com = com + " --start " + start;
 		com = com + " --stop " + stop;
 		let columns = columnsstr();
-		if (columns !== "" && d.file && !/\$\{parameters\}/.test(d.file)) {
+		if (columns !== "" && d.file && !/\$\{{1,2}parameters\}{1,2}/.test(d.file)) {
 			com = com + " --columns " + columns;
 		}
-		if (columns !== "" && d.url && !/\$\{parameters\}/.test(d.url)) {
+		if (columns !== "" && d.url && !/\$\{{1,2}parameters\}{1,2}/.test(d.url)) {
 			com = com + " --columns " + columns;
 		}
 		com = com + " --format " + header["format"];
@@ -856,7 +862,7 @@ function data(req,res,catalog,header,include) {
 			subsetcols = true;
 		}
 		var subsettime = false;
-		if (!/\$\{start\}/.test(d.command) && !/\$\{stop\}/.test(d.command)) {
+		if (!/\$\{{1,2}start\}{1,2}/.test(d.command) && !/\$\{{1,2}stop\}{1,2}/.test(d.command)) {
 			subsettime = true;
 		}
 
