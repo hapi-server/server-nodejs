@@ -24,7 +24,7 @@ update_pkl = True
 # Write a HAPI JSON file using information in WDC-manifest.pkl
 # and information in first and last file for each magnetometer.
 update_json = True
-test_N = 3 # Run test on only first test_N datasets. If test_N = None, process all datasets.
+N_years = 3
 
 # Regenerate index.htm
 update_table = True
@@ -56,7 +56,7 @@ def createmanifest(server, fnametxt):
         host = ftputil.FTPHost(server, "anonymous", "anonymous")
         names = host.listdir(host.curdir)
         for (dirname, subdir, files) in host.walk(path + "/" + "1minval"):
-            if count < test_N:
+            if count < N_years:
                 print('%d files found under %s' % (len(files), dirname))
                 count = count + 1
                 for f in files:
