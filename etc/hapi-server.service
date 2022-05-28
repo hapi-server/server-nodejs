@@ -13,7 +13,7 @@ Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu/server-nodejs
 ExecStart=/usr/bin/sh -c etc/hapi-server.sh
-Restart=on-failure
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
