@@ -74,7 +74,7 @@ let argv = yargs
 			.option('plotserver',{'description': 'Plot server URL on landing page'})
 			.option('help', {alias: 'h'})
 			.describe('server-ui-include','Also include these servers in server-ui server drop-down.')
-			.describe('server-ui-whitelist','Allow proxying of these servers (so one can use server=http://... in addressbar of server-ui).')
+			.describe('proxy-whitelist','Allow proxying of these servers (so one can use server=http://... in addressbar of server-ui).')
 			.epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
 			.usage('Usage: ' + usage + ' [options]')
 			.default({
@@ -119,7 +119,7 @@ const SERVER_UI_INCLUDE = argv["server-ui-include"];
 let server;
 
 if (HTTPS === false) {
-	console.log(ds() + "Starting HTTP Server");
+	console.log(ds() + "Server will use http.");
 	server = require("http").createServer(app);
 } else {
 	console.log(ds() + "Starting HTTPS Server");
@@ -214,9 +214,17 @@ if (!fs.existsSync(LOGDIR)) {
 
 // Populate metadata.cache array, which has elements of catalog objects
 // main() is callback.
+let Nservers = FILES.length;
+let msg = "Preparing metadata for " + Nservers + " servers(s)."
+console.log(ds() + msg);
+console.log(ds() + "-".repeat(msg.length));
 prepmetadata(FILES, FORCE_START, VERIFIER, PLOTSERVER, main);
 
 function main() {
+
+	let msg = "Prepared metadata for " + Nservers + " servers(s)."
+	console.log(ds() + msg);
+	console.log(ds() + "-".repeat(msg.length));
 
 	if (!fs.existsSync(METADIR)){
 		fs.mkdirSync(METADIR);
@@ -1440,6 +1448,9 @@ function exceptions() {
 }
 
 function logreq(req,extra) {
+	if (req.originalUrl.startsWith("/js") || req.originalUrl.startsWith("/css")) {
+		return;
+	}
 	var extra = extra || "";
 	var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
 	console.log(ds() + "Request from " + addr + ": " + "http://"
