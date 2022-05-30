@@ -13,6 +13,8 @@ if (process.platform.startsWith("win")) {
 	metadir = __dirname + '/../metadata';
 }
 
+// Run a single test, e.g. SSCWeb
+let single = process.argv[2];
 let testAll = true;
 
 metadir = path.normalize(metadir);
@@ -48,6 +50,7 @@ if (argv.https) {
 
 let files = filelist(metadir, excludes);
 
+
 function execute(com,i) {
 	let prefix = "Test " + (i+1) + "/" + (2*files.length) + ": ";
 	process.stdout.write(clc.blue(prefix) + com + "\n");
@@ -74,12 +77,19 @@ function execute(com,i) {
 }
 
 function filelist(metadir, excludes) {
+
 	let files = [];
 	fs.readdirSync(metadir).forEach(file => {
 		let ext = path.extname(file);
 		let basename = path.basename(file,'.json');
 		if (ext == ".json" && !excludes.includes(basename)) {
-			files.push(file);
+			if (single !== undefined) {
+				if (single === basename) {
+					files.push(file);
+				}
+			}  else {
+				files.push(file);
+			}
 		}
 	})
 	return files;
