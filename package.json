@@ -42,8 +42,6 @@
     "test-server-https": "node test/server-test.js --https",
     "test-subset": "node test/subset-test.js",
     "start": "node server.js --port 8998",
-    "start-production": "bash -c -l 'source ~/.nvm/nvm.sh; nvm use 6 && nohup forever server.js --port 9998 -i -f metadata/TestData.json -f metadata/TestData2.1.json -f metadata/TestDataBad.json -f metadata/TestDataRef.json -f metadata/SSCWeb.json 1>&2 | tee nohup.out &'",
-    "start-test": "bash -c -l 'source ~/.nvm/nvm.sh && nvm use 6 && forever server.js --port 8998 -i -f metadata/TestData.json -f metadata/TestData2.1.json -f metadata/TestDataBad.json -f metadata/TestDataRef.json'",
     "version": "cd pkg; make version VERSION=v$npm_package_version",
     "package": "cd pkg; make update VERSION=v$npm_package_version",
     "test-packages": "cd pkg; make test-packages VERSION=v$npm_package_version",
