@@ -44,6 +44,7 @@ OS-X x64:
  curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.11/hapi-server-v1.0.11-darwin-x64.tgz | tar zxf -
  cd hapi-server-v1.0.11
  ./hapi-server --open
+ ```
 
 Linux x64:
 
