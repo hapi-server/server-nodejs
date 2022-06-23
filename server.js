@@ -786,6 +786,7 @@ function data(req,res,catalog,header,include) {
       }
     } else {
       com = com.replace("${{parameters}}",'');
+      com = com.replace("${parameters}",'');
     }
     com = com.replace("${format}",header["format"]);
     return com;
