@@ -766,6 +766,12 @@ function data(req,res,catalog,header,include) {
 
     // Double {{ }} means don't quote
     com = com.replace("${{id}}",req.query["id"]);
+    
+    if (req.query["parameters"]) {   
+      com = com.replace("${{parameters}}",req.query["parameters"]);
+    } else {
+      com = com.replace("${{parameters}}",'');
+    }
 
     // Times don't need to be quoted
     com = com.replace("${start}",start);
@@ -785,7 +791,6 @@ function data(req,res,catalog,header,include) {
         com = com.replace("${parameters}","'" + req.query["parameters"] + "'");
       }
     } else {
-      com = com.replace("${{parameters}}",'');
       com = com.replace("${parameters}",'');
     }
     com = com.replace("${format}",header["format"]);
