@@ -780,9 +780,9 @@ function data(req,res,catalog,header,include) {
     }
     if (req.query["parameters"]) {
       if (process.platform.startsWith("win")) {
-        com = com.replace("${parameters}",'"' + parameters + '"');
+        com = com.replace("${parameters}",'"' + req.query["parameters"] + '"');
       } else {
-        com = com.replace("${parameters}","'" + parameters + "'");
+        com = com.replace("${parameters}","'" + req.query["parameters"] + "'");
       }
     } else {
       com = com.replace("${{parameters}}",'');
