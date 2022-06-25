@@ -214,17 +214,9 @@ if (!fs.existsSync(LOGDIR)) {
 
 // Populate metadata.cache array, which has elements of catalog objects
 // main() is callback.
-let Nservers = FILES.length;
-let msg = "Preparing metadata for " + Nservers + " servers(s)."
-console.log(ds() + msg);
-console.log(ds() + "-".repeat(msg.length));
 prepmetadata(FILES, FORCE_START, VERIFIER, PLOTSERVER, main);
 
 function main() {
-
-  let msg = "Prepared metadata for " + Nservers + " servers(s)."
-  console.log(ds() + msg);
-  console.log(ds() + "-".repeat(msg.length));
 
   if (!fs.existsSync(METADIR)){
     fs.mkdirSync(METADIR);
