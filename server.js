@@ -3,7 +3,9 @@
 const fs   = require('fs');
 const clc  = require('chalk'); // Colorize command line output
 const ver  = parseInt(process.version.slice(1).split('.')[0]);
-if (ver < 6) {
+
+if (parseInt(ver) < 6) {
+  // TODO: On windows, min version is 8
   console.log(clc.red("!!! node.js version >= 6 required.!!! "
     + "node.js -v returns " + process.version
     + ".\nConsider installing https://github.com/creationix/nvm and then 'nvm install 6'.\n"));
@@ -873,22 +875,22 @@ function data(req,res,catalog,header,include) {
 
     if (subsetcols || subsettime) {
       com = com
-     + ' | "'
-     + config.NODEEXE
-     + '" "' + __dirname
-     + '/lib/subset.js"';
-     if (subsettime) {
-      com = com + " --start " + start;
-      com = com + " --stop " + stop;
-    }
-    if (subsetcols) {
-      com = com + " --columns " + columns;
+             + ' | "'
+             + config.NODEEXE
+             + '" "' + __dirname
+             + '/lib/subset.js"';
+      if (subsettime) {
+        com = com + " --start " + start;
+        com = com + " --stop " + stop;
+      }
+      if (subsetcols) {
+        com = com + " --columns " + columns;
+      }
     }
   }
-}
 
-function dataErrorMessage() {
-  if (wroteheader) {
+  function dataErrorMessage() {
+    if (wroteheader) {
       // Set error header and exit if header not sent.
       res.end();
       return;
@@ -914,13 +916,10 @@ function dataErrorMessage() {
   var coms  = com.split(/\s+/);
   var coms0 = coms.shift();
   if (process.platform.startsWith("win")) {
-    var child = require('child_process').
-    spawn('cmd.exe',
-     ['/s','/c', com],
-     {shell: true, stdio: "pipe", encoding: "buffer"});
+    var child = require('child_process').spawn('cmd.exe', ['/s','/c', com],
+                        {shell: true, stdio: "pipe", encoding: "buffer"});
   } else {
-    var child = require('child_process')
-    .spawn('sh', ['-c', com], {"encoding": "buffer"});
+    var child = require('child_process').spawn('sh', ['-c', com], {"encoding": "buffer"});
   }
 
   var wroteheader = false; // If header already sent.
@@ -937,9 +936,7 @@ function dataErrorMessage() {
 
   // TODO: Write this to log file
   child.stderr.on('data', function (err) {
-    console.log(ds()
-     + "Command line program error message: "
-     + clc.red(err.toString().trim()));
+    console.log(ds() + "Command line program error message: " + clc.red(err.toString().trim()));
   })
 
   child.on('close', function (code) {
@@ -950,7 +947,7 @@ function dataErrorMessage() {
     }
 
     if (gotdata) { // Data returned and normal exit.
-      if (convert) {
+      if (!incr && convert) {
         // Convert accumulated data and send it.
         res.send(csvTo(outstr,true,true,header,include));
       } else {
@@ -972,18 +969,20 @@ function dataErrorMessage() {
   })
 
   var remainder = "";
-
+  let incr = false;
   child.stdout.on('data', function (buffer) {
+
     gotdata = true;
     if (!wroteheader && include && header["format"] !== "json") {
       // If header not written, header requested, and format requested
-      // is not JSON, send header.
+      // is not JSON, so send header.
       wroteheader = true;
       res.write("#" + JSON.stringify(header) + "\n");
     }
 
-    if (false) {
-      // Un-finished code for allowing incremental writes.
+    if (incr && header["format"] === "binary") {
+      //convert = false;
+      // Un-finished code for allowing incremental writes of JSON and binary.
       // See comments below.
       bufferstr = buffer.toString();
       if (remainder !== "") {
@@ -992,36 +991,47 @@ function dataErrorMessage() {
       var lastnl = bufferstr.lastIndexOf("\n");
       //console.log("bufferstr = " + bufferstr);
       if (lastnl+1 == bufferstr.length) {
-        //console.log("no remainder");
+        //console.error("no remainder");
         remainder = "";
       } else {
         remainder = bufferstr.slice(lastnl);
-        //console.log("remainder = " + remainder);
+        //console.error("remainder = " + remainder);
         bufferstr = bufferstr.slice(0,lastnl);
       }
+      //console.error(bufferstr);
     }
 
     if (header["format"] === "csv") {
+      // No conversion needed; dump buffer immediately.
       res.write(buffer.toString());
-    } else if (header["format"] === "json") {
+    }
+    if (header["format"] === "json") {
       if (!convert) {
+        // No conversion needed; dump buffer immediately.
         res.write(buffer.toString());
         return;
       } else {
-        // JSON requested and CL program cannot produce it.
-        // Accumulate output and send everything at once for now.
+        // JSON requested and command line program cannot produce it.
+        // Accumulate output and send everything at once.
         // TODO: Write incrementally; use
         //    buffer.toString().lastIndexOf(/\n/)
         // along with saving part of string that was not written.
         outstr = outstr + buffer.toString();
       }
-    } else {
+    }
+    if (header["format"] === "binary") {
       if (!convert) {
+        // No conversion needed; dump buffer immediately.
         res.write(buffer,'binary');
         return;
       } else {
-        // TODO: Write incrementally. See above.
-        outstr = outstr + buffer.toString();
+        if (incr) {
+          //console.error("Sending:\n--\n" + bufferstr + "\n--\n");
+          res.write(csvTo(bufferstr,null,null,header,include));
+        } else {
+          // TODO: Write incrementally. See above.
+          outstr = outstr + buffer.toString();
+        }
       }
     }
   })
@@ -1077,9 +1087,10 @@ function csvTo(records,first,last,header,include) {
     return csv2bin(records, types, lengths, sizes);
   }
 
-
   function csv2bin(records, types, lengths, sizes) {
 
+    console.error(types, lengths, sizes, records.length)
+    process.stderr.write(records);
     // TODO: Only handles integer and double.
 
     // Does not use length info for Time variable - it is inferred
@@ -1136,8 +1147,8 @@ function csvTo(records,first,last,header,include) {
     }
     if (truncated > 0) {
       console.log(ds() + clc.red((truncated) 
-        + " strings were truncated because they"
-        + " were longer than length given in metadata"));
+                  + " strings were truncated because they"
+                  + " were longer than length given in metadata"));
     }
     return recordbuff;
   }
@@ -1202,14 +1213,14 @@ function csvTo(records,first,last,header,include) {
       }
     }
     if (last == true) {
-     if (include) {
-      close = "\n]\n}\n";
-    } else {
-      close = "\n]\n";
+      if (include) {
+        close = "\n]\n}\n";
+      } else {
+        close = "\n]\n";
+      }
     }
+    return open + records.slice(0,-1) + close;
   }
-  return open + records.slice(0,-1) + close;
-}
 }
 
 function queryCheck(req, res, hapiversion, catalog, type) {
@@ -1235,33 +1246,33 @@ function queryCheck(req, res, hapiversion, catalog, type) {
     for (var key in req.query) {
       if (!["id", "parameters", "resolve_references"].includes(key)) {
         error(req, res, hapiversion, 1401,
-          "'id', 'parameters', and 'resolve_references' are the only valid query parameters.");
+              "'id', 'parameters', and 'resolve_references' are the only valid query parameters.");
         return false;
       }
     }
   } else {
     // Check if query parameters are all valid
     var allowed = [
-    "id","parameters","time.min","time.max",
-    "format","include","attach","resolve_references"
+      "id","parameters","time.min","time.max",
+      "format","include","attach","resolve_references"
     ];
     for (var key in req.query) {
-     if (!allowed.includes(key)) {
-      error(req, res, hapiversion, 1401,
-        "The only allowed query parameters are "
-        + allowed.join(", "));
-      return false;
+      if (!allowed.includes(key)) {
+        error(req, res, hapiversion, 1401,
+              "The only allowed query parameters are " + allowed.join(", "));
+        return false;
+      }
+    }
+
+    if (!req.query["time.min"]) {
+      error(req,res,hapiversion,1402);
+      return;
+    }
+    if (!req.query["time.max"]) {
+      error(req,res,hapiversion,1403);
+      return;
     }
   }
-  if (!req.query["time.min"]) {
-   error(req,res,hapiversion,1402);
-   return;
- }
- if (!req.query["time.max"]) {
-   error(req,res,hapiversion,1403);
-   return;
- }
-}
 
   // Set default resolve_references to be true if not given
   if (req.query.resolve_references === undefined) {
@@ -1270,8 +1281,7 @@ function queryCheck(req, res, hapiversion, catalog, type) {
 
   // If resolve_references given, check that it is "true" or "false".
   if (!["true","false"].includes(req.query.resolve_references)) {
-    error(req, res, hapiversion, 1411,
-      "resolve_references must be 'true' or 'false'");
+    error(req, res, hapiversion, 1411, "resolve_references must be 'true' or 'false'");
     return false;
   }
 
@@ -1387,13 +1397,13 @@ function error(req,res,hapiversion,code,message) {
 
   // Defaults
   var json =
- {
-  "HAPI" : hapiversion,
-  "status": { "code": 1500, "message": "Internal server error"}
-};
-var httpcode = 500;
-var httpmesg = "Internal server error. Please report URL attempted to the "
-+ " <a href='https://github.com/hapi-server/server-nodejs/issues'>issue tracker</a>.";
+             {
+              "HAPI" : hapiversion,
+              "status": { "code": 1500, "message": "Internal server error"}
+            };
+  var httpcode = 500;
+  var httpmesg = "Internal server error. Please report URL attempted to the "
+  + " <a href='https://github.com/hapi-server/server-nodejs/issues'>issue tracker</a>.";
 
   // Modify defaults
   if (errs[code+""]) {
@@ -1422,11 +1432,11 @@ function errorHandler(err, req, res, next) {
 
   let stack = err.stack.replace(new RegExp(__dirname + "/","g"),"").replace(/\n/g,"<br/>")
   console.log(err);
-  error(req, res, "2.0", "1500", "Server error. Please post the following error message at https://github.com/hapi-server/server-nodejs/issues.<br/>" + req.originalUrl + "<br/> " + err + " " + stack);
   let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
   let msg = ds() + "Request from " + addr + ": " + req.originalUrl;
-  let tmps = ds().split("T")[0];
-  fs.appendFileSync(LOGDIR + '/server-error-' + tmps + ".log",msg + "\n" + err.stack);
+  let logfile = '/server-error-' + ds().split("T")[0] + ".log";
+  fs.appendFileSync(LOGDIR + logfile, msg + "\n" + err.stack);
+  error(req, res, "2.0", "1500", "Server error. Please post the following error message at https://github.com/hapi-server/server-nodejs/issues.<br/>" + req.originalUrl + "<br/> " + err + " " + stack);
 }
 
 // Errors in application
@@ -1437,9 +1447,8 @@ function exceptions() {
       process.exit(1);
     } else {
       console.log(err.stack);
-      var tmps = ds().split("T")[0];
-      fs.appendFileSync(LOGDIR + '/server-error-' + tmps + ".log", "\n"
-        + ds() + " Uncaught Exception\n" + err.stack)
+      let logfile = '/server-error-' + ds().split("T")[0] + ".log";
+      fs.appendFileSync(LOGDIR + logfile, "\n" + ds() + " Uncaught Exception\n" + err.stack);
     }
   });
 }
@@ -1451,5 +1460,5 @@ function logreq(req,extra) {
   var extra = extra || "";
   var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
   console.log(ds() + "Request from " + addr + ": " + "http://"
-    + req.headers.host + req.originalUrl + " " + extra);
+              + req.headers.host + req.originalUrl + " " + extra);
 }
