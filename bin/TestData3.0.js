@@ -37,9 +37,13 @@ var Nwrote  = 0;  // Number of records flushed
 scalarstrs = ["P/P","P/F","F/P","F/F"];
 scalarcats = [0,1,2];
 
-// https://github.com/nodejs/node/issues/3524
-// https://github.com/nodejs/node/issues/1741#issuecomment-190649817
-process.stdout._handle.setBlocking(true);
+try {
+	// https://github.com/nodejs/node/issues/3524
+	// https://github.com/nodejs/node/issues/1741#issuecomment-190649817
+	process.stdout._handle.setBlocking(true);
+} catch (e) {
+	// If executed from command line, _handle will not exist.
+}
 
 for (var i = startsec; i < stopsec; i++) {
 	var record = "";
@@ -159,7 +163,7 @@ for (var i = startsec; i < stopsec; i++) {
 	if (flush) {
 		if (id !== "dataset0") {
 			if (records.length > 0)
-				console.log(records); // Correct way.					
+				process.stdout.write(records + "\n"); // Correct way.
 		} else {
 			// Make time non-monotonic for dataset0.
 			records = records.split("\n");
@@ -174,7 +178,7 @@ for (var i = startsec; i < stopsec; i++) {
 				process.stdout.write(records);
 			} else {
 				// Add extra newline at end of file for dataset0 if scalariso not requested
-				console.log(records + "\n");
+				process.stdout.write(records + "\n\n");
 			}
 		}
 		records = "";

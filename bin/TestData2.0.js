@@ -1,8 +1,8 @@
 var argv = process.argv;
-var id = "dataset2";
+var id = "dataset1";
 var parameters = "scalar";
-var start = "1971-01-00T01:50:00Z";
-var stop = "1972-08-03T06:50:00Z";
+var start = "1970-01-00T00:00:00Z";
+var stop =  "1970-01-03T00:01:00Z";
 
 for (var i = 0; i < argv.length-1; i++) {
 	if (argv[i] == "--id") {
@@ -50,9 +50,6 @@ var Nwrote  = 0;  // Number of records flushed
 scalarstrs = ["P/P","P/F","F/P","F/F"];
 scalarcats = [0,1,2];
 
-// https://github.com/nodejs/node/issues/3524
-// https://github.com/nodejs/node/issues/1741#issuecomment-190649817
-process.stdout._handle.setBlocking(true);
 
 for (var i = startsec; i < stopsec; i++) {
 	var record = "";
@@ -177,7 +174,8 @@ for (var i = startsec; i < stopsec; i++) {
 	if (flush) {
 		if (id !== "dataset0") {
 			if (records.length > 0)
-				console.log(records); // Correct way.					
+				//console.log(records); // Correct way.
+				process.stdout.write(records + "\n");
 		} else {
 			// Make time non-monotonic for dataset0.
 			records = records.split("\n");
@@ -192,7 +190,8 @@ for (var i = startsec; i < stopsec; i++) {
 				process.stdout.write(records);
 			} else {
 				// Add extra newline at end of file for dataset0 if scalariso not requested
-				console.log(records + "\n");
+				//console.log(records + "\n");
+				process.stdout.write(records + "\n\n");
 			}
 		}
 		records = "";

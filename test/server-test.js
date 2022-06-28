@@ -6,10 +6,10 @@ const spawnSync = require('child_process').spawnSync;
 
 let metadir, nodeexe;
 if (process.platform.startsWith("win")) {
-	nodeexe =  '"' + process.execPath + '" server.js';
+	nodeexe =  '"' + process.execPath + '" server.js --port 7999';
 	metadir =  __dirname + '\\..\\metadata';	
 } else {
-	nodeexe = "'" + process.execPath + "' server.js";
+	nodeexe = "'" + process.execPath + "' server.js --port 7999";
 	metadir = __dirname + '/../metadata';
 }
 
