@@ -29,6 +29,9 @@ const prepmetadata = require('./lib/metadata.js').prepmetadata;
 // Test commands and urls
 const test = require('./lib/test.js');
 
+// Logging
+const log = require('./lib/log.js');
+
 // HAPI schema tests
 const is = require('hapi-server-verifier').is;
 
@@ -205,7 +208,7 @@ const expandfiles = require(__dirname + '/lib/expandfiles.js').expandfiles;
 
 FILES = expandfiles(FILES);
 
-exceptions(); // Catch common start-up exceptions
+exceptions(); // Catch common start-up exceptions and un--caught exceptions
 
 if (!fs.existsSync(LOGDIR)) {
   fs.mkdirSync(LOGDIR);
@@ -213,6 +216,7 @@ if (!fs.existsSync(LOGDIR)) {
 } else {
   console.log(ds() + "Log directory = " + LOGDIR);
 }
+log.LOGDIR = LOGDIR;
 
 // Populate metadata.cache array, which has elements of catalog objects
 // main() is callback.
@@ -254,12 +258,6 @@ function main() {
 
   app.use(compress()); // Compress responses using gzip
 
-  // Log all requests, then call next route handler
-  app.get('*', function (req, res, next) {
-    logreq(req);
-    next();
-  })
-
   let serverlist = "";
   // TODO: Get contact and other info from catalog file.
   for (let i = 0; i < CATALOGS.length; i++) {
@@ -286,6 +284,7 @@ function main() {
 }
 
 function serverInit(CATALOGS, PREFIXES) {
+
   function startupMessages(url_prefix){
    console.log(ds() + clc.blue("Listening on port " + argv.port));
    
@@ -359,6 +358,7 @@ function serverInit(CATALOGS, PREFIXES) {
 
    let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
    app.get('/', function (req,res) {
+      res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
       // TODO: read file async
       let html = fs.readFileSync(indexFile, "utf8").toString()
       res.send(html);
@@ -391,9 +391,7 @@ function serverInit(CATALOGS, PREFIXES) {
     // Any requests not matching set app.get() patterns will see error response.
     app.get('*', function(req, res) {
       if (PREFIXES.length == 1) {
-        res.status(404).send("Invalid URL. See <a href='"
-          + PREFIXES[0] + "/hapi'>"
-          + PREFIXES[0] + "/hapi</a>");
+        res.status(404).send("Invalid URL. See <a href='" + PREFIXES[0] + "/hapi'>" + PREFIXES[0] + "/hapi</a>");
       } else {
         res.status(404).send("Invalid URL. See <a href='/'>start page</a>");
       }
@@ -419,6 +417,8 @@ function serverInit(CATALOGS, PREFIXES) {
 
   // Serve all.json file
   app.get(PREFIX + '/hapi/all.json', function (req, res) {
+
+    res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
     var file = __dirname + "/public/meta" + PREFIX + "-all.json";
@@ -464,6 +464,8 @@ function serverInit(CATALOGS, PREFIXES) {
 
   function landing(landingFile) {
     app.get(PREFIX + '/hapi', function (req, res) {
+      res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
+
       if (landingFile !== "") {
         //cors(res); // Set CORS headers
         res.contentType('text/html');
@@ -487,6 +489,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // /capabilities
   app.get(PREFIX + '/hapi/capabilities', function (req, res) {
 
+    res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
 
@@ -503,6 +506,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // /catalog
   app.get(PREFIX + '/hapi/catalog', function (req, res) {
 
+    res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
 
@@ -518,6 +522,8 @@ function serverInit(CATALOGS, PREFIXES) {
 
   // /info
   app.get(PREFIX + '/hapi/info', function (req, res) {
+
+    res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
 
@@ -543,6 +549,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // /data
   app.get(PREFIX + '/hapi/data', function (req, res) {
 
+    res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
     cors(res);
 
     // Check query string and set defaults as needed.
@@ -561,10 +568,7 @@ function serverInit(CATALOGS, PREFIXES) {
     // Add non-standard elements in header used later in code.
     // TODO: Not tested under https.
     var proto = req.connection.encrypted ? 'https' : 'http';
-    header["status"]["x_request"] = proto
-    + "://"
-    + req.headers.host
-    + req.originalUrl;
+    header["status"]["x_request"] = proto + "://" + req.headers.host + req.originalUrl;
     header["status"]["x_startDateRequested"] = req.query["time.min"];
     header["status"]["x_stopDateRequested"]  = req.query["time.max"];
     header["status"]["x_parentDataset"]      = req.query["id"];
@@ -602,14 +606,14 @@ function serverInit(CATALOGS, PREFIXES) {
     if (header["format"] === "json")   {res.contentType("application/json")};
 
     var fname = "id-"
-   + req.query["id"]
-   + "_parameters-"
-   + req.query["parameters"]
-   + "_time.min-"
-   + req.query["time.min"]
-   + "_time.max-"
-   + req.query["time.max"]
-   + "." + header["format"];
+                 + req.query["id"]
+                 + "_parameters-"
+                 + req.query["parameters"]
+                 + "_time.min-"
+                 + req.query["time.min"]
+                 + "_time.max-"
+                 + req.query["time.max"]
+                 + "." + header["format"];
 
    if (req.query["attach"] === "false") {
       // Allow non-standard "attach" query parameter for debugging.
@@ -627,10 +631,9 @@ function serverInit(CATALOGS, PREFIXES) {
   // Anything that does not match
   // PREFIX + {/hapi,/hapi/capabilities,/hapi/info,/hapi/data}
   app.get(PREFIX + '/*', function (req, res) {
-    console.log(req);
-    res.status(404).send(
-     "Invalid URL. See <a href='"
-     + PREFIX + "/hapi'>" + PREFIX.substr(1) + "/hapi</a>");
+    let base = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    let msg = "Invalid URL. See " + base + PREFIX + "/hapi";
+    error(req, res, hapiversion, 1400, msg, req.originalUrl);
   })
 
   apiInit(CATALOGS, PREFIXES, ++i);
@@ -705,9 +708,7 @@ function info(req,res,catalog) {
   }
 
   // Remove nulls placed when array element is deleted
-  json.parameters = json
-  .parameters
-  .filter(function (n) {return n != undefined});
+  json.parameters = json.parameters.filter(function (n) {return n != undefined});
 
   // Return JSON string
   return json;
@@ -718,49 +719,101 @@ function data(req,res,catalog,header,include) {
   // Extract command line command and replace placeholders.
   var d = metadata(catalog,'data');
 
-  let com = buildcom(d, header, req);
-  console.log(ds() + "Executing: " + com);
-  executecom(com, d, req, res, header, include);
+  if (d.proxy) {
+    let url = replacevars(d.proxy).replace(/\/$/,"") + req.originalUrl;
+    console.log(ds() + "Responding with proxy of " + url);
+    let httpProxy = require('http-proxy');
+    let proxy = httpProxy.createProxyServer({});
+    proxy
+      .on('end', function (res, socket, head) {
+        console.log(ds() + "Responded with proxy of " + url);
+      })
+      .on('error', function (err) {
+        console.log("error")
+        console.log(err);
+      })
+      .web(req, res, { target: d.proxy });
+    return;
+  } else {
+    let com = buildcom(d, header, req);
+    executecom(com, d, req, res, header, include);
+    return;
+  }
+
+  function normalizeTime(timestr) {
+
+    // Convert to YYYY-MM-DDTHH:MM:SS.FFFFFFFFFZ
+    // (nanosecond precision). All command line programs
+    // will be given this format.
+
+    // Need to extract it here and then insert at end
+    // because moment.utc(timestr).toISOString()
+    // ignores sub-millisecond parts of time string.
+    var re = new RegExp(/.*\.[0-9]{3}([0-9].*)Z/);
+    var submilli = "000000";
+    if (re.test(timestr)) {
+      var submilli = timestr.replace(/.*\.[0-9]{3}([0-9].*)Z$/,"$1");
+      var pad = "0".repeat(6-submilli.length);
+      submilli = submilli + pad;
+    }
+
+    if (/^[0-9]{4}Z$/.test(timestr)) {
+      timestr = timestr.slice(0,-1) + "-01-01T00:00:00.000Z";
+    }
+    if (/^[0-9]{4}-[0-9]{2}Z$/.test(timestr)) {
+      timestr = timestr.slice(0,-1) + "-01T00:00:00.000Z";
+    }
+    if (/^[0-9]{4}-[0-9]{3}Z$/.test(timestr)) {
+      timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
+    }
+    if (/^[0-9]{4}-[0-9]{2}-[0-9]{2}Z$/.test(timestr)) {
+      timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
+    }
+    timestr = moment.utc(timestr).toISOString();
+    timestr = timestr.slice(0,-1) + submilli + "Z";
+    return timestr;
+  }
+
+  function replacevars(com) {
+
+    // Double {{ }} means don't quote
+    com = com.replace("${{id}}",req.query["id"]);
+    
+    if (req.query["parameters"]) {   
+      com = com.replace("${{parameters}}",req.query["parameters"]);
+    } else {
+      com = com.replace("${{parameters}}",'');
+    }
+
+    // Times don't need to be quoted
+    com = com.replace("${start}",normalizeTime(req.query["time.min"]));
+    com = com.replace("${stop}",normalizeTime(req.query["time.max"]));
+
+    com = com.replace("${{start}}",normalizeTime(req.query["time.min"]));
+    com = com.replace("${{stop}}",normalizeTime(req.query["time.max"]));
+
+    if (process.platform.startsWith("win")) {
+      com = com.replace("${id}",'"' + req.query["id"] + '"');
+    } else {
+      com = com.replace("${id}","'" + req.query["id"] + "'");
+    }
+    if (req.query["parameters"]) {
+      if (process.platform.startsWith("win")) {
+        com = com.replace("${parameters}",'"' + req.query["parameters"] + '"');
+      } else {
+        com = com.replace("${parameters}","'" + req.query["parameters"] + "'");
+      }
+    } else {
+      com = com.replace("${parameters}",'""');
+    }
+    com = com.replace("${format}",header["format"]);
+    return com;
+  }
 
   function buildcom(d, header, req) {
 
-    function replacevars(com) {
-
-      // Double {{ }} means don't quote
-      com = com.replace("${{id}}",req.query["id"]);
-      
-      if (req.query["parameters"]) {   
-        com = com.replace("${{parameters}}",req.query["parameters"]);
-      } else {
-        com = com.replace("${{parameters}}",'');
-      }
-
-      // Times don't need to be quoted
-      com = com.replace("${start}",start);
-      com = com.replace("${{start}}",start);
-      com = com.replace("${stop}",stop);
-      com = com.replace("${{stop}}",stop);
-
-      if (process.platform.startsWith("win")) {
-        com = com.replace("${id}",'"' + req.query["id"] + '"');
-      } else {
-        com = com.replace("${id}","'" + req.query["id"] + "'");
-      }
-      if (req.query["parameters"]) {
-        if (process.platform.startsWith("win")) {
-          com = com.replace("${parameters}",'"' + req.query["parameters"] + '"');
-        } else {
-          com = com.replace("${parameters}","'" + req.query["parameters"] + "'");
-        }
-      } else {
-        com = com.replace("${parameters}",'""');
-      }
-      com = com.replace("${format}",header["format"]);
-      return com;
-    }
-
     function columnsstr() {
-      // If command does not contain ${parameters}, assume CL program
+      // If command does not contain ${parameters} or ${{parameters}}, assume CL program
       // always outputs all variables. Subset the output using subset.js.
 
       let fieldstr = "";
@@ -796,46 +849,11 @@ function data(req,res,catalog,header,include) {
       return fieldstr;
     }
 
-    function normalizeTime(timestr) {
-
-      // Convert to YYYY-MM-DDTHH:MM:SS.FFFFFFFFFZ
-      // (nanosecond precision). All command line programs
-      // will be given this format.
-
-      // Need to extract it here and then insert at end
-      // because moment.utc(timestr).toISOString()
-      // ignores sub-millisecond parts of time string.
-      var re = new RegExp(/.*\.[0-9]{3}([0-9].*)Z/);
-      var submilli = "000000";
-      if (re.test(timestr)) {
-        var submilli = timestr.replace(/.*\.[0-9]{3}([0-9].*)Z$/,"$1");
-        var pad = "0".repeat(6-submilli.length);
-        submilli = submilli + pad;
-      }
-
-      if (/^[0-9]{4}Z$/.test(timestr)) {
-        timestr = timestr.slice(0,-1) + "-01-01T00:00:00.000Z";
-      }
-      if (/^[0-9]{4}-[0-9]{2}Z$/.test(timestr)) {
-        timestr = timestr.slice(0,-1) + "-01T00:00:00.000Z";
-      }
-      if (/^[0-9]{4}-[0-9]{3}Z$/.test(timestr)) {
-        timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
-      }
-      if (/^[0-9]{4}-[0-9]{2}-[0-9]{2}Z$/.test(timestr)) {
-        timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
-      }
-      timestr = moment.utc(timestr).toISOString();
-      timestr = timestr.slice(0,-1) + submilli + "Z";
-      return timestr;
-    }
-
     var start = normalizeTime(req.query["time.min"]);
     var stop = normalizeTime(req.query["time.max"]);
 
-    // TODO: Check that d.file or d.url or d.command exists
-    // when metadata loaded.
     let com = "";
+
     if (d.file || d.url) {
       // Will always need to subset in this case
       // (unless request is for all variables over
@@ -854,7 +872,9 @@ function data(req,res,catalog,header,include) {
         com = com + " --columns " + columns;
       }
       com = com + " --format " + header["format"];
-    } else {
+    }
+
+    if (d.command) {
 
       com = replacevars(d.command);
 
@@ -903,15 +923,15 @@ function data(req,res,catalog,header,include) {
         res.end();
         return;
       }
+      let msg = "Problem with the data server.";
       if (d.contact) {
-        error(req, res, header["HAPI"], 1500,
-         "Problem with the data server. Please send URL to "
-         + d.contact + ".");
+        error(req, res, header["HAPI"], 1500, msg + " Please send URL to " + d.contact + ".");
       } else {
-        error(req, res, header["HAPI"], 1500,
-         "Problem with the data server.");
+        error(req, res, header["HAPI"], 1500, "Problem with the data server.");
       }
     }
+
+    console.log(ds() + "Executing: " + com);
 
     // See if CL program supports requested format
     var formats = d.formats; // CL formats supported
@@ -943,6 +963,7 @@ function data(req,res,catalog,header,include) {
         console.log(ds() + 'HTTP Connection closed. Killing ' + com);
         child.kill('SIGINT');
       }
+      console.log(ds() + "Executed: " + com);
     });
 
     // TODO: Write this to log file
@@ -1383,7 +1404,7 @@ function timeCheck(header) {
 }
 
 // HAPI errors
-function error(req,res,hapiversion,code,message) {
+function error(req,res,hapiversion,code,message,messageFull) {
 
   // TODO: Need to determine if headers and/or data were already sent.
   var errs = {
@@ -1404,14 +1425,13 @@ function error(req,res,hapiversion,code,message) {
   }
 
   // Defaults
-  var json =
-             {
-              "HAPI" : hapiversion,
-              "status": { "code": 1500, "message": "Internal server error"}
-            };
+  var json = {
+                "HAPI" : hapiversion,
+                "status": { "code": 1500, "message": "Internal server error"}
+              };
   var httpcode = 500;
   var httpmesg = "Internal server error. Please report URL attempted to the "
-  + " <a href='https://github.com/hapi-server/server-nodejs/issues'>issue tracker</a>.";
+                + " <a href='https://github.com/hapi-server/server-nodejs/issues'>issue tracker</a>.";
 
   // Modify defaults
   if (errs[code+""]) {
@@ -1424,49 +1444,44 @@ function error(req,res,hapiversion,code,message) {
     json["status"]["message"] = json["status"]["message"].replace(/\:.*/,": " + message);
   }
 
-  logreq(req,httpcode + "/" + json["status"]["code"]);
+  let ecode = httpcode + "/" + json["status"]["code"];
+  messageFull = messageFull || message;
+  if ((code+"").startsWith("15")) {
+    log.logerr(message,"HTTP/HAPI error " + ecode + "; " + messageFull);
+  }
 
   if (res.headersSent) {
     return;
   }
 
+  res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
   res.contentType("application/json");
   res.statusMessage = httpmesg;
   res.status(httpcode).send(JSON.stringify(json, null, 4) + "\n");
+
+  let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  let msg = "Responded with " + ecode + " to " + addr + ": " + req.originalUrl;
+  console.log(ds() + msg);
 }
 
 // Uncaught errors in API request code.
 function errorHandler(err, req, res, next) {
-
-  let stack = err.stack.replace(new RegExp(__dirname + "/","g"),"").replace(/\n/g,"<br/>")
-  console.log(err);
-  let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-  let msg = ds() + "Request from " + addr + ": " + req.originalUrl;
-  let logfile = '/server-error-' + ds().split("T")[0] + ".log";
-  fs.appendFileSync(LOGDIR + logfile, msg + "\n" + err.stack);
-  error(req, res, "2.0", "1500", "Server error. Please post the following error message at https://github.com/hapi-server/server-nodejs/issues.<br/>" + req.originalUrl + "<br/> " + err + " " + stack);
+  let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  let msg = "Request from " + addr + ": " + req.originalUrl;
+  error(req, res, "2.0", "1500", null, msg + "\n" + err.stack);
 }
 
-// Errors in application
+// Errors in non-API part of application
 function exceptions() {
   process.on('uncaughtException', function(err) {
     if (err.errno === 'EADDRINUSE') {
       console.log(ds() + clc.red("Port " + argv.port + " already in use."));
       process.exit(1);
     } else {
-      console.log(err.stack);
-      let logfile = '/server-error-' + ds().split("T")[0] + ".log";
-      fs.appendFileSync(LOGDIR + logfile, "\n" + ds() + " Uncaught Exception\n" + err.stack);
+      console.log(ds() + clc.red("Uncaught Exception"));
+      console.log(clc.red(err));
+      let logfile = LOGDIR + '/server-error-' + ds().split("T")[0] + ".log";
+      fs.appendFileSync(logfile, "\n" + ds() + " Uncaught Exception\n" + err.msg);
     }
   });
-}
-
-function logreq(req,extra) {
-  if (req.originalUrl.startsWith("/js") || req.originalUrl.startsWith("/css")) {
-    return;
-  }
-  var extra = extra || "";
-  var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-  console.log(ds() + "Request from " + addr + ": " + "http://"
-              + req.headers.host + req.originalUrl + " " + extra);
 }

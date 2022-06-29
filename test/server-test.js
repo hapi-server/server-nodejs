@@ -4,6 +4,13 @@ const clc       = require('chalk');
 const yargs     = require('yargs');
 const spawnSync = require('child_process').spawnSync;
 
+let argv = yargs
+				.option('https',{'type': 'boolean'})
+				.default({
+					'https': false,
+				})
+				.argv
+
 let metadir, nodeexe;
 if (process.platform.startsWith("win")) {
 	nodeexe =  '"' + process.execPath + '" server.js --port 7999';
@@ -31,14 +38,6 @@ const excludes =
 		"TestDataBad"
 	];
 
-
-let argv = yargs
-			.option('https',{'type': 'boolean'})
-			.default({
-				'https': false,
-			})
-			.argv
-
 let server_args = "";
 if (argv.https) {
 	server_args = "--https";
@@ -49,7 +48,6 @@ if (argv.https) {
 }
 
 let files = filelist(metadir, excludes);
-
 
 function execute(com,i) {
 	let prefix = "Test " + (i+1) + "/" + (2*files.length) + ": ";
