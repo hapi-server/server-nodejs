@@ -42,6 +42,7 @@
     "test-server-https": "node test/server-test.js --https",
     "test-subset": "node test/subset-test.js",
     "start": "node server.js --port 8998",
+    "start-dev": "cd node_modules; mv hapi-server-ui hapi-server-ui-repo; ln -s ../../server-ui hapi-server-ui; node server.js --port 8998",
     "version": "cd pkg; make version VERSION=v$npm_package_version",
     "package": "cd pkg; make update VERSION=v$npm_package_version",
     "test-packages": "cd pkg; make test-packages VERSION=v$npm_package_version",
