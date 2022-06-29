@@ -48,56 +48,56 @@ if (/server$/.test(process.execPath)) {
 }
 
 let argv = yargs
-.strict()
-.help()
-.describe('https','Start https server')
-.describe('cert','https certificate file path')
-.describe('key','https key file path')
-.describe('file','Catalog configuration file or file pattern')
-.alias('file','f')
-.describe('port','Server port')
-.alias('port','p')
-.describe('conf','Server configuration file')
-.alias('conf','c')
-.describe('ignore','Start server even if metadata errors')
-.alias('ignore','i')
-.describe('logdir','Log directory')
-.alias('logdir','l')
-.describe('open','Open web page on start')
-.alias('open','o')
-.describe('test','Run URL tests and exit')
-.alias('test','t')
-.describe('verify','Run verification tests on command line and exit')
-.alias('verify','v')
-.option('file',{'type': 'string'})
-.option('ignore',{'type': 'boolean'})
-.option('https',{'type': 'boolean'})
-.option('open',{'type': 'boolean'})
-.option('test',{'type': 'boolean'})
-.option('verify',{'type': 'boolean'})
-.option('verifier',{'description': 'Verifier server URL on landing page'})
-.option('plotserver',{'description': 'Plot server URL on landing page'})
-.option('help', {alias: 'h'})
-.describe('server-ui-include','Also include these servers in server-ui server drop-down.')
-.describe('proxy-whitelist','Allow proxying of these servers (so one can use server=http://... in addressbar of server-ui).')
-.epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
-.usage('Usage: ' + usage + ' [options]')
-.default({
-  'ignore': false,
-  'https': false,
-  'open': false,
-  'test': false,
-  'verify': false,
-  'logdir': __dirname + "/log",
-  'file': __dirname + '/metadata/TestData2.0.json',
-  'port': 8999,
-  'proxy-whitelist': '',
-  'server-ui-include': '',
-  'conf': __dirname + '/conf/server.json',
-  'verifier': 'http://hapi-server.org/verify',
-  'plotserver': 'http://hapi-server.org/plot'
-})
-.argv
+  .strict()
+  .help()
+  .describe('https','Start https server')
+  .describe('cert','https certificate file path')
+  .describe('key','https key file path')
+  .describe('file','Catalog configuration file or file pattern')
+  .alias('file','f')
+  .describe('port','Server port')
+  .alias('port','p')
+  .describe('conf','Server configuration file')
+  .alias('conf','c')
+  .describe('ignore','Start server even if metadata errors')
+  .alias('ignore','i')
+  .describe('logdir','Log directory')
+  .alias('logdir','l')
+  .describe('open','Open web page on start')
+  .alias('open','o')
+  .describe('test','Run URL tests and exit')
+  .alias('test','t')
+  .describe('verify','Run verification tests on command line and exit')
+  .alias('verify','v')
+  .option('file',{'type': 'string'})
+  .option('ignore',{'type': 'boolean'})
+  .option('https',{'type': 'boolean'})
+  .option('open',{'type': 'boolean'})
+  .option('test',{'type': 'boolean'})
+  .option('verify',{'type': 'boolean'})
+  .option('verifier',{'description': 'Verifier server URL on landing page'})
+  .option('plotserver',{'description': 'Plot server URL on landing page'})
+  .option('help', {alias: 'h'})
+  .describe('server-ui-include','Also include these servers in server-ui server drop-down.')
+  .describe('proxy-whitelist','Allow proxying of these servers (so one can use server=http://... in addressbar of server-ui).')
+  .epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
+  .usage('Usage: ' + usage + ' [options]')
+  .default({
+    'ignore': false,
+    'https': false,
+    'open': false,
+    'test': false,
+    'verify': false,
+    'logdir': __dirname + "/log",
+    'file': __dirname + '/metadata/TestData2.0.json',
+    'port': 8999,
+    'proxy-whitelist': '',
+    'server-ui-include': '',
+    'conf': __dirname + '/conf/server.json',
+    'verifier': 'http://hapi-server.org/verify',
+    'plotserver': 'http://hapi-server.org/plot'
+  })
+  .argv
 
 const config = require(__dirname + "/lib/metadata.js").configVars(argv.conf);
 for (key in config) {
@@ -264,11 +264,11 @@ function main() {
     let s = metadata(CATALOGS[i],'server');
     let d = metadata(CATALOGS[i],'data');
     serverlist = serverlist
-    + PREFIXES[i] + "/hapi,"
-    + CATALOGS[i] + ","
-    + CATALOGS[i] + ","
-    + s.contact + ","
-    + d.contact + "\n";
+                  + PREFIXES[i] + "/hapi,"
+                  + CATALOGS[i] + ","
+                  + CATALOGS[i] + ","
+                  + s.contact + ","
+                  + d.contact + "\n";
   }
   app.get('/all.txt', function (req, res) {res.send(serverlist);});
 
@@ -343,21 +343,21 @@ function serverInit(CATALOGS, PREFIXES) {
 
   function apiInit(CATALOGS, PREFIXES, i) {
 
-   if (arguments.length == 0) {
+  if (arguments.length == 0) {
 
     let CATALOGS = [];
     let PREFIXES = [];
     let j = 0;
     for (let key in metadata.cache) {
-     CATALOGS[j] = metadata.cache[key]['server']['id'];
-     PREFIXES[j] = metadata.cache[key]['server']['prefix'];
-     j = j + 1;
-   }
+      CATALOGS[j] = metadata.cache[key]['server']['id'];
+      PREFIXES[j] = metadata.cache[key]['server']['prefix'];
+      j = j + 1;
+    }
 
-   let i = 0;
+    let i = 0;
 
-   let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
-   app.get('/', function (req,res) {
+    let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
+    app.get('/', function (req,res) {
       res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
       // TODO: read file async
       let html = fs.readFileSync(indexFile, "utf8").toString()
@@ -374,12 +374,10 @@ function serverInit(CATALOGS, PREFIXES) {
     app.use("/data", express.static(__dirname + '/public/data'));
 
     // Serve content needed in index.htm (no directory listing provided)
-    app.use("/css",
-      express.static(__dirname + '/node_modules/hapi-server-ui/css'));
-    app.use("/js",
-      express.static(__dirname + '/node_modules/hapi-server-ui/js'));
-    app.use("/scripts",
-      express.static(__dirname + '/node_modules/hapi-server-ui/scripts'));
+    let uidir = '/node_modules/hapi-server-ui';
+    app.use("/css", express.static(__dirname + uidir + '/css'));
+    app.use("/js", express.static(__dirname + uidir + '/js'));
+    app.use("/scripts", express.static(__dirname + uidir + '/scripts'));
 
     apiInit(CATALOGS, PREFIXES, i);
     return;
@@ -409,8 +407,9 @@ function serverInit(CATALOGS, PREFIXES) {
   let capabilities = metadata(CATALOG,"capabilities");
   let hapiversion = capabilities["HAPI"];
 
-  console.log(ds() + clc.green("Initializing endpoints for http://localhost:"
-    + argv.port + PREFIX + "/hapi"));
+  console.log(ds()
+              + clc.green("Initializing endpoints for http://localhost:"
+              + argv.port + PREFIX + "/hapi"));
 
   // Serve static files in ./public/data (no directory listing provided)
   app.use(PREFIX + "/data", express.static(__dirname + '/public/data'));
