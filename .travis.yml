@@ -156,7 +156,6 @@ jobs:
 notifications:
   email:
     recipients:
-      - ksreddy9945@gmail.com
       - rweigel@gmu.edu
   on_success: change
   on_failure: always

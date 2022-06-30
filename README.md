@@ -32,26 +32,26 @@ A list of catalogs that are served using this software is given at [http://hapi-
 <a name="Installation"></a>
 ## 2. Installation
 
-[Binary packages](https://github.com/hapi-server/server-nodejs/releases) are available for OS-X x64, Linux x64, and Linux ARMv7l (e.g., Rasberry Pi). 
+```
+npm install -g "@hapi-server/server"
+```
 
-A [Docker image](https://cloud.docker.com/repository/docker/rweigel/hapi-server) is also available.
-
-Installation and startup commands are given below the binary packages and docker image. See the [Development](#Development) section for instructions on installing from source.
+[Binary packages](https://github.com/hapi-server/server-nodejs/releases) are available for OS-X x64 and Linux x64. A [Docker image](https://cloud.docker.com/repository/docker/rweigel/hapi-server) is also available. Installation and startup commands are given below the binary packages and docker image. See the [Development](#Development) section for instructions on installing from source.
 
 OS-X x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.11/hapi-server-v1.0.11-darwin-x64.tgz | tar zxf -
- cd hapi-server-v1.0.11
- ./hapi-server --open
- ```
+curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.11/hapi-server-v1.0.11-darwin-x64.tgz | tar zxf -
+cd hapi-server-v1.0.11
+./hapi-server --open
+```
 
 Linux x64:
 
 ```bash
- curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.11/hapi-server-v1.0.11-linux-x64.tgz | tar zxf -
- cd hapi-server-v1.0.11
- ./hapi-server --open
+curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.11/hapi-server-v1.0.11-linux-x64.tgz | tar zxf -
+cd hapi-server-v1.0.11
+./hapi-server --open
 ```
 
 Docker:
@@ -61,12 +61,6 @@ docker pull rweigel/hapi-server:v1.0.8
 docker run -dit --name hapi-server-v1.0.8 --expose 8999 -p 8999:8999 rweigel/hapi-server:v1.0.8
 docker exec -it hapi-server-v1.0.8 ./hapi-server
 # Open http://localhost:8999/TestData/hapi in a web browser
-```
-
-npm:
-
-```
-npm install -g "@hapi-server/server"
 ```
 
 <a name="Examples"></a>
@@ -117,7 +111,7 @@ To run this example locally after [installation](#Install), execute
 ./hapi-server --file metdata/Example0.json
 ```
 
-and then open [http://localhost:8999/Example1/hapi](http://localhost:8999/Example0/hapi). You should see the same landing page as that at [http://hapi-server.org/servers/Example0/hapi](http://hapi-server.org/servers/Example1/hapi). Note that the `--open` command-line switch can be used to automatically open the landing page, e.g.,
+and then open `http://localhost:8999/Example0/hapi`. You should see the same landing page as that at [http://hapi-server.org/servers/Example0/hapi](http://hapi-server.org/servers/Example1/hapi). Note that the `--open` command-line switch can be used to automatically open the landing page, e.g.,
 
 ```bash
 ./hapi-server --file metdata/Example0.json --open
@@ -149,7 +143,7 @@ The modified file is [Example2.json](https://github.com/hapi-server/server-nodej
 ./hapi-server --file metadata/Example2.json
 ```
 
-and then open [http://localhost:8999/Example2/hapi](http://localhost:8999/Example2/hapi).  The command-line program now produces binary output and performs parameter subsetting as needed and the response time for data should decrease.
+and then open `http://localhost:8999/Example2/hapi`.  The command-line program now produces binary output and performs parameter subsetting as needed and the response time for data should decrease.
 
 The server responses will be identical to that in the previous example. You should see the same landing page as that at [http://hapi-server.org/servers/Example2/hapi](http://hapi-server.org/servers/Example2/hapi).
 
@@ -223,17 +217,33 @@ To run this example locally, execute
 
 List command-line options:
 
-```bash
+```
 ./hapi-server -h
 
-  --help, -h    Show help 
-  --file, -f    Catalog configuration file
-  --port, -p    Server port [default:8999]             
-  --conf, -c    Server configuration file
-  --ignore, -i  Start server even if metadata errors
-  --open, -o    Open web page on start
-  --test, -t    Run URL tests and exit
-  --verify, -v  Run verification tests and exit
+Options:
+  --help, -h           Show help                      [boolean]
+  --https              Start https server             [boolean] [default: false]
+  --cert               https certificate file path
+  --key                https key file path
+  --file, -f           Catalog configuration file or file pattern
+  --port, -p           Server port                    [default: 8999]
+  --conf, -c           Server configuration file
+  --ignore, -i         Start server even if metadata error
+                                                      [boolean] [default: false]
+  --logdir, -l         Log directory
+  --open, -o           Open web page on start         [boolean] [default: false]
+  --test, -t           Run URL tests and exit         [boolean] [default: false]
+  --verify, -v         Run verification tests on command line and exit
+                                                      [boolean] [default: false]
+  --loglevel           info or debug                  [default: "info"]
+  --verifier           Verifier server URL on landing page
+                                        [default: "http://hapi-server.org/verify"]
+  --plotserver         Plot server URL on landing page
+                                        [default: "http://hapi-server.org/plot"]
+  --server-ui-include  Also include these servers in server-ui server drop-down.
+                                                      [default: ""]
+  --proxy-whitelist    Allow proxying of these servers (so one can use
+                       server=http://... in addressbar of server-ui). [default: ""]
 ```
 
 Basic usage:
@@ -306,7 +316,7 @@ For example, if
 is executed from `/home/username`, the file
 
 ```
-/home/username/metadata/TestData.json`
+/home/username/metadata/TestData.json
 ```
 
 is read and relative paths in `TestData.json` have `/home/username/` prepended.
@@ -325,15 +335,14 @@ Example:
 
 This is the command used to call NodeJS. By default, it is the command used to start the server. The start-up script looks for a NodeJS executable in `$HAPISERVERPATH/bin` and then tries `node` and then `nodejs`.
 
-
 ### 4.2 Apache
 
 To expose a URL through Apache, (1) enable `mod_proxy` and `mod_proxy_http`, (2) add the following in a `<VirtualHost>` node in a [Apache Virtual Hosts](https://httpd.apache.org/docs/2.4/vhosts/examples.html) file
 
 ```
 <VirtualHost *:80>
-	ProxyPass /TestData http://localhost:8999/TestData retry=1
-	ProxyPassReverse /TestData http://localhost:8999/TestData
+ProxyPass /TestData http://localhost:8999/TestData retry=1
+ProxyPassReverse /TestData http://localhost:8999/TestData
 </VirtualHost>
 ```
 
@@ -343,8 +352,8 @@ If serving multiple catalogs, use
 
 ```
 <VirtualHost *:80>
-	ProxyPass /servers http://localhost:8999/servers retry=1
-	ProxyPassReverse /servers http://localhost:8999/servers
+ProxyPass /servers http://localhost:8999/servers retry=1
+ProxyPassReverse /servers http://localhost:8999/servers
 </VirtualHost>
 ```
 
@@ -353,17 +362,13 @@ If serving multiple catalogs, use
 For Nginx, add the following to `nginx.conf`
 
 ```
-location /TestData {
-    proxy_pass http://localhost:8999/TestData;
-}
+location /TestData { proxy_pass http://localhost:8999/TestData;}
 ```
 
 If serving multiple catalogs, use
 
 ```
-location /servers {
-    proxy_pass http://localhost:8999/servers;
-}
+location /servers {proxy_pass http://localhost:8999/servers;}
 ```
 
 <a name="Metadata"></a>
@@ -375,51 +380,52 @@ The metadata required for this server is similar to the `/catalog` and `/info` r
 * Example HAPI [`/info`](http://http://hapi-server.org/servers/TestData/hapi/info?id=dataset1) response
 
 The server requires that the `/catalog` response is combined with the `/info` response for all datasets in the catalog in a single JSON catalog configuration file. Additional information about how to generate data must also be included in this JSON file.
- 
+
 The top-level structure of the configuration file is
 
 ```
 {
-	"server": { // See section 5.1
-		"id": "",
-		"prefix": "",
-		"landing": "",
-		"contact": "", 
-		"landingFile": "",
-		"landingPath": "",
-		"catalog-update": null
-	},
-	"catalog": array or string // See section 5.2 
-	"data": { // See section 5.3
-	    "command": "Command line template",
-	     or
-	    "file": "HAPI CSV file"
-	    "fileformat": "one of 'csv', 'binary', 'json'"
-	     or
-	    "url": "URL that returns HAPI data"
-	    "urlformat": "one of 'csv', 'binary', 'json'"
-	    "contact": "Email address if error in command line program",
-	    "testcommands": [
-	    		{
-		    		"command": string,  
-		    		"Nlines": integer,
-		    		"Nbytes": integer,
-		    		"Ncommas", integer
-	    		},
-	    		...
-	    	]
-	    "testurls": [
-	    		{
-		    		"url": string,  
-		    		"Nlines": integer, 
-		    		"Nbytes": integer,  
-		    		"Ncommas": integer
-	    		},
-	    		...
-	    	]
-	},
-
-}
+  "server": // See section 5.1
+  {
+    "id": "",
+    "prefix": "",
+    "contact": "",
+    "landingFile": "",
+    "landingPath": "",
+    "verify": "",
+    "catalog-update": null
+  },
+  "catalog": "array or string" // See section 5.2 
+  "data":  // See section 5.3
+  {
+     "command": "Command line template",
+     or
+     "file": "HAPI CSV file"
+     "fileformat": "one of 'csv', 'binary', 'json'"
+     or
+     "url": "URL that returns HAPI data"
+     "urlformat": "one of 'csv', 'binary', 'json'"
+     "contact": "Email address if error in command line program",
+     "testcommands": [
+       {
+        "command": string,  
+        "Nlines": integer,
+        "Nbytes": integer,
+        "Ncommas", integer
+        },
+        ...
+      ],
+      "testurls": [
+        {
+          "url": string,  
+          "Nlines": integer, 
+          "Nbytes": integer,  
+          "Ncommas": integer
+        },
+        ...
+      ]
+        },
+    }
 ```
 
 A variety of examples are given in [`./metadata`](https://github.com/hapi-server/server-nodejs/blob/master/metadata/) and described below along with options for the catalog property.
@@ -428,7 +434,7 @@ The string `command` in the data node is a command that produces a headerless HA
 
 ```bash
 python ./bin/Example.py --dataset ${id} --parameters \
-	${parameters} --start ${start} --stop ${stop} --format ${format}"`
+    ${parameters} --start ${start} --stop ${stop} --format ${format}"`
 ```
 
 ### 5.1 `server`
@@ -437,13 +443,21 @@ The server node has the form
 
 ```
 "server": {
-	"id": "", 		// Default is file name without extension.
-	"prefix": "", 	// Default is id.
-	"contact": "", 	// Required. Server will not start without this set.
-	"landingFile": "",
-	"landingPath": "",
-	"catalog-update": null // How often in seconds to re-read content
-						   // in the catalog node (5.2).
+  "id": "",
+  "prefix": "",
+  "contact": "", 
+  "landingFile": "",
+  "landingPath": "",
+  "verify": "",
+  "catalog-update": null
+  "id": "", 		// Default is file name without extension.
+  "prefix": "", 	// Default is id.
+  "contact": "",    // Required. Server will not start without this set.
+  "landingFile": "",
+  "landingPath": "",
+  "verify": "",
+  "catalog-update": null // How often in seconds to re-read content
+                         // in the catalog node (5.2).
 }
 ```
 
@@ -481,20 +495,20 @@ By default, the landing page served is [single.htm](https://github.com/hapi-serv
 
 If `landingFile` has local CSS and JS dependencies, set `landingPath` to be the local directory of the referenced files. Several possible settings are
 
-```javascript
-	"landingFile": "$HAPISERVERPATH/index.htm", 
-	// $HAPISERVERPATH will be replaced with location of hapi-server binary
-	"landingPath": "/var/www/public/" // Location of CSS and JS files
-	// If index.htm has <script src="index.js">, index.js should be in /var/www/public/
+```
+"landingFile": "$HAPISERVERPATH/index.htm", 
+// $HAPISERVERPATH will be replaced with location of hapi-server binary
+"landingPath": "/var/www/public/" // Location of CSS and JS files
+// If index.htm has <script src="index.js">, index.js should be in /var/www/public/
 ```
 
 To serve a directory listing, use
 
-```javascript
-	"landingFile": "",
-	"landingPath": "/var/www/public/"
-	// Server will look for index.htm and index.html in /var/www/public/. If not
-	// found, directory listing of /var/www/public/ will be served.
+```
+"landingFile": "",
+"landingPath": "/var/www/public/"
+// Server will look for index.htm and index.html in /var/www/public/. If not
+// found, directory listing of /var/www/public/ will be served.
 ```
 
 #### 5.1.4 `catalog-update`
@@ -515,26 +529,26 @@ If `catalog` is an array, it should have the same format as a HAPI `/catalog` re
 
 ```json
 "catalog":
- [
-	{
-		"id": "dataset1",
-		"title": "a dataset",
-		"info": {
-				"startDate": "2000-01-01Z",
-				"stopDate": "2000-01-02Z",
-				"parameters": [...]
-		}
-	},
-	{
-		"id": "dataset2",
-		"title": "another dataset",
-		"info": {
-			"startDate": "2000-01-01Z",
-			"stopDate": "2000-01-02Z",
-			"parameters": [...]
-		}
-	}
- ]
+    [
+       {
+        "id": "dataset1",
+        "title": "a dataset",
+        "info": {
+          "startDate": "2000-01-01Z",
+          "stopDate": "2000-01-02Z",
+          "parameters": [...]
+        }
+      },
+      {
+        "id": "dataset2",
+        "title": "another dataset",
+        "info": {
+         "startDate": "2000-01-01Z",
+         "stopDate": "2000-01-02Z",
+         "parameters": [...]
+       }
+     }
+    ]
 ```
 
 In the following subsections, this type of JSON structure is referred to as a **fully resolved catalog**.
@@ -546,23 +560,22 @@ Examples of this type of catalog include
 
 #### 5.2.2 `/catalog` response with file or command template for `info` object
 
-
 The `info` value can be a path to an `info` JSON file
 
 ```json
 "catalog": 
- [
-	{
-		"id": "dataset1",
-		"title": "a dataset",
-		"info": "relativepath/to/dataset2/info_file.json"
-	},
-	{
-		"id": "dataset2",
-		"title": "another dataset",
-		"info": "/absolutepath/to/dataset2/info_file.json"
-	}
- ]
+    [
+    	{
+    		"id": "dataset1",
+    		"title": "a dataset",
+    		"info": "relativepath/to/dataset2/info_file.json"
+    	},
+    	{
+    		"id": "dataset2",
+    		"title": "another dataset",
+    		"info": "/absolutepath/to/dataset2/info_file.json"
+    	}
+    ]
 ```
 See also [Example3.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example3.json).
 
@@ -570,18 +583,18 @@ Alternatively, the metadata for each dataset may be produced by the execution of
 
 ```json
 "catalog":
- [
-	{
-		"id": "dataset1",
-		"title": "a dataset",
-		"info": "bin/program --id ${id}" 
-	},
-	{
-		"id": "dataset2",
-		"title": "another dataset",
-		"info": "program2"
-	}
- ]
+    [
+    	{
+    		"id": "dataset1",
+    		"title": "a dataset",
+    		"info": "bin/program --id ${id}" 
+    	},
+    	{
+    		"id": "dataset2",
+    		"title": "another dataset",
+    		"info": "program2"
+    	}
+    ]
 ```
 See also [Example4.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example4.json).
 
@@ -603,12 +616,8 @@ The path to a fully resolved catalog can also be given. See also [Example5.json]
 ## 6. Development
 
 ### 6.1 Installation
-Install [nodejs](https://nodejs.org/en/download/) (tested with v8) using either the [standard installer](https://nodejs.org/en/download/) or [NVM](https://github.com/creationix/nvm#install--update-script).
 
-<details> 
-  <summary>Show NVM installation notes</summary>
- 
-See also https://github.com/nvm-sh/nvm#install--update-script
+Install [nodejs](https://nodejs.org/en/download/) (tested with v8) using either the [standard installer](https://nodejs.org/en/download/) or [NVM](https://github.com/creationix/nvm#install--update-script).
 
 ```bash
 # Install Node Version Manager
@@ -619,7 +628,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
 # Install and use node.js version 8
 nvm install 8
 ```
-</details>
+
 
 ```bash
 # Clone the server repository
