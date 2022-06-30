@@ -38,9 +38,6 @@ const is = require('hapi-server-verifier').is;
 // Verify function
 const verify = require('hapi-server-verifier').tests.run;
 
-// Date string for logging.
-function ds() {return (new Date()).toISOString() + " [server] ";};
-
 let usage = "node server.js";
 if (/server$/.test(process.execPath)) {
   // Binary executable caled.
@@ -69,6 +66,8 @@ let argv = yargs
   .alias('test','t')
   .describe('verify','Run verification tests on command line and exit')
   .alias('verify','v')
+  .describe('loglevel','info or debug')
+  .alias('l','l')
   .option('file',{'type': 'string'})
   .option('ignore',{'type': 'boolean'})
   .option('https',{'type': 'boolean'})
@@ -84,6 +83,7 @@ let argv = yargs
   .usage('Usage: ' + usage + ' [options]')
   .default({
     'ignore': false,
+    'loglevel': 'info',
     'https': false,
     'open': false,
     'test': false,
@@ -99,9 +99,11 @@ let argv = yargs
   })
   .argv
 
+log.set('level',argv.loglevel);
+
 const config = require(__dirname + "/lib/metadata.js").configVars(argv.conf);
 for (key in config) {
-  console.log(ds() + key + " = " + configd[key]);
+  log.info(key + " = " + configd[key]);
 }
 
 const FILE        = argv.file;
@@ -124,12 +126,12 @@ const SERVER_UI_INCLUDE = argv["server-ui-include"];
 let server;
 
 if (HTTPS === false) {
-  console.log(ds() + "Server will use http.");
+  log.info("Server will use http.");
   server = require("http").createServer(app);
 } else {
-  console.log(ds() + "Starting HTTPS Server");
+  log.info("Starting HTTPS Server");
   if (KEY_PATH  == undefined && CERT_PATH != undefined) {
-    console.log(clc.read("If cert is given, key must be given. Exiting."));
+    console.log(clc.red("If cert is given, key must be given. Exiting."));
     process.exit(1);
   }
   if (KEY_PATH  != undefined && CERT_PATH == undefined) {
@@ -155,7 +157,7 @@ if (HTTPS === false) {
   } else {
     // Genererate key and cert file
     if (process.platform.startsWith("win")) {
-      console.log(ds() + clc.red("Generation of SSL key and certifications files not implemented on Windows"));
+      console.log(clc.red("Generation of SSL key and certifications files not implemented on Windows"));
       process.exit(1);
     }
     let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
@@ -165,7 +167,7 @@ if (HTTPS === false) {
     try {
       child = require('child_process').spawnSync('sh', ['-c', com], {stdio: 'pipe'});
     } catch (ex) {
-      console.log(ds() + clc.red("Error when executing: " + com + "."));
+      console.log(clc.red("Error when executing: " + com + "."));
       if (ex.stderr) {
         console.log(clc.red(ex.stderr.toString()));
       }
@@ -187,7 +189,7 @@ if (HTTPS === false) {
       server = require("https").createServer(options, app);
 
     } else {
-      console.log(ds() + clc.red("Command returned non-zero status: " + com + "."));
+      console.log(clc.red("Command returned non-zero status: " + com + "."));
       console.log("\nstdout:\n" + child.stdout.toString());
       console.log("\nstderr:\n" + child.stderr.toString());
       console.log("Exiting.");
@@ -212,9 +214,9 @@ exceptions(); // Catch common start-up exceptions and un--caught exceptions
 
 if (!fs.existsSync(LOGDIR)) {
   fs.mkdirSync(LOGDIR);
-  console.log(ds() + "Created " + LOGDIR);
+  log.info("Created " + LOGDIR);
 } else {
-  console.log(ds() + "Log directory = " + LOGDIR);
+  log.info("Log directory = " + LOGDIR);
 }
 log.LOGDIR = LOGDIR;
 
@@ -226,21 +228,21 @@ function main() {
 
   if (!fs.existsSync(METADIR)){
     fs.mkdirSync(METADIR);
-    console.log(ds() + "Created " + METADIR);
+    log.info("Created " + METADIR);
   } else {
-    console.log(ds() + "*-all.json directory = " + METADIR);
+    log.info("*-all.json directory = " + METADIR);
   }
 
   // Eventually HAPI spec may support request for all metadata associated
   // with server. This creates it.
   function writeall(file, all) {
-    console.log(ds() + "Starting creation of " + file);
+    log.info("Starting creation of " + file);
     try {
       fs.writeFileSync(file, all, "utf8");
-      console.log(ds() + "Finished creation of " + file);
+      log.info("Finished creation of " + file);
     } catch(e) {
-      console.log(ds() + clc.red("Error when writing " + file + ":"));
-      console.log(e);
+      console.log(clc.red("Error when writing " + file + ":"));
+      console.log(clc.red(e));
     }
   }
 
@@ -286,19 +288,19 @@ function main() {
 function serverInit(CATALOGS, PREFIXES) {
 
   function startupMessages(url_prefix){
-   console.log(ds() + clc.blue("Listening on port " + argv.port));
+   log.info(clc.blue("Listening on port " + argv.port));
    
    let url = url_prefix + argv.port;
-   console.log(ds() + "HAPI server list is at");
-   console.log(ds() + "  " + url);
-   console.log(ds() + "This server provides");
+   log.info("HAPI server list is at");
+   log.info("  " + url);
+   log.info("This server provides");
    for (var i = 0;i < CATALOGS.length;i++) {
-    console.log(ds() + "  " + url + "/" + PREFIXES[i] + "/hapi");
+    log.info("  " + url + "/" + PREFIXES[i] + "/hapi");
   }
   
-  console.log(ds() + "To open a browser at " + url + ", use the --open option.");
-  console.log(ds() + "To run test URLs and exit, use the --test option.");
-  console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
+  log.info("To open a browser at " + url + ", use the --open option.");
+  log.info("To run test URLs and exit, use the --test option.");
+  log.info("To run command-line verification tests and exit, use the --verify option.");
   
   if (OPEN) {
         // Open browser window
@@ -358,7 +360,7 @@ function serverInit(CATALOGS, PREFIXES) {
 
     let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
     app.get('/', function (req,res) {
-      res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
+      res.on('finish', () => log.request(req, req.socket.bytesWritten));
       // TODO: read file async
       let html = fs.readFileSync(indexFile, "utf8").toString()
       res.send(html);
@@ -407,9 +409,7 @@ function serverInit(CATALOGS, PREFIXES) {
   let capabilities = metadata(CATALOG,"capabilities");
   let hapiversion = capabilities["HAPI"];
 
-  console.log(ds()
-              + clc.green("Initializing endpoints for http://localhost:"
-              + argv.port + PREFIX + "/hapi"));
+  log.info(clc.green("Initializing endpoints for http://localhost:" + argv.port + PREFIX + "/hapi"));
 
   // Serve static files in ./public/data (no directory listing provided)
   app.use(PREFIX + "/data", express.static(__dirname + '/public/data'));
@@ -417,7 +417,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // Serve all.json file
   app.get(PREFIX + '/hapi/all.json', function (req, res) {
 
-    res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
     var file = __dirname + "/public/meta" + PREFIX + "-all.json";
@@ -427,7 +427,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // Serve static files if a landing path given
   let landing_path = metadata(CATALOG,"landingPath");
   if (landing_path !== "") {
-    console.log(ds() + "Allowing access to files in " + landing_path);
+    log.info("Allowing access to files in " + landing_path);
     app.use(PREFIX + "/", express.static(metadata(CATALOG,"landingPath")));
   }
 
@@ -452,10 +452,9 @@ function serverInit(CATALOGS, PREFIXES) {
         landingFile = file2;
       } else {
         // Serve directory listing
-        console.log(ds() 
-         + "Did not find index.{htm,html}. "
-         + "In " + landing_path 
-         + ". Allowing directory listing.");
+        log.info("Did not find index.{htm,html}. "
+                 + "In " + landing_path 
+                 + ". Allowing directory listing.");
         app.use(PREFIX + '/hapi', serveIndex(landing_path));
       }
     }
@@ -463,7 +462,7 @@ function serverInit(CATALOGS, PREFIXES) {
 
   function landing(landingFile) {
     app.get(PREFIX + '/hapi', function (req, res) {
-      res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
+      res.on('finish', () => log.request(req, req.socket.bytesWritten));
 
       if (landingFile !== "") {
         //cors(res); // Set CORS headers
@@ -488,7 +487,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // /capabilities
   app.get(PREFIX + '/hapi/capabilities', function (req, res) {
 
-    res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
 
@@ -505,7 +504,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // /catalog
   app.get(PREFIX + '/hapi/catalog', function (req, res) {
 
-    res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
 
@@ -522,7 +521,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // /info
   app.get(PREFIX + '/hapi/info', function (req, res) {
 
-    res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
 
@@ -548,7 +547,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // /data
   app.get(PREFIX + '/hapi/data', function (req, res) {
 
-    res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
 
     // Check query string and set defaults as needed.
@@ -720,12 +719,12 @@ function data(req,res,catalog,header,include) {
 
   if (d.proxy) {
     let url = replacevars(d.proxy).replace(/\/$/,"") + req.originalUrl;
-    console.log(ds() + "Responding with proxy of " + url);
+    log.info("Responding with proxy of " + url);
     let httpProxy = require('http-proxy');
     let proxy = httpProxy.createProxyServer({});
     proxy
       .on('end', function (res, socket, head) {
-        console.log(ds() + "Responded with proxy of " + url);
+        log.info("Responded with proxy of " + url);
       })
       .on('error', function (err) {
         error(req, res, header["HAPI"], 1500, null, "Proxy " + url + " error: " + err);
@@ -929,7 +928,7 @@ function data(req,res,catalog,header,include) {
       }
     }
 
-    console.log(ds() + "Executing: " + com);
+    log.info("Executing: " + com);
 
     // See if cmd line program supports requested format
     let formats = d.formats; // formats supported by cmd line program
@@ -953,14 +952,14 @@ function data(req,res,catalog,header,include) {
     req.connection.on('close',function () {
       // If request closes and child has not exited, kill child.
       if (child.exitCode == null) {
-        console.log(ds() + 'HTTP Connection closed. Killing ' + com);
+        log.info('HTTP Connection closed. Killing ' + com);
         child.kill('SIGINT');
       }
-      console.log(ds() + "Executed: " + com);
+      log.info("Executed: " + com);
     });
 
     child.stderr.on('data', function (err) {
-      log.logerr(ds() + "Command " + com + " gave stderr:\n" + err);
+      log.error("Command " + com + " gave stderr:\n" + err);
     })
 
     let wroteheader = false; // If header already sent.
@@ -1088,12 +1087,11 @@ function csvTo(records,first,last,header,include) {
     po[header.parameters[i].name]["type"] = header.parameters[i].type;
     po[header.parameters[i].name]["size"] = header.parameters[i].size || [1];
     if (po[header.parameters[i].name]["size"].length > 1) {
-      console.log(ds()
-        + "Warning. JSON for parameter "
-        + name
-        + " will be 1-D array instead of "
-        + po[header.parameters[i].name]["size"].length
-        + "-D");
+      log.info(clc.yellow("Warning. JSON for parameter "
+                + name
+                + " will be 1-D array instead of "
+                + po[header.parameters[i].name]["size"].length
+                + "-D"));
       po[header.parameters[i].name]["size"] =
       prod(po[header.parameters[i].name]["size"]);
     }
@@ -1162,9 +1160,9 @@ function csvTo(records,first,last,header,include) {
       }
     }
     if (truncated > 0) {
-      console.log(ds() + clc.red((truncated) 
-                  + " strings were truncated because they"
-                  + " were longer than length given in metadata"));
+      log.info(clc.red((truncated) 
+                    + " strings were truncated because they"
+                    + " were longer than length given in metadata"));
     }
     return recordbuff;
   }
@@ -1434,21 +1432,21 @@ function error(req,res,hapiversion,code,message,messageFull) {
   let ecode = httpcode + "/" + json["status"]["code"];
   messageFull = messageFull || message;
   if ((code+"").startsWith("15")) {
-    log.logerr("HTTP/HAPI error " + ecode + "; " + messageFull);
+    log.error("HTTP/HAPI error " + ecode + "; " + messageFull);
   }
 
   if (res.headersSent) {
     return;
   }
 
-  res.on('finish', () => log.logreq(req, req.socket.bytesWritten));
+  res.on('finish', () => log.request(req, req.socket.bytesWritten));
   res.contentType("application/json");
   res.statusMessage = httpmesg;
   res.status(httpcode).send(JSON.stringify(json, null, 4) + "\n");
 
   let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   let msg = "Responded with " + ecode + " to " + addr + ": " + req.originalUrl;
-  console.log(ds() + msg);
+  log.info(msg);
 }
 
 // Uncaught errors in API request code.
@@ -1462,13 +1460,12 @@ function errorHandler(err, req, res, next) {
 function exceptions() {
   process.on('uncaughtException', function(err) {
     if (err.errno === 'EADDRINUSE') {
-      console.log(ds() + clc.red("Port " + argv.port + " already in use."));
+      console.log(clc.red("Port " + argv.port + " already in use."));
       process.exit(1);
     } else {
-      console.log(ds() + clc.red("Uncaught Exception"));
-      console.log(clc.red(err));
-      let logfile = LOGDIR + '/server-error-' + ds().split("T")[0] + ".log";
-      fs.appendFileSync(logfile, "\n" + ds() + " Uncaught Exception\n" + err.msg);
+      log.error("Uncaught Exception\n" + err);
+      let logfile = LOGDIR + '/server-error-' + log.ds().split("T")[0] + ".log";
+      fs.appendFileSync(logfile, "\n" + log.ds() + " Uncaught Exception\n" + err.msg);
     }
   });
 }
