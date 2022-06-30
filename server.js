@@ -728,8 +728,7 @@ function data(req,res,catalog,header,include) {
         console.log(ds() + "Responded with proxy of " + url);
       })
       .on('error', function (err) {
-        console.log("error")
-        console.log(err);
+        error(req, res, header["HAPI"], 1500, null, "Proxy " + url + " error: " + err);
       })
       .web(req, res, { target: d.proxy });
     return;
@@ -932,29 +931,24 @@ function data(req,res,catalog,header,include) {
 
     console.log(ds() + "Executing: " + com);
 
-    // See if CL program supports requested format
-    var formats = d.formats; // CL formats supported
-    var convert = true; // true if conversion is needed
+    // See if cmd line program supports requested format
+    let formats = d.formats; // formats supported by cmd line program
+    let convert = true;      // true if conversion is needed
     if (formats) {
       if (formats.includes(req.query["format"])) {
-        // CL program can create requested format
-        var convert = false;
+        // cmd line program can create requested format
+        convert = false;
       }
     }
 
-    // Call the CL command and send output.
-    var coms  = com.split(/\s+/);
-    var coms0 = coms.shift();
+    // Call the cmd line command and send output.
     if (process.platform.startsWith("win")) {
-      var child = require('child_process').spawn('cmd.exe', ['/s','/c', com],
-                          {shell: true, stdio: "pipe", encoding: "buffer"});
+      let opts = {shell: true, stdio: "pipe", encoding: "buffer"};
+      var child = require('child_process').spawn('cmd.exe', ['/s','/c', com], opts);
     } else {
-      var child = require('child_process').spawn('sh', ['-c', com], {"encoding": "buffer"});
+      let opts = {"encoding": "buffer"};
+      var child = require('child_process').spawn('sh', ['-c', com], opts);
     }
-
-    var wroteheader = false; // If header already sent.
-    var gotdata = false; // First chunk of data received.
-    var outstr = ""; // Output string.
 
     req.connection.on('close',function () {
       // If request closes and child has not exited, kill child.
@@ -965,10 +959,16 @@ function data(req,res,catalog,header,include) {
       console.log(ds() + "Executed: " + com);
     });
 
-    // TODO: Write this to log file
     child.stderr.on('data', function (err) {
-      console.log(ds() + "Command line program error message: " + clc.red(err.toString().trim()));
+      log.logerr(ds() + "Command " + com + " gave stderr:\n" + err);
     })
+
+    let wroteheader = false; // If header already sent.
+    let gotdata = false;     // First chunk of data received.
+
+    let incrementalBinary = false;
+    let bufferstr = "";
+    let bufferstrRemainder = "";
 
     child.on('close', function (code) {
 
@@ -978,9 +978,10 @@ function data(req,res,catalog,header,include) {
       }
 
       if (gotdata) { // Data returned and normal exit.
-        if (!incr && convert) {
+        if (!incrementalBinary && convert) {
           // Convert accumulated data and send it.
-          res.send(csvTo(outstr,true,true,header,include));
+          res.send(csvTo(bufferstr,true,true,header,include));
+          bufferstr = null;
         } else {
           res.end(); // Data was being sent incrementally.
         }
@@ -999,8 +1000,6 @@ function data(req,res,catalog,header,include) {
       }
     })
 
-    var remainder = "";
-    let incr = true;
     child.stdout.on('data', function (buffer) {
 
       gotdata = true;
@@ -1009,27 +1008,6 @@ function data(req,res,catalog,header,include) {
         // is not JSON, so send header.
         wroteheader = true;
         res.write("#" + JSON.stringify(header) + "\n");
-      }
-
-      if (incr && header["format"] === "binary") {
-        //convert = false;
-        // Un-finished code for allowing incremental writes of JSON and binary.
-        // See comments below.
-        bufferstr = buffer.toString();
-        if (remainder !== "") {
-          bufferstr = remainder + bufferstr;
-        }
-        var lastnl = bufferstr.lastIndexOf("\n");
-        //console.log("bufferstr = " + bufferstr);
-        if (lastnl+1 == bufferstr.length) {
-          //console.error("no remainder");
-          remainder = "";
-        } else {
-          remainder = bufferstr.slice(lastnl);
-          //console.error("remainder = " + remainder);
-          bufferstr = bufferstr.slice(0,lastnl);
-        }
-        //console.error(bufferstr);
       }
 
       if (header["format"] === "csv") {
@@ -1047,7 +1025,7 @@ function data(req,res,catalog,header,include) {
           // TODO: Write incrementally; use
           //    buffer.toString().lastIndexOf(/\n/)
           // along with saving part of string that was not written.
-          outstr = outstr + buffer.toString();
+          bufferstr = bufferstr + buffer.toString();
         }
       }
       if (header["format"] === "binary") {
@@ -1056,12 +1034,22 @@ function data(req,res,catalog,header,include) {
           res.write(buffer,'binary');
           return;
         } else {
-          if (incr) {
-            //console.error("Sending:\n--\n" + bufferstr + "\n--\n");
+          // Conversion from CSV to binary needed.
+          if (incrementalBinary) {
+            bufferstr = buffer.toString();
+            if (bufferstrRemainder !== "") {
+              bufferstr = bufferstrRemainder + bufferstr;
+            }
+            var lastnl = bufferstr.lastIndexOf("\n");
+            if (lastnl+1 == bufferstr.length) {
+              bufferstrRemainder = "";
+            } else {
+              bufferstrRemainder = bufferstr.slice(lastnl);
+              bufferstr = bufferstr.slice(0,lastnl);
+            }
             res.write(csvTo(bufferstr,null,null,header,include));
           } else {
-            // TODO: Write incrementally. See above.
-            outstr = outstr + buffer.toString();
+            bufferstr = bufferstr + buffer.toString();
           }
         }
       }
@@ -1446,7 +1434,7 @@ function error(req,res,hapiversion,code,message,messageFull) {
   let ecode = httpcode + "/" + json["status"]["code"];
   messageFull = messageFull || message;
   if ((code+"").startsWith("15")) {
-    log.logerr(message,"HTTP/HAPI error " + ecode + "; " + messageFull);
+    log.logerr("HTTP/HAPI error " + ecode + "; " + messageFull);
   }
 
   if (res.headersSent) {
