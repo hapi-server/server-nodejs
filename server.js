@@ -29,14 +29,14 @@ const prepmetadata = require('./lib/metadata.js').prepmetadata;
 // Test commands and urls
 const test = require('./lib/test.js');
 
+// Logging
+const log = require('./lib/log.js');
+
 // HAPI schema tests
 const is = require('hapi-server-verifier').is;
 
 // Verify function
 const verify = require('hapi-server-verifier').tests.run;
-
-// Date string for logging.
-function ds() {return (new Date()).toISOString() + " [server] ";};
 
 let usage = "node server.js";
 if (/server$/.test(process.execPath)) {
@@ -45,60 +45,65 @@ if (/server$/.test(process.execPath)) {
 }
 
 let argv = yargs
-.strict()
-.help()
-.describe('https','Start https server')
-.describe('cert','https certificate file path')
-.describe('key','https key file path')
-.describe('file','Catalog configuration file or file pattern')
-.alias('file','f')
-.describe('port','Server port')
-.alias('port','p')
-.describe('conf','Server configuration file')
-.alias('conf','c')
-.describe('ignore','Start server even if metadata errors')
-.alias('ignore','i')
-.describe('logdir','Log directory')
-.alias('logdir','l')
-.describe('open','Open web page on start')
-.alias('open','o')
-.describe('test','Run URL tests and exit')
-.alias('test','t')
-.describe('verify','Run verification tests on command line and exit')
-.alias('verify','v')
-.option('file',{'type': 'string'})
-.option('ignore',{'type': 'boolean'})
-.option('https',{'type': 'boolean'})
-.option('open',{'type': 'boolean'})
-.option('test',{'type': 'boolean'})
-.option('verify',{'type': 'boolean'})
-.option('verifier',{'description': 'Verifier server URL on landing page'})
-.option('plotserver',{'description': 'Plot server URL on landing page'})
-.option('help', {alias: 'h'})
-.describe('server-ui-include','Also include these servers in server-ui server drop-down.')
-.describe('proxy-whitelist','Allow proxying of these servers (so one can use server=http://... in addressbar of server-ui).')
-.epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
-.usage('Usage: ' + usage + ' [options]')
-.default({
-  'ignore': false,
-  'https': false,
-  'open': false,
-  'test': false,
-  'verify': false,
-  'logdir': __dirname + "/log",
-  'file': __dirname + '/metadata/TestData2.0.json',
-  'port': 8999,
-  'proxy-whitelist': '',
-  'server-ui-include': '',
-  'conf': __dirname + '/conf/server.json',
-  'verifier': 'http://hapi-server.org/verify',
-  'plotserver': 'http://hapi-server.org/plot'
-})
-.argv
+  .strict()
+  .help()
+  .describe('https','Start https server')
+  .describe('cert','https certificate file path')
+  .describe('key','https key file path')
+  .describe('file','Catalog configuration file or file pattern')
+  .alias('file','f')
+  .describe('port','Server port')
+  .alias('port','p')
+  .describe('conf','Server configuration file')
+  .alias('conf','c')
+  .describe('ignore','Start server even if metadata errors')
+  .alias('ignore','i')
+  .describe('logdir','Log directory')
+  .alias('logdir','l')
+  .describe('open','Open web page on start')
+  .alias('open','o')
+  .describe('test','Run URL tests and exit')
+  .alias('test','t')
+  .describe('verify','Run verification tests on command line and exit')
+  .alias('verify','v')
+  .describe('loglevel','info or debug')
+  .alias('l','l')
+  .option('file',{'type': 'string'})
+  .option('ignore',{'type': 'boolean'})
+  .option('https',{'type': 'boolean'})
+  .option('open',{'type': 'boolean'})
+  .option('test',{'type': 'boolean'})
+  .option('verify',{'type': 'boolean'})
+  .option('verifier',{'description': 'Verifier server URL on landing page'})
+  .option('plotserver',{'description': 'Plot server URL on landing page'})
+  .option('help', {alias: 'h'})
+  .describe('server-ui-include','Also include these servers in server-ui server drop-down.')
+  .describe('proxy-whitelist','Allow proxying of these servers (so one can use server=http://... in addressbar of server-ui).')
+  .epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
+  .usage('Usage: ' + usage + ' [options]')
+  .default({
+    'ignore': false,
+    'loglevel': 'info',
+    'https': false,
+    'open': false,
+    'test': false,
+    'verify': false,
+    'logdir': __dirname + "/log",
+    'file': __dirname + '/metadata/TestData2.0.json',
+    'port': 8999,
+    'proxy-whitelist': '',
+    'server-ui-include': '',
+    'conf': __dirname + '/conf/server.json',
+    'verifier': 'http://hapi-server.org/verify',
+    'plotserver': 'http://hapi-server.org/plot'
+  })
+  .argv
+
+log.set('level',argv.loglevel);
 
 const config = require(__dirname + "/lib/metadata.js").configVars(argv.conf);
 for (key in config) {
-  console.log(ds() + key + " = " + configd[key]);
+  log.info(key + " = " + configd[key]);
 }
 
 const FILE        = argv.file;
@@ -121,12 +126,12 @@ const SERVER_UI_INCLUDE = argv["server-ui-include"];
 let server;
 
 if (HTTPS === false) {
-  console.log(ds() + "Server will use http.");
+  log.info("Server will use http.");
   server = require("http").createServer(app);
 } else {
-  console.log(ds() + "Starting HTTPS Server");
+  log.info("Starting HTTPS Server");
   if (KEY_PATH  == undefined && CERT_PATH != undefined) {
-    console.log(clc.read("If cert is given, key must be given. Exiting."));
+    console.log(clc.red("If cert is given, key must be given. Exiting."));
     process.exit(1);
   }
   if (KEY_PATH  != undefined && CERT_PATH == undefined) {
@@ -152,7 +157,7 @@ if (HTTPS === false) {
   } else {
     // Genererate key and cert file
     if (process.platform.startsWith("win")) {
-      console.log(ds() + clc.red("Generation of SSL key and certifications files not implemented on Windows"));
+      console.log(clc.red("Generation of SSL key and certifications files not implemented on Windows"));
       process.exit(1);
     }
     let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
@@ -162,7 +167,7 @@ if (HTTPS === false) {
     try {
       child = require('child_process').spawnSync('sh', ['-c', com], {stdio: 'pipe'});
     } catch (ex) {
-      console.log(ds() + clc.red("Error when executing: " + com + "."));
+      console.log(clc.red("Error when executing: " + com + "."));
       if (ex.stderr) {
         console.log(clc.red(ex.stderr.toString()));
       }
@@ -184,7 +189,7 @@ if (HTTPS === false) {
       server = require("https").createServer(options, app);
 
     } else {
-      console.log(ds() + clc.red("Command returned non-zero status: " + com + "."));
+      console.log(clc.red("Command returned non-zero status: " + com + "."));
       console.log("\nstdout:\n" + child.stdout.toString());
       console.log("\nstderr:\n" + child.stderr.toString());
       console.log("Exiting.");
@@ -205,14 +210,15 @@ const expandfiles = require(__dirname + '/lib/expandfiles.js').expandfiles;
 
 FILES = expandfiles(FILES);
 
-exceptions(); // Catch common start-up exceptions
+exceptions(); // Catch common start-up exceptions and un--caught exceptions
 
 if (!fs.existsSync(LOGDIR)) {
   fs.mkdirSync(LOGDIR);
-  console.log(ds() + "Created " + LOGDIR);
+  log.info("Created " + LOGDIR);
 } else {
-  console.log(ds() + "Log directory = " + LOGDIR);
+  log.info("Log directory = " + LOGDIR);
 }
+log.LOGDIR = LOGDIR;
 
 // Populate metadata.cache array, which has elements of catalog objects
 // main() is callback.
@@ -222,21 +228,21 @@ function main() {
 
   if (!fs.existsSync(METADIR)){
     fs.mkdirSync(METADIR);
-    console.log(ds() + "Created " + METADIR);
+    log.info("Created " + METADIR);
   } else {
-    console.log(ds() + "*-all.json directory = " + METADIR);
+    log.info("*-all.json directory = " + METADIR);
   }
 
   // Eventually HAPI spec may support request for all metadata associated
   // with server. This creates it.
   function writeall(file, all) {
-    console.log(ds() + "Starting creation of " + file);
+    log.info("Starting creation of " + file);
     try {
       fs.writeFileSync(file, all, "utf8");
-      console.log(ds() + "Finished creation of " + file);
+      log.info("Finished creation of " + file);
     } catch(e) {
-      console.log(ds() + clc.red("Error when writing " + file + ":"));
-      console.log(e);
+      console.log(clc.red("Error when writing " + file + ":"));
+      console.log(clc.red(e));
     }
   }
 
@@ -254,23 +260,17 @@ function main() {
 
   app.use(compress()); // Compress responses using gzip
 
-  // Log all requests, then call next route handler
-  app.get('*', function (req, res, next) {
-    logreq(req);
-    next();
-  })
-
   let serverlist = "";
   // TODO: Get contact and other info from catalog file.
   for (let i = 0; i < CATALOGS.length; i++) {
     let s = metadata(CATALOGS[i],'server');
     let d = metadata(CATALOGS[i],'data');
     serverlist = serverlist
-    + PREFIXES[i] + "/hapi,"
-    + CATALOGS[i] + ","
-    + CATALOGS[i] + ","
-    + s.contact + ","
-    + d.contact + "\n";
+                  + PREFIXES[i] + "/hapi,"
+                  + CATALOGS[i] + ","
+                  + CATALOGS[i] + ","
+                  + s.contact + ","
+                  + d.contact + "\n";
   }
   app.get('/all.txt', function (req, res) {res.send(serverlist);});
 
@@ -283,24 +283,24 @@ function main() {
     });
     apiInit();
   }
-  
 }
 
 function serverInit(CATALOGS, PREFIXES) {
+
   function startupMessages(url_prefix){
-   console.log(ds() + clc.blue("Listening on port " + argv.port));
+   log.info(clc.blue("Listening on port " + argv.port));
    
    let url = url_prefix + argv.port;
-   console.log(ds() + "HAPI server list is at");
-   console.log(ds() + "  " + url);
-   console.log(ds() + "This server provides");
+   log.info("HAPI server list is at");
+   log.info("  " + url);
+   log.info("This server provides");
    for (var i = 0;i < CATALOGS.length;i++) {
-    console.log(ds() + "  " + url + "/" + PREFIXES[i] + "/hapi");
+    log.info("  " + url + "/" + PREFIXES[i] + "/hapi");
   }
   
-  console.log(ds() + "To open a browser at " + url + ", use the --open option.");
-  console.log(ds() + "To run test URLs and exit, use the --test option.");
-  console.log(ds() + "To run command-line verification tests and exit, use the --verify option.");
+  log.info("To open a browser at " + url + ", use the --open option.");
+  log.info("To run test URLs and exit, use the --test option.");
+  log.info("To run command-line verification tests and exit, use the --verify option.");
   
   if (OPEN) {
         // Open browser window
@@ -345,21 +345,22 @@ function serverInit(CATALOGS, PREFIXES) {
 
   function apiInit(CATALOGS, PREFIXES, i) {
 
-   if (arguments.length == 0) {
+  if (arguments.length == 0) {
 
     let CATALOGS = [];
     let PREFIXES = [];
     let j = 0;
     for (let key in metadata.cache) {
-     CATALOGS[j] = metadata.cache[key]['server']['id'];
-     PREFIXES[j] = metadata.cache[key]['server']['prefix'];
-     j = j + 1;
-   }
+      CATALOGS[j] = metadata.cache[key]['server']['id'];
+      PREFIXES[j] = metadata.cache[key]['server']['prefix'];
+      j = j + 1;
+    }
 
-   let i = 0;
+    let i = 0;
 
-   let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
-   app.get('/', function (req,res) {
+    let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
+    app.get('/', function (req,res) {
+      res.on('finish', () => log.request(req, req.socket.bytesWritten));
       // TODO: read file async
       let html = fs.readFileSync(indexFile, "utf8").toString()
       res.send(html);
@@ -375,12 +376,10 @@ function serverInit(CATALOGS, PREFIXES) {
     app.use("/data", express.static(__dirname + '/public/data'));
 
     // Serve content needed in index.htm (no directory listing provided)
-    app.use("/css",
-      express.static(__dirname + '/node_modules/hapi-server-ui/css'));
-    app.use("/js",
-      express.static(__dirname + '/node_modules/hapi-server-ui/js'));
-    app.use("/scripts",
-      express.static(__dirname + '/node_modules/hapi-server-ui/scripts'));
+    let uidir = '/node_modules/hapi-server-ui';
+    app.use("/css", express.static(__dirname + uidir + '/css'));
+    app.use("/js", express.static(__dirname + uidir + '/js'));
+    app.use("/scripts", express.static(__dirname + uidir + '/scripts'));
 
     apiInit(CATALOGS, PREFIXES, i);
     return;
@@ -392,9 +391,7 @@ function serverInit(CATALOGS, PREFIXES) {
     // Any requests not matching set app.get() patterns will see error response.
     app.get('*', function(req, res) {
       if (PREFIXES.length == 1) {
-        res.status(404).send("Invalid URL. See <a href='"
-          + PREFIXES[0] + "/hapi'>"
-          + PREFIXES[0] + "/hapi</a>");
+        res.status(404).send("Invalid URL. See <a href='" + PREFIXES[0] + "/hapi'>" + PREFIXES[0] + "/hapi</a>");
       } else {
         res.status(404).send("Invalid URL. See <a href='/'>start page</a>");
       }
@@ -412,14 +409,15 @@ function serverInit(CATALOGS, PREFIXES) {
   let capabilities = metadata(CATALOG,"capabilities");
   let hapiversion = capabilities["HAPI"];
 
-  console.log(ds() + clc.green("Initializing endpoints for http://localhost:"
-    + argv.port + PREFIX + "/hapi"));
+  log.info(clc.green("Initializing endpoints for http://localhost:" + argv.port + PREFIX + "/hapi"));
 
   // Serve static files in ./public/data (no directory listing provided)
   app.use(PREFIX + "/data", express.static(__dirname + '/public/data'));
 
   // Serve all.json file
   app.get(PREFIX + '/hapi/all.json', function (req, res) {
+
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
     var file = __dirname + "/public/meta" + PREFIX + "-all.json";
@@ -429,7 +427,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // Serve static files if a landing path given
   let landing_path = metadata(CATALOG,"landingPath");
   if (landing_path !== "") {
-    console.log(ds() + "Allowing access to files in " + landing_path);
+    log.info("Allowing access to files in " + landing_path);
     app.use(PREFIX + "/", express.static(metadata(CATALOG,"landingPath")));
   }
 
@@ -454,10 +452,9 @@ function serverInit(CATALOGS, PREFIXES) {
         landingFile = file2;
       } else {
         // Serve directory listing
-        console.log(ds() 
-         + "Did not find index.{htm,html}. "
-         + "In " + landing_path 
-         + ". Allowing directory listing.");
+        log.info("Did not find index.{htm,html}. "
+                 + "In " + landing_path 
+                 + ". Allowing directory listing.");
         app.use(PREFIX + '/hapi', serveIndex(landing_path));
       }
     }
@@ -465,6 +462,8 @@ function serverInit(CATALOGS, PREFIXES) {
 
   function landing(landingFile) {
     app.get(PREFIX + '/hapi', function (req, res) {
+      res.on('finish', () => log.request(req, req.socket.bytesWritten));
+
       if (landingFile !== "") {
         //cors(res); // Set CORS headers
         res.contentType('text/html');
@@ -488,6 +487,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // /capabilities
   app.get(PREFIX + '/hapi/capabilities', function (req, res) {
 
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
 
@@ -504,6 +504,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // /catalog
   app.get(PREFIX + '/hapi/catalog', function (req, res) {
 
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
 
@@ -519,6 +520,8 @@ function serverInit(CATALOGS, PREFIXES) {
 
   // /info
   app.get(PREFIX + '/hapi/info', function (req, res) {
+
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
 
@@ -544,6 +547,7 @@ function serverInit(CATALOGS, PREFIXES) {
   // /data
   app.get(PREFIX + '/hapi/data', function (req, res) {
 
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
 
     // Check query string and set defaults as needed.
@@ -562,10 +566,7 @@ function serverInit(CATALOGS, PREFIXES) {
     // Add non-standard elements in header used later in code.
     // TODO: Not tested under https.
     var proto = req.connection.encrypted ? 'https' : 'http';
-    header["status"]["x_request"] = proto
-    + "://"
-    + req.headers.host
-    + req.originalUrl;
+    header["status"]["x_request"] = proto + "://" + req.headers.host + req.originalUrl;
     header["status"]["x_startDateRequested"] = req.query["time.min"];
     header["status"]["x_stopDateRequested"]  = req.query["time.max"];
     header["status"]["x_parentDataset"]      = req.query["id"];
@@ -603,14 +604,14 @@ function serverInit(CATALOGS, PREFIXES) {
     if (header["format"] === "json")   {res.contentType("application/json")};
 
     var fname = "id-"
-   + req.query["id"]
-   + "_parameters-"
-   + req.query["parameters"]
-   + "_time.min-"
-   + req.query["time.min"]
-   + "_time.max-"
-   + req.query["time.max"]
-   + "." + header["format"];
+                 + req.query["id"]
+                 + "_parameters-"
+                 + req.query["parameters"]
+                 + "_time.min-"
+                 + req.query["time.min"]
+                 + "_time.max-"
+                 + req.query["time.max"]
+                 + "." + header["format"];
 
    if (req.query["attach"] === "false") {
       // Allow non-standard "attach" query parameter for debugging.
@@ -628,10 +629,9 @@ function serverInit(CATALOGS, PREFIXES) {
   // Anything that does not match
   // PREFIX + {/hapi,/hapi/capabilities,/hapi/info,/hapi/data}
   app.get(PREFIX + '/*', function (req, res) {
-    console.log(req);
-    res.status(404).send(
-     "Invalid URL. See <a href='"
-     + PREFIX + "/hapi'>" + PREFIX.substr(1) + "/hapi</a>");
+    let base = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    let msg = "Invalid URL. See " + base + PREFIX + "/hapi";
+    error(req, res, hapiversion, 1400, msg, req.originalUrl);
   })
 
   apiInit(CATALOGS, PREFIXES, ++i);
@@ -706,15 +706,36 @@ function info(req,res,catalog) {
   }
 
   // Remove nulls placed when array element is deleted
-  json.parameters = json
-  .parameters
-  .filter(function (n) {return n != undefined});
+  json.parameters = json.parameters.filter(function (n) {return n != undefined});
 
   // Return JSON string
   return json;
 }
 
 function data(req,res,catalog,header,include) {
+
+  // Extract command line command and replace placeholders.
+  var d = metadata(catalog,'data');
+
+  if (d.proxy) {
+    let url = replacevars(d.proxy).replace(/\/$/,"") + req.originalUrl;
+    log.info("Responding with proxy of " + url);
+    let httpProxy = require('http-proxy');
+    let proxy = httpProxy.createProxyServer({});
+    proxy
+      .on('end', function (res, socket, head) {
+        log.info("Responded with proxy of " + url);
+      })
+      .on('error', function (err) {
+        error(req, res, header["HAPI"], 1500, null, "Proxy " + url + " error: " + err);
+      })
+      .web(req, res, { target: d.proxy });
+    return;
+  } else {
+    let com = buildcom(d, header, req);
+    executecom(com, d, req, res, header, include);
+    return;
+  }
 
   function normalizeTime(timestr) {
 
@@ -750,12 +771,6 @@ function data(req,res,catalog,header,include) {
     return timestr;
   }
 
-  var start = normalizeTime(req.query["time.min"]);
-  var stop = normalizeTime(req.query["time.max"]);
-
-  // Extract command line command and replace placeholders.
-  var d = metadata(catalog,'data');
-
   function replacevars(com) {
 
     // Double {{ }} means don't quote
@@ -768,10 +783,11 @@ function data(req,res,catalog,header,include) {
     }
 
     // Times don't need to be quoted
-    com = com.replace("${start}",start);
-    com = com.replace("${{start}}",start);
-    com = com.replace("${stop}",stop);
-    com = com.replace("${{stop}}",stop);
+    com = com.replace("${start}",normalizeTime(req.query["time.min"]));
+    com = com.replace("${stop}",normalizeTime(req.query["time.max"]));
+
+    com = com.replace("${{start}}",normalizeTime(req.query["time.min"]));
+    com = com.replace("${{stop}}",normalizeTime(req.query["time.max"]));
 
     if (process.platform.startsWith("win")) {
       com = com.replace("${id}",'"' + req.query["id"] + '"');
@@ -785,256 +801,259 @@ function data(req,res,catalog,header,include) {
         com = com.replace("${parameters}","'" + req.query["parameters"] + "'");
       }
     } else {
-      com = com.replace("${parameters}",'');
+      com = com.replace("${parameters}",'""');
     }
     com = com.replace("${format}",header["format"]);
     return com;
   }
 
-  function columnsstr() {
-    // If command does not contain ${parameters}, assume CL program
-    // always outputs all variables. Subset the output using subset.js.
+  function buildcom(d, header, req) {
 
-    let fieldstr = "";
-    if (req.query["parameters"] && !/\$\{{1,2}parameters\}{1,2}/.test(d.command)) {
-      var params = req.query["parameters"].split(",");
-      var headerfull = metadata(catalog,'info',req.query.id);
-      if (params[0] !== headerfull.parameters[0].name) {
-        // If time variable was not requested, add it
-        // so first column is always output.
-        params.unshift(headerfull.parameters[0].name);
-      }
+    function columnsstr() {
+      // If command does not contain ${parameters} or ${{parameters}}, assume CL program
+      // always outputs all variables. Subset the output using subset.js.
 
-      var fields = {};
-      var col = 1;
-      var df = 0;
-
-      // Generate comma separated list of columns to output, e.g.,
-      // 1,2-4,7
-      for (var i = 0;i < headerfull.parameters.length;i++) {
-        df = prod(headerfull.parameters[i].size || [1]);
-        if (df > 1) {
-          fields[headerfull.parameters[i].name] = col + "-" + (col+df-1);
-        } else {
-          fields[headerfull.parameters[i].name] = col;
+      let fieldstr = "";
+      if (req.query["parameters"] && !/\$\{{1,2}parameters\}{1,2}/.test(d.command)) {
+        var params = req.query["parameters"].split(",");
+        var headerfull = metadata(catalog,'info',req.query.id);
+        if (params[0] !== headerfull.parameters[0].name) {
+          // If time variable was not requested, add it
+          // so first column is always output.
+          params.unshift(headerfull.parameters[0].name);
         }
-        col = col + df;
+
+        var fields = {};
+        var col = 1;
+        var df = 0;
+
+        // Generate comma separated list of columns to output, e.g.,
+        // 1,2-4,7
+        for (var i = 0;i < headerfull.parameters.length;i++) {
+          df = prod(headerfull.parameters[i].size || [1]);
+          if (df > 1) {
+            fields[headerfull.parameters[i].name] = col + "-" + (col+df-1);
+          } else {
+            fields[headerfull.parameters[i].name] = col;
+          }
+          col = col + df;
+        }
+        for (var i = 0;i < params.length;i++) {
+          fieldstr = fieldstr + fields[params[i]] + ",";
+        }
+        fieldstr = fieldstr.slice(0, -1); // Remove last comma.
       }
-      for (var i = 0;i < params.length;i++) {
-        fieldstr = fieldstr + fields[params[i]] + ",";
-      }
-      fieldstr = fieldstr.slice(0, -1); // Remove last comma.
-    }
-    return fieldstr;
-  }
-
-  // TODO: Check that d.file or d.url or d.command exists
-  // when metadata loaded.
-  let com = "";
-  if (d.file || d.url) {
-    // Will always need to subset in this case
-    // (unless request is for all variables over
-    // full range of response, which is not addressed)
-    //com = config.PYTHONEXE + " " + __dirname + "/lib/subset.py";
-    com = config.NODEEXE + " " + __dirname + "/lib/subset.js";
-    if (d.file) com = com + " --file '" + replacevars(d.file) + "'";
-    if (d.url)  com = com + " --url '" + replacevars(d.url) + "'";
-    com = com + " --start " + start;
-    com = com + " --stop " + stop;
-    let columns = columnsstr();
-    if (columns !== "" && d.file && !/\$\{{1,2}parameters\}{1,2}/.test(d.file)) {
-      com = com + " --columns " + columns;
-    }
-    if (columns !== "" && d.url && !/\$\{{1,2}parameters\}{1,2}/.test(d.url)) {
-      com = com + " --columns " + columns;
-    }
-    com = com + " --format " + header["format"];
-  } else {
-
-    com = replacevars(d.command);
-
-    // See if CL program supports requested format
-    var formats = d.formats; // CL formats supported
-    var convert = true; // true if conversion is needed
-    if (formats) {
-      if (formats.includes(req.query["format"])) {
-        // CL program can create requested format
-        var convert = false;
-      }
-    }
-    let columns = columnsstr();
-
-    var subsetcols = false;
-    if (columns !== "") {
-      subsetcols = true;
-    }
-    var subsettime = false;
-    if (!/\$\{{1,2}start\}{1,2}/.test(d.command) && !/\$\{{1,2}stop\}{1,2}/.test(d.command)) {
-      subsettime = true;
+      return fieldstr;
     }
 
-    if (subsetcols || subsettime) {
-      com = com
-             + ' | "'
-             + config.NODEEXE
-             + '" "' + __dirname
-             + '/lib/subset.js"';
-      if (subsettime) {
-        com = com + " --start " + start;
-        com = com + " --stop " + stop;
-      }
-      if (subsetcols) {
+    var start = normalizeTime(req.query["time.min"]);
+    var stop = normalizeTime(req.query["time.max"]);
+
+    let com = "";
+
+    if (d.file || d.url) {
+      // Will always need to subset in this case
+      // (unless request is for all variables over
+      // full range of response, which is not addressed)
+      //com = config.PYTHONEXE + " " + __dirname + "/lib/subset.py";
+      com = config.NODEEXE + " " + __dirname + "/lib/subset.js";
+      if (d.file) com = com + " --file '" + replacevars(d.file) + "'";
+      if (d.url)  com = com + " --url '" + replacevars(d.url) + "'";
+      com = com + " --start " + start;
+      com = com + " --stop " + stop;
+      let columns = columnsstr();
+      if (columns !== "" && d.file && !/\$\{{1,2}parameters\}{1,2}/.test(d.file)) {
         com = com + " --columns " + columns;
       }
-    }
-  }
-
-  function dataErrorMessage() {
-    if (wroteheader) {
-      // Set error header and exit if header not sent.
-      res.end();
-      return;
-    }
-    if (d.contact) {
-      error(req, res, header["HAPI"], 1500,
-       "Problem with the data server. Please send URL to "
-       + d.contact + ".");
-    } else {
-      error(req, res, header["HAPI"], 1500,
-       "Problem with the data server.");
-    }
-  }
-
-  if (process.platform.startsWith("win")) {
-    if (com.startsWith('"')) {
-      com = '"' + com + '"';
-    }
-  }
-  console.log(ds() + "Executing: " + com);
-
-  // Call the CL command and send output.
-  var coms  = com.split(/\s+/);
-  var coms0 = coms.shift();
-  if (process.platform.startsWith("win")) {
-    var child = require('child_process').spawn('cmd.exe', ['/s','/c', com],
-                        {shell: true, stdio: "pipe", encoding: "buffer"});
-  } else {
-    var child = require('child_process').spawn('sh', ['-c', com], {"encoding": "buffer"});
-  }
-
-  var wroteheader = false; // If header already sent.
-  var gotdata = false; // First chunk of data received.
-  var outstr = ""; // Output string.
-
-  req.connection.on('close',function () {
-    // If request closes and child has not exited, kill child.
-    if (child.exitCode == null) {
-      console.log(ds() + 'HTTP Connection closed. Killing ' + com);
-      child.kill('SIGINT');
-    }
-  });
-
-  // TODO: Write this to log file
-  child.stderr.on('data', function (err) {
-    console.log(ds() + "Command line program error message: " + clc.red(err.toString().trim()));
-  })
-
-  child.on('close', function (code) {
-
-    if (code != 0) {
-      dataErrorMessage();
-      return;
-    }
-
-    if (gotdata) { // Data returned and normal exit.
-      if (!incr && convert) {
-        // Convert accumulated data and send it.
-        res.send(csvTo(outstr,true,true,header,include));
-      } else {
-        res.end(); // Data was being sent incrementally.
+      if (columns !== "" && d.url && !/\$\{{1,2}parameters\}{1,2}/.test(d.url)) {
+        com = com + " --columns " + columns;
       }
-    } else { // No data returned and normal exit.
-      res.statusMessage = "HAPI 1201: No data in interval";
-      if (convert && header["format"] === "json") {
-        // Send header only
-        res.write(csvTo("",true,true,header,include));
-        return;
-      }
-      if (include) {
-        res.status(200).send("#" + JSON.stringify(header) + "\n");
-      } else {
-        res.status(200).end();
-      }
-    }
-  })
-
-  var remainder = "";
-  let incr = false;
-  child.stdout.on('data', function (buffer) {
-
-    gotdata = true;
-    if (!wroteheader && include && header["format"] !== "json") {
-      // If header not written, header requested, and format requested
-      // is not JSON, so send header.
-      wroteheader = true;
-      res.write("#" + JSON.stringify(header) + "\n");
+      com = com + " --format " + header["format"];
     }
 
-    if (incr && header["format"] === "binary") {
-      //convert = false;
-      // Un-finished code for allowing incremental writes of JSON and binary.
-      // See comments below.
-      bufferstr = buffer.toString();
-      if (remainder !== "") {
-        bufferstr = remainder + bufferstr;
-      }
-      var lastnl = bufferstr.lastIndexOf("\n");
-      //console.log("bufferstr = " + bufferstr);
-      if (lastnl+1 == bufferstr.length) {
-        //console.error("no remainder");
-        remainder = "";
-      } else {
-        remainder = bufferstr.slice(lastnl);
-        //console.error("remainder = " + remainder);
-        bufferstr = bufferstr.slice(0,lastnl);
-      }
-      //console.error(bufferstr);
-    }
+    if (d.command) {
 
-    if (header["format"] === "csv") {
-      // No conversion needed; dump buffer immediately.
-      res.write(buffer.toString());
-    }
-    if (header["format"] === "json") {
-      if (!convert) {
-        // No conversion needed; dump buffer immediately.
-        res.write(buffer.toString());
-        return;
-      } else {
-        // JSON requested and command line program cannot produce it.
-        // Accumulate output and send everything at once.
-        // TODO: Write incrementally; use
-        //    buffer.toString().lastIndexOf(/\n/)
-        // along with saving part of string that was not written.
-        outstr = outstr + buffer.toString();
+      com = replacevars(d.command);
+
+      let columns = columnsstr();
+
+      var subsetcols = false;
+      if (columns !== "") {
+        subsetcols = true;
       }
-    }
-    if (header["format"] === "binary") {
-      if (!convert) {
-        // No conversion needed; dump buffer immediately.
-        res.write(buffer,'binary');
-        return;
-      } else {
-        if (incr) {
-          //console.error("Sending:\n--\n" + bufferstr + "\n--\n");
-          res.write(csvTo(bufferstr,null,null,header,include));
-        } else {
-          // TODO: Write incrementally. See above.
-          outstr = outstr + buffer.toString();
+      var subsettime = false;
+      if (!/\$\{{1,2}start\}{1,2}/.test(d.command) && !/\$\{{1,2}stop\}{1,2}/.test(d.command)) {
+        subsettime = true;
+      }
+
+      if (subsetcols || subsettime) {
+        com = com
+               + ' | "'
+               + config.NODEEXE
+               + '" "' + __dirname
+               + '/lib/subset.js"';
+        if (subsettime) {
+          com = com + " --start " + start;
+          com = com + " --stop " + stop;
+        }
+        if (subsetcols) {
+          com = com + " --columns " + columns;
         }
       }
     }
-  })
+
+    if (process.platform.startsWith("win")) {
+      if (com.startsWith('"')) {
+        com = '"' + com + '"';
+      }
+    } else {
+      com = "nice -n 20 " + com;
+    }
+    return com;
+  }
+
+  function executecom(com, d, req, res, header, include) {
+
+    function dataErrorMessage() {
+      if (wroteheader) {
+        // Set error header and exit if header not sent.
+        res.end();
+        return;
+      }
+      let msg = "Problem with the data server.";
+      if (d.contact) {
+        error(req, res, header["HAPI"], 1500, msg + " Please send URL to " + d.contact + ".");
+      } else {
+        error(req, res, header["HAPI"], 1500, "Problem with the data server.");
+      }
+    }
+
+    log.info("Executing: " + com);
+
+    // See if cmd line program supports requested format
+    let formats = d.formats; // formats supported by cmd line program
+    let convert = true;      // true if conversion is needed
+    if (formats) {
+      if (formats.includes(req.query["format"])) {
+        // cmd line program can create requested format
+        convert = false;
+      }
+    }
+
+    // Call the cmd line command and send output.
+    if (process.platform.startsWith("win")) {
+      let opts = {shell: true, stdio: "pipe", encoding: "buffer"};
+      var child = require('child_process').spawn('cmd.exe', ['/s','/c', com], opts);
+    } else {
+      let opts = {"encoding": "buffer"};
+      var child = require('child_process').spawn('sh', ['-c', com], opts);
+    }
+
+    req.connection.on('close',function () {
+      // If request closes and child has not exited, kill child.
+      if (child.exitCode == null) {
+        log.info('HTTP Connection closed. Killing ' + com);
+        child.kill('SIGINT');
+      }
+      log.info("Executed: " + com);
+    });
+
+    child.stderr.on('data', function (err) {
+      log.error("Command " + com + " gave stderr:\n" + err);
+    })
+
+    let wroteheader = false; // If header already sent.
+    let gotdata = false;     // First chunk of data received.
+
+    let incrementalBinary = false;
+    let bufferstr = "";
+    let bufferstrRemainder = "";
+
+    child.on('close', function (code) {
+
+      if (code != 0) {
+        dataErrorMessage();
+        return;
+      }
+
+      if (gotdata) { // Data returned and normal exit.
+        if (!incrementalBinary && convert) {
+          // Convert accumulated data and send it.
+          res.send(csvTo(bufferstr,true,true,header,include));
+          bufferstr = null;
+        } else {
+          res.end(); // Data was being sent incrementally.
+        }
+      } else { // No data returned and normal exit.
+        res.statusMessage = "HAPI 1201: No data in interval";
+        if (convert && header["format"] === "json") {
+          // Send header only
+          res.write(csvTo("",true,true,header,include));
+          return;
+        }
+        if (include) {
+          res.status(200).send("#" + JSON.stringify(header) + "\n");
+        } else {
+          res.status(200).end();
+        }
+      }
+    })
+
+    child.stdout.on('data', function (buffer) {
+
+      gotdata = true;
+      if (!wroteheader && include && header["format"] !== "json") {
+        // If header not written, header requested, and format requested
+        // is not JSON, so send header.
+        wroteheader = true;
+        res.write("#" + JSON.stringify(header) + "\n");
+      }
+
+      if (header["format"] === "csv") {
+        // No conversion needed; dump buffer immediately.
+        res.write(buffer.toString());
+      }
+      if (header["format"] === "json") {
+        if (!convert) {
+          // No conversion needed; dump buffer immediately.
+          res.write(buffer.toString());
+          return;
+        } else {
+          // JSON requested and command line program cannot produce it.
+          // Accumulate output and send everything at once.
+          // TODO: Write incrementally; use
+          //    buffer.toString().lastIndexOf(/\n/)
+          // along with saving part of string that was not written.
+          bufferstr = bufferstr + buffer.toString();
+        }
+      }
+      if (header["format"] === "binary") {
+        if (!convert) {
+          // No conversion needed; dump buffer immediately.
+          res.write(buffer,'binary');
+          return;
+        } else {
+          // Conversion from CSV to binary needed.
+          if (incrementalBinary) {
+            bufferstr = buffer.toString();
+            if (bufferstrRemainder !== "") {
+              bufferstr = bufferstrRemainder + bufferstr;
+            }
+            var lastnl = bufferstr.lastIndexOf("\n");
+            if (lastnl+1 == bufferstr.length) {
+              bufferstrRemainder = "";
+            } else {
+              bufferstrRemainder = bufferstr.slice(lastnl);
+              bufferstr = bufferstr.slice(0,lastnl);
+            }
+            res.write(csvTo(bufferstr,null,null,header,include));
+          } else {
+            bufferstr = bufferstr + buffer.toString();
+          }
+        }
+      }
+    })
+  }
 }
 
 // Multiply all elements in array
@@ -1068,12 +1087,11 @@ function csvTo(records,first,last,header,include) {
     po[header.parameters[i].name]["type"] = header.parameters[i].type;
     po[header.parameters[i].name]["size"] = header.parameters[i].size || [1];
     if (po[header.parameters[i].name]["size"].length > 1) {
-      console.log(ds()
-        + "Warning. JSON for parameter "
-        + name
-        + " will be 1-D array instead of "
-        + po[header.parameters[i].name]["size"].length
-        + "-D");
+      log.info(clc.yellow("Warning. JSON for parameter "
+                + name
+                + " will be 1-D array instead of "
+                + po[header.parameters[i].name]["size"].length
+                + "-D"));
       po[header.parameters[i].name]["size"] =
       prod(po[header.parameters[i].name]["size"]);
     }
@@ -1089,25 +1107,23 @@ function csvTo(records,first,last,header,include) {
 
   function csv2bin(records, types, lengths, sizes) {
 
-    console.error(types, lengths, sizes, records.length)
-    process.stderr.write(records);
     // TODO: Only handles integer and double.
+    // TODO: Make this a command line program.
 
     // Does not use length info for Time variable - it is inferred
     // from input (so no padding).
 
+    records = records.trim();
     var recordsarr = records.split("\n");
     var Nr = recordsarr.length; // Number of rows
-    if (/\n$/.test(records)) {
-      Nr = Nr-1; // Last array element is empty if trailing newline.
-      // Does not check for multiple trailing newlines.
-    }
 
+    // Regex that handles quoted commas
+    // from: https://stackoverflow.com/a/23582323
     var re = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/g;
     var record1 = recordsarr[0].split(re);
     var Nd = record1.length - 1; // Number of data columns
 
-    Nb = 0;
+    var Nb = 0;
     for (var i = 0;i < types.length;i++) {
       if (types[i] === 'double') {
         Nb = Nb + 8;
@@ -1124,8 +1140,6 @@ function csvTo(records,first,last,header,include) {
     var pos = 0;
     var truncated = 0;
     for (var i = 0; i < Nr; i++) {
-      // Regex that handles quoted commas
-      // from: https://stackoverflow.com/a/23582323
       var record = recordsarr[i].split(re);
       for (var j = 0;j < Nd+1;j++) {
         if (types[j] === 'double') {
@@ -1146,9 +1160,9 @@ function csvTo(records,first,last,header,include) {
       }
     }
     if (truncated > 0) {
-      console.log(ds() + clc.red((truncated) 
-                  + " strings were truncated because they"
-                  + " were longer than length given in metadata"));
+      log.info(clc.red((truncated) 
+                    + " strings were truncated because they"
+                    + " were longer than length given in metadata"));
     }
     return recordbuff;
   }
@@ -1375,7 +1389,7 @@ function timeCheck(header) {
 }
 
 // HAPI errors
-function error(req,res,hapiversion,code,message) {
+function error(req,res,hapiversion,code,message,messageFull) {
 
   // TODO: Need to determine if headers and/or data were already sent.
   var errs = {
@@ -1396,14 +1410,13 @@ function error(req,res,hapiversion,code,message) {
   }
 
   // Defaults
-  var json =
-             {
-              "HAPI" : hapiversion,
-              "status": { "code": 1500, "message": "Internal server error"}
-            };
+  var json = {
+                "HAPI" : hapiversion,
+                "status": { "code": 1500, "message": "Internal server error"}
+              };
   var httpcode = 500;
   var httpmesg = "Internal server error. Please report URL attempted to the "
-  + " <a href='https://github.com/hapi-server/server-nodejs/issues'>issue tracker</a>.";
+                + " <a href='https://github.com/hapi-server/server-nodejs/issues'>issue tracker</a>.";
 
   // Modify defaults
   if (errs[code+""]) {
@@ -1416,49 +1429,43 @@ function error(req,res,hapiversion,code,message) {
     json["status"]["message"] = json["status"]["message"].replace(/\:.*/,": " + message);
   }
 
-  logreq(req,httpcode + "/" + json["status"]["code"]);
+  let ecode = httpcode + "/" + json["status"]["code"];
+  messageFull = messageFull || message;
+  if ((code+"").startsWith("15")) {
+    log.error("HTTP/HAPI error " + ecode + "; " + messageFull);
+  }
 
   if (res.headersSent) {
     return;
   }
 
+  res.on('finish', () => log.request(req, req.socket.bytesWritten));
   res.contentType("application/json");
   res.statusMessage = httpmesg;
   res.status(httpcode).send(JSON.stringify(json, null, 4) + "\n");
+
+  let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  let msg = "Responded with " + ecode + " to " + addr + ": " + req.originalUrl;
+  log.info(msg);
 }
 
 // Uncaught errors in API request code.
 function errorHandler(err, req, res, next) {
-
-  let stack = err.stack.replace(new RegExp(__dirname + "/","g"),"").replace(/\n/g,"<br/>")
-  console.log(err);
-  let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-  let msg = ds() + "Request from " + addr + ": " + req.originalUrl;
-  let logfile = '/server-error-' + ds().split("T")[0] + ".log";
-  fs.appendFileSync(LOGDIR + logfile, msg + "\n" + err.stack);
-  error(req, res, "2.0", "1500", "Server error. Please post the following error message at https://github.com/hapi-server/server-nodejs/issues.<br/>" + req.originalUrl + "<br/> " + err + " " + stack);
+  let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  let msg = "Request from " + addr + ": " + req.originalUrl;
+  error(req, res, "2.0", "1500", null, msg + "\n" + err.stack);
 }
 
-// Errors in application
+// Errors in non-API part of application
 function exceptions() {
   process.on('uncaughtException', function(err) {
     if (err.errno === 'EADDRINUSE') {
-      console.log(ds() + clc.red("Port " + argv.port + " already in use."));
+      console.log(clc.red("Port " + argv.port + " already in use."));
       process.exit(1);
     } else {
-      console.log(err.stack);
-      let logfile = '/server-error-' + ds().split("T")[0] + ".log";
-      fs.appendFileSync(LOGDIR + logfile, "\n" + ds() + " Uncaught Exception\n" + err.stack);
+      log.error("Uncaught Exception\n" + err);
+      let logfile = LOGDIR + '/server-error-' + log.ds().split("T")[0] + ".log";
+      fs.appendFileSync(logfile, "\n" + log.ds() + " Uncaught Exception\n" + err.msg);
     }
   });
-}
-
-function logreq(req,extra) {
-  if (req.originalUrl.startsWith("/js") || req.originalUrl.startsWith("/css")) {
-    return;
-  }
-  var extra = extra || "";
-  var addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-  console.log(ds() + "Request from " + addr + ": " + "http://"
-              + req.headers.host + req.originalUrl + " " + extra);
 }

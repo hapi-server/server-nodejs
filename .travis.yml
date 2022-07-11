@@ -4,19 +4,19 @@
 #   git pull
 #   npm test
 
-# Edit version in package.json to 1.0.0
+# Edit version in package.json to X.Y.Z
 #   npm run version
 
 # The next command is only needed if tag already exists
-#   git tag -d v1.0.0; git push --delete origin v1.0.0
+#   git tag -d vX.Y.Z; git push --delete origin vX.Y.Z
 
 # Make final commit
-#   git commit -a -m "Final 1.0.0 commit"
+#   git commit -a -m "Final X.Y.Z commit"
 #   git push
 
 #   git checkout deploy
 #   git merge origin/master --squash
-#   git commit -a -m "v1.0.0 Release"
+#   git commit -a -m "vX.Y.Z Release"
 #   git push
 #   git checkout master
 
@@ -24,7 +24,7 @@
 #   cd /tmp; git clone https://github.com/hapi-server/server-nodejs
 #   cd server-nodejs/pkg; make docker && make docker-test && make docker-release
 
-# Manually bump version in package.json to next minor-beta, e.g., 1.0.1-beta.
+# Manually bump version in package.json to next minor, e.g., X.Y.(Z+1)-beta.
 
 env:
   global:
@@ -156,7 +156,6 @@ jobs:
 notifications:
   email:
     recipients:
-      - ksreddy9945@gmail.com
       - rweigel@gmu.edu
   on_success: change
   on_failure: always

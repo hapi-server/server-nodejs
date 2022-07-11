@@ -103,8 +103,8 @@
 										"fill": "-1e31",
 										"size" : [2,10],
 										"bins": [
-													{"name": "frequency", "units": "Hz","centers":[0,1,2,3,4,5,6,7,8,null]},
-													{"name": "frequency", "units": "MHz","centers":[10,11,12,13,14,15,16,17,null,19]}
+													{"name": "instrumentID", "units": "kHz", "centers": [1,2]},
+													{"name": "frequency", "units": "MHz","centers": [10,11,12,13,14,15,16,17,18,19]}
 												],
 										"description": "Two time independent 1/f spectra."
 									}									

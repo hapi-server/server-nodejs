@@ -6,7 +6,7 @@ for file in metadata/Example*.json
 do
 	name=${file##*/}
 	base=${name%.json}
-	com="node server.js --file ${file} --test --ignore"
+	com="node server.js  --port 7999 --file ${file} --test --ignore"
 	echo "--------------------------------"
 	echo "test.sh: Running: "$com
 	echo "--------------------------------"

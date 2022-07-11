@@ -1,8 +1,9 @@
 # sudo cp hapi-server-dev.service /lib/systemd/system
 # sudo chmod 644 /lib/systemd/system/hapi-server-dev.service
+# sudo systemctl enable hapi-server-dev
 # sudo systemctl start hapi-server-dev
 # sudo systemctl status hapi-server-dev
-# sudo systemctl enable hapi-server-dev
+
 
 # After edits,
 #   sudo cp hapi-server-dev.service /lib/systemd/system

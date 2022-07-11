@@ -34,7 +34,7 @@
 										"type": "isotime",
 										"units": "UTC",
 										"fill": null,
-										"length": 20
+										"length": 24
 									},
 									{ 
 										"name": "scalar",

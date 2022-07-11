@@ -34,10 +34,6 @@ var records = ""; // Number of records (lines)
 var record  = ""; // A record with comma-separated fields (columns)
 var Nwrote  = 0;  // Number of records flushed
 
-// https://github.com/nodejs/node/issues/3524
-// https://github.com/nodejs/node/issues/1741#issuecomment-190649817
-process.stdout._handle.setBlocking(true);
-
 for (var i = startsec; i < stopsec; i++) {
 	var record = "";
 
@@ -96,7 +92,7 @@ for (var i = startsec; i < stopsec; i++) {
 
 	if (flush) {
 		if (records.length > 0)
-			console.log(records);
+			process.stdout.write(records + "\n");
 		records = "";
 		Nwrote  = (i-startsec);
 	}

@@ -1,8 +1,9 @@
 # sudo cp hapi-server.service /lib/systemd/system
 # sudo chmod 644 /lib/systemd/system/hapi-server.service
+# sudo systemctl enable hapi-server
 # sudo systemctl start hapi-server
 # sudo systemctl status hapi-server
-# sudo systemctl enable hapi-server
+
 
 [Unit]
 Description=Production HAPI Server
