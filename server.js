@@ -856,9 +856,9 @@ function data(req,res,catalog,header,include) {
       // (unless request is for all variables over
       // full range of response, which is not addressed)
       //com = config.PYTHONEXE + " " + __dirname + "/lib/subset.py";
-      com = config.NODEEXE + " " + __dirname + "/lib/subset.js";
-      if (d.file) com = com + " --file '" + replacevars(d.file) + "'";
-      if (d.url)  com = com + " --url '" + replacevars(d.url) + "'";
+      com = '"' + config.NODEEXE + '" ' + __dirname + "/lib/subset.js";
+      if (d.file) com = com + ' --file "' + replacevars(d.file) + '"';
+      if (d.url)  com = com + ' --url "' + replacevars(d.url) + '"';
       com = com + " --start " + start;
       com = com + " --stop " + stop;
       let columns = columnsstr();
