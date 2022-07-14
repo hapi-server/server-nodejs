@@ -14,8 +14,8 @@
 #   git commit -a -m "Final X.Y.Z commit"
 #   git push
 
-#   git checkout deploy; git pull
-#   git merge origin/master --squash
+#   git checkout deploy
+#   git merge -X theirs origin/master --squash
 #   git commit -a -m "vX.Y.Z Release"
 #   git push
 #   git checkout master

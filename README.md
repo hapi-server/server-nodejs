@@ -43,25 +43,25 @@ npm install -g "@hapi-server/server"
 OS-X x64:
 
 ```bash
-curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.11/hapi-server-v1.0.11-darwin-x64.tgz | tar zxf -
-cd hapi-server-v1.0.11
+curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.12/hapi-server-v1.0.12-darwin-x64.tgz | tar zxf -
+cd hapi-server-v1.0.12
 ./hapi-server --open
 ```
 
 Linux x64:
 
 ```bash
-curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.11/hapi-server-v1.0.11-linux-x64.tgz | tar zxf -
-cd hapi-server-v1.0.11
+curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.12/hapi-server-v1.0.12-linux-x64.tgz | tar zxf -
+cd hapi-server-v1.0.12
 ./hapi-server --open
 ```
 
 Docker:
 
 ```
-docker pull rweigel/hapi-server:v1.0.8
-docker run -dit --name hapi-server-v1.0.8 --expose 8999 -p 8999:8999 rweigel/hapi-server:v1.0.8
-docker exec -it hapi-server-v1.0.8 ./hapi-server
+docker pull rweigel/hapi-server:v1.0.12
+docker run -dit --name hapi-server-v1.0.12 --expose 8999 -p 8999:8999 rweigel/hapi-server:v1.0.12
+docker exec -it hapi-server-v1.0.12 ./hapi-server
 # Open http://localhost:8999/TestData/hapi in a web browser
 ```
 
