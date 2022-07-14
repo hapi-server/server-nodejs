@@ -20,8 +20,6 @@ if (process.platform.startsWith("win")) {
 	metadir = __dirname + '/../metadata';
 }
 
-// Run a single test, e.g. SSCWeb
-let single = process.argv[2];
 let testAll = true;
 
 metadir = path.normalize(metadir);
@@ -81,13 +79,7 @@ function filelist(metadir, excludes) {
 		let ext = path.extname(file);
 		let basename = path.basename(file,'.json');
 		if (ext == ".json" && !excludes.includes(basename)) {
-			if (single !== undefined) {
-				if (single === basename) {
-					files.push(file);
-				}
-			}  else {
-				files.push(file);
-			}
+			files.push(file);
 		}
 	})
 	return files;

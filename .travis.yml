@@ -145,7 +145,7 @@ jobs:
     - stage: npm-deploy-test
       if: branch = deploy
       language: node_js
-      node_js: "6.16"
+      node_js: "8.17"
       os: linux
       before_install: skip
       git:
@@ -154,7 +154,7 @@ jobs:
       branches:
         only:
           - deploy
-      script: hapi-server-test
+      script: hapi-server test
 
 notifications:
   email:

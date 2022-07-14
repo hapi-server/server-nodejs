@@ -27,7 +27,7 @@ PYTHONV=3.8.5
 # Do not modify following line. Version set by call to
 #   npm run version
 # which uses version in package.json
-VERSION=v1.0.12
+VERSION=v1.0.13-beta
 
 # To get other OS-X versions, see
 # https://developer.apple.com/forums/thread/111322
@@ -120,12 +120,12 @@ docker:
 	- docker stop hapi-server-$(VERSION)
 	- docker rm hapi-server-$(VERSION)
 	docker build --file Dockerfile -t rweigel/hapi-server:$(VERSION) ../
-	docker run -dit --name hapi-server-$(VERSION) --expose 8999 -p 8999:8999 rweigel/hapi-server:$(VERSION)
-
 
 docker-test:
-	docker exec -it hapi-server-$(VERSION) ./hapi-server test
-	docker stop hapi-server-$(VERSION)
+	- @docker stop hapi-server-$(VERSION) 2>&1 > /dev/null
+	- @docker rm hapi-server-$(VERSION) 2>&1 > /dev/null
+	docker run -dit --name hapi-server-$(VERSION) --expose 8765 -p 8765:8765 rweigel/hapi-server:$(VERSION)
+	docker exec -it hapi-server-$(VERSION) ./hapi-server test && docker stop hapi-server-$(VERSION)
 
 docker-release:
 	docker login

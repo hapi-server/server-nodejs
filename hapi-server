@@ -27,7 +27,7 @@ if command -v node > /dev/null 2>&1; then
 		node $com
 		exit 0
 	else
-		echo "hapi-server: System node binary version = $versionf. Version $versionmin+ required. Will use package node binary in $path/bin/."
+		echo "hapi-server: System node binary version = $versionf. Version $versionmin+ required. Will attempt to use package node binary in $path/bin/."
     fi
 elif command -v nodejs > /dev/null 2>&1; then
 	version=$(node -v)
@@ -38,7 +38,7 @@ elif command -v nodejs > /dev/null 2>&1; then
 		nodejs $com
 		exit 0
 	else
-		echo "hapi-server: System node binary version = $versionf. Version $versionmin+ required. Using package node binary in $path/bin/."
+		echo "hapi-server: System node binary version = $versionf. Version $versionmin+ required. Will attempt to use package node binary in $path/bin/."
     fi
 fi
 
