@@ -101,6 +101,16 @@
                                         "length": 4,
                                         "fill": null,
                                         "description": "A scalar string where strings are Unicode"
+                                    },
+                                    {
+                                        "name": "unicodescalar-1-4-byte",
+                                        "type": "string",
+                                        "encoding": "utf-8",
+                                        "units": null,
+                                        "size": [1],
+                                        "length": 4,
+                                        "fill": null,
+                                        "description": "A scalar string where strings are Unicode"
                                     },                               
                                     { 
                                         "name": "unicodevector",

@@ -116,7 +116,7 @@ function makeHAPI(jsonraw, cb) {
 		catalog[i]["info"]["startDate"] = obs[i]["StartTime"][0];
 		catalog[i]["info"]["stopDate"] = obs[i]["EndTime"][0];
 		catalog[i]["info"]["cadence"] = "PT" + obs[i]["Resolution"][0] + "S";
-		catalog[i]["info"]["description"] = "Ephemeris data";
+		catalog[i]["info"]["description"] = obs[i]["Name"][0] + " ephemeris";
 		catalog[i]["info"]["resourceURL"] = "https://sscweb.gsfc.nasa.gov/";
 		catalog[i]["info"]["parameters"] = [];
 		for (var j = 0; j < params.length; j++) {

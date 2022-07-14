@@ -19,6 +19,14 @@
 				"units": "m",
 				"fill": "-1e31",
 				"description": "Sine wave with 600 s period"
+			},
+			{ 
+				"name": "vector",
+				"type": "double",
+				"units": "m",
+				"fill": "-1e31",
+				"size": [3],
+				"description": "Minutes since 1970-01-01 + i, where i is vector index component 1,2, or 3."
 			}
 		]
 }

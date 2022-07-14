@@ -1,8 +1,13 @@
 # sudo cp hapi-server-dev.service /lib/systemd/system
 # sudo chmod 644 /lib/systemd/system/hapi-server-dev.service
+# sudo systemctl enable hapi-server-dev
 # sudo systemctl start hapi-server-dev
 # sudo systemctl status hapi-server-dev
-# sudo systemctl enable hapi-server-dev
+
+
+# After edits,
+#   sudo cp hapi-server-dev.service /lib/systemd/system
+#   sudo systemctl daemon-reload
 
 [Unit]
 Description=Development HAPI Server
@@ -13,7 +18,7 @@ Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu/server-nodejs-dev
 ExecStart=/usr/bin/sh -c etc/hapi-server-dev.sh
-Restart=on-failure
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

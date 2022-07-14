@@ -76,6 +76,7 @@ function extractData(data) {
 	// Keep lines that start with four digits
 	// Make DOY zero padded and convert YYYY,DOY,HH:MM:SS to YYYY-DOYTHH:MM:SS
 	// Convert array back to string and remove extra newlines that appear when line was not kept
+	// Note: The N/A, NA, -nan, nan replacements could be moved into map callback function.
 	return data.toString()
 			.replace(/N\/A/g,"1e31")
 			.replace(/NA/g,"1e31")
@@ -89,10 +90,14 @@ function extractData(data) {
 					line = line
 							.replace(/^([0-9]{4}),([0-9]),/,"$1-00$2T")
 							.replace(/^([0-9]{4}),([0-9][0-9]),/,"$1-0$2T")
-							.replace(/^([0-9]{4}),([0-9][0-9][0-9]),/,"$1-$2T");
-					if (allparameters) {return line;};
+							.replace(/^([0-9]{4}),([0-9][0-9][0-9]),/,"$1-$2T")
+							.replace(/,\s*$/,"");
 					linearr = line.split(",");
 					var linenew = linearr[0] + "Z"; // Always return time
+					if (allparameters) {
+						linearr[0] = linearr[0] + "Z";
+						return linearr.join(',');
+					}
 					if (timeonly) {return linenew;}
 					for (var i = 1;i < pn.length;i++) {
 						linenew = linenew + "," + linearr[pn[i]];

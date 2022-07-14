@@ -1,0 +1,20 @@
+# sudo cp hapi-server.service /lib/systemd/system
+# sudo chmod 644 /lib/systemd/system/hapi-server.service
+# sudo systemctl enable hapi-server
+# sudo systemctl start hapi-server
+# sudo systemctl status hapi-server
+
+
+[Unit]
+Description=Production HAPI Server
+Documentation=https://github.com/rweigel/hapi-server/server-nodejs
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/server-nodejs
+ExecStart=/usr/bin/sh -c etc/hapi-server.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

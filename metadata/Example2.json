@@ -8,8 +8,8 @@
 	},
 	"data": {
 		"command": "\"$PYTHONEXE\" \"$HAPISERVERPATH/bin/Example.py\" --params ${parameters} --start ${start} --stop ${stop} --fmt ${format}",
-		"contact": "rweigel@gmu.edu",
 		"formats": ["csv","binary"],
+		"contact": "rweigel@gmu.edu",
 		"testcommands": [
 			{"command": "\"$PYTHONEXE\" \"$HAPISERVERPATH/bin/Example.py\" --params scalar --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:10:00.000000000Z","Nlines": 10}
 		],

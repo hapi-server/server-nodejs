@@ -4,15 +4,24 @@ const clc       = require('chalk');
 const yargs     = require('yargs');
 const spawnSync = require('child_process').spawnSync;
 
+let argv = yargs
+				.option('https',{'type': 'boolean'})
+				.default({
+					'https': false,
+				})
+				.argv
+
 let metadir, nodeexe;
 if (process.platform.startsWith("win")) {
-	nodeexe =  '"' + process.execPath + '" server.js';
+	nodeexe =  '"' + process.execPath + '" server.js --port 7999';
 	metadir =  __dirname + '\\..\\metadata';	
 } else {
-	nodeexe = "'" + process.execPath + "' server.js";
+	nodeexe = "'" + process.execPath + "' server.js --port 7999";
 	metadir = __dirname + '/../metadata';
 }
 
+// Run a single test, e.g. SSCWeb
+let single = process.argv[2];
 let testAll = true;
 
 metadir = path.normalize(metadir);
@@ -25,16 +34,9 @@ const excludes =
 		"AutoplotExample1",
 		"AutoplotExample2",
 		"TestData3.0",
+		"TestData3.1",
 		"TestDataBad"
 	];
-
-
-let argv = yargs
-			.option('https',{'type': 'boolean'})
-			.default({
-				'https': false,
-			})
-			.argv
 
 let server_args = "";
 if (argv.https) {
@@ -73,12 +75,19 @@ function execute(com,i) {
 }
 
 function filelist(metadir, excludes) {
+
 	let files = [];
 	fs.readdirSync(metadir).forEach(file => {
 		let ext = path.extname(file);
 		let basename = path.basename(file,'.json');
 		if (ext == ".json" && !excludes.includes(basename)) {
-			files.push(file);
+			if (single !== undefined) {
+				if (single === basename) {
+					files.push(file);
+				}
+			}  else {
+				files.push(file);
+			}
 		}
 	})
 	return files;

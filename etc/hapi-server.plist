@@ -1,0 +1,31 @@
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>hapi-server</string>
+        <key>EnvironmentVariables</key>
+        <dict>
+		<key>PATH</key>
+                <string>/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>NVM_DIR</key>
+		<string>/Users/weigel/.nvm</string>
+        </dict>
+	<key>WorkingDirectory</key>
+	<string>/Users/weigel/git/hapi/server-nodejs</string>
+	<key>UserName</key>
+	<string>weigel</string>
+        <key>ProgramArguments</key>
+        <array>
+	  <string>/bin/bash</string>
+          <string>/Users/weigel/git/hapi/server-nodejs/etc/hapi-server.sh</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>KeepAlive</key>
+        <true/>
+	<key>StandardErrorPath</key>
+        <string>/Users/weigel/git/hapi/server-nodejs/log/hapi-server.stderr</string>
+        <key>StandardOutPath</key>
+        <string>/Users/weigel/git/hapi/server-nodejs/log/hapi-server.stdout</string>
+    </dict>
+</plist>
