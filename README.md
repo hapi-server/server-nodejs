@@ -1,3 +1,5 @@
+[![Build Status](https://app.travis-ci.com/hapi-server/client-python.svg?branch=master)](https://app.travis-ci.com/hapi-server/client-python)
+
 # HAPI Server Front-End
 
 A generic HAPI front-end server.
