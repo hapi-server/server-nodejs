@@ -1,4 +1,4 @@
-[![Build Status](https://app.travis-ci.com/hapi-server/client-python.svg?branch=master)](https://app.travis-ci.com/hapi-server/client-python)
+[![Build Status](https://app.travis-ci.com/hapi-server/client-nodejs.svg?branch=master)](https://app.travis-ci.com/hapi-server/client-nodejs)
 
 # HAPI Server Front-End
 
