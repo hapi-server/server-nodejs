@@ -56,6 +56,15 @@ cd hapi-server-v1.0.12
 ./hapi-server --open
 ```
 
+Windows x64:
+
+```bash
+curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.12/hapi-server-v1.0.12-win-x64.zip
+unzip hapi-server-v1.0.12-win-x64.zip
+cd hapi-server-v1.0.12
+./hapi-server --open
+```
+
 Docker:
 
 ```
