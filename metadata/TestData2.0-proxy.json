@@ -7,7 +7,7 @@
         "catalog-update": null
     },
     "data": {
-        "proxy": "http://44.197.104.135/servers/",
+        "proxy": "http://rweigel.dynu.net/servers/",
         "formats": ["csv"],
         "contact": "rweigel@gmu.edu",
         "testurls": [

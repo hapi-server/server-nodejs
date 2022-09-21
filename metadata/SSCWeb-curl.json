@@ -8,7 +8,7 @@
 		"verify": "ace"
 	},
     "data": {
-        "command": "curl -s 'http://44.197.104.135/servers/SSCWeb/hapi/data?id=${{id}}&parameters=${{parameters}}&time.min=${start}&time.max=${stop}'",
+        "command": "curl -s 'http://rweigel.dynu.net/servers/SSCWeb/hapi/data?id=${{id}}&parameters=${{parameters}}&time.min=${start}&time.max=${stop}'",
         "formats": ["csv"],
         "contact": "rweigel@gmu.edu"
     },

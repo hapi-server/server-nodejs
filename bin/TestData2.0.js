@@ -1,8 +1,10 @@
 var argv = process.argv;
-var id = "dataset2";
+var id = "dataset1";
 var parameters = "scalar";
-var start = "1971-01-00T01:50:00Z";
-var stop = "1972-08-03T06:50:00Z";
+var start = "1970-01-01T00:00:01Z";
+var stop =  "1970-01-01T00:00:30Z";
+
+let Npw = 1000; // Number of records per write
 
 for (var i = 0; i < argv.length-1; i++) {
 	if (argv[i] == "--id") {
@@ -52,150 +54,145 @@ scalarcats = [0,1,2];
 
 // https://github.com/nodejs/node/issues/3524
 // https://github.com/nodejs/node/issues/1741#issuecomment-190649817
-process.stdout._handle.setBlocking(true);
+//process.stdout._handle.setBlocking(true);
 
-for (var i = startsec; i < stopsec; i++) {
-	var record = "";
+function loop(startsec, stopsec) {
 
-	record = (new Date(i*tf).toISOString());
-	if (all || parameters.includes('scalar')) {
-		record = record + "," + Math.sin(Math.PI*i/600);
-	}
-	if (all || parameters.includes('scalarint')) {
-		record = record + "," + Math.round(tf*Math.sin(Math.PI*i/600));
-	}
-	if (all || parameters.includes('scalarstr')) {
-		record = record + "," + scalarstrs[(i-startsec) % scalarstrs.length];
-	}
-	if (all || parameters.includes('scalarcats')) {
-		record = record + "," + scalarcats[(i-startsec) % scalarcats.length];
-	}
-	if (all || parameters.includes('scalariso')) {
-		record = record + "," + (new Date((i+1)*tf).toISOString()).slice(0,-5) + "Z";
-	}
-	if (id === "dataset0") {
-		if (all || parameters.includes('scalarmulti')) {
+	var records = "";
+	for (var i = startsec; i < stopsec; i++) {
+		var record = "";
+
+		record = (new Date(i*tf).toISOString());
+		if (all || parameters.includes('scalar')) {
 			record = record + "," + Math.sin(Math.PI*i/600);
 		}
-	}
-	if (all || parameters.includes('vector')) {
-		record = record 
-					+ "," + Math.sin(Math.PI*(i)/600) 
-					+ "," + Math.sin(Math.PI*(i-150)/600) 
-					+ "," + Math.sin(Math.PI*(i-300)/600)
-	}
-	if (all || parameters.includes('vectorint')) {
-		record = record 
-					+ "," + Math.round(tf*Math.sin(Math.PI*i/600))
-					+ "," + Math.round(tf*Math.sin(Math.PI*i/600))
-					+ "," + Math.round(tf*Math.sin(Math.PI*i/600));
-	}
-	if (all || parameters.includes('vectorstr')) {
-		record = record 
-						+ "," + scalarstrs[(i) % scalarstrs.length]
-						+ "," + scalarstrs[(i+1) % scalarstrs.length]
-						+ "," + scalarstrs[(i+2) % scalarstrs.length];
-	}
-	if (all || parameters.includes('vectorcats')) {
-		record = record 
-					+ "," + scalarcats[(i)   % scalarcats.length]
-					+ "," + scalarcats[(i+1) % scalarcats.length]
-					+ "," + scalarcats[(i+2) % scalarcats.length];
-	}
-	if (all || parameters.includes('vectoriso')) {
-		record = record 
-					+ "," + (new Date((i+1)*tf).toISOString()).slice(0,-5) + "Z"
-					+ "," + (new Date((i+2)*tf).toISOString()).slice(0,-5) + "Z"
-					+ "," + (new Date((i+3)*tf).toISOString()).slice(0,-5) + "Z";
-	}
-	if (all || parameters.includes('vectormulti')) {
-		record = record 
-					+ "," + Math.sin(Math.PI*(i/600))
-					+ "," + Math.sin(Math.PI*(i-150)/600)
-					+ "," + Math.sin(Math.PI*(i-300)/600)
-					+ "," + Math.sin(Math.PI*(i/600))
-					+ "," + Math.sin(Math.PI*(i-150)/600) 
-					+ "," + Math.sin(Math.PI*(i-300)/600)
-	}
-	if (all || parameters.includes('transform')) {
-		for (var j = 0;j < 9;j++) {
-			record = record + "," + (j);
+		if (all || parameters.includes('scalarint')) {
+			record = record + "," + Math.round(tf*Math.sin(Math.PI*i/600));
 		}
-	}
-	if (all || parameters.includes('transformmulti')) {
-		for (var j = 0;j < 9;j++) {
-			record = record + "," + (j);
+		if (all || parameters.includes('scalarstr')) {
+			record = record + "," + scalarstrs[(i-startsec) % scalarstrs.length];
 		}
-	}
-	if (all || parameters.includes('spectra')) {
-		record = record + "," + 0; // f = 0 bin.
-		for (var j = 1;j < 10;j++) {
-			record = record + "," + 1/j;
+		if (all || parameters.includes('scalarcats')) {
+			record = record + "," + scalarcats[(i-startsec) % scalarcats.length];
 		}
-	}
-	if (all || parameters.includes('spectranobins')) {
-		for (var j = 0;j < 10;j++) {
-			record = record + "," + j;
+		if (all || parameters.includes('scalariso')) {
+			record = record + "," + (new Date((i+1)*tf).toISOString()).slice(0,-5) + "Z";
 		}
-	}
-	if (all || parameters.includes('spectralarge')) {
-		record = record + "," + 0; // f = 0 bin.
-		for (var j = 1;j < 100;j++) {
-			record = record + "," + 1/j;
-		}
-	}
-	if (all || parameters.includes('spectramulti')) {
-		record = record + "," + 0; // f = 0 bin.
-		for (var j = 1;j < 10;j++) {
-			record = record + "," + 1/j;
-		}
-		record = record + "," + 0; // f = 0 bin.
-		for (var j = 1;j < 10;j++) {
-			record = record + "," + 2/j;
-		}
-	}
-
-	if (id === "dataset0") {
-		record = record.replace(/,/g,", ");  // Make dataset0 use space after comma.
-	}
-
-	if (i > 9 && i < 20) {
-		record = "";
-	}
-
-	if (records.length > 0) {
-		if (record.length > 0)
-			records = records + "\n" + record;
-	} else {
-		records = record;
-	}
-
-	// Flush to output at end and every 100 records (lines)
-	var flush = (i == stopsec - 1) 
-				|| (i > startsec && (i-startsec) % 100 === 0);
-
-	if (flush) {
-		if (id !== "dataset0") {
-			if (records.length > 0)
-				console.log(records); // Correct way.					
-		} else {
-			// Make time non-monotonic for dataset0.
-			records = records.split("\n");
-			var l = records.length-1;
-			first = records[0];
-			last = records[l];
-			records[0] = last;
-			records[l] = first;
-			records = records.join("\n");
-			if ((i == stopsec - 1) && parameters.includes('scalariso')) {
-				// Omit newline at end of file for dataset0 if scalariso requested
-				process.stdout.write(records);
-			} else {
-				// Add extra newline at end of file for dataset0 if scalariso not requested
-				console.log(records + "\n");
+		if (id === "dataset0") {
+			if (all || parameters.includes('scalarmulti')) {
+				record = record + "," + Math.sin(Math.PI*i/600);
 			}
 		}
-		records = "";
-		Nwrote  = (i-startsec);
+		if (all || parameters.includes('vector')) {
+			record = record 
+						+ "," + Math.sin(Math.PI*(i)/600) 
+						+ "," + Math.sin(Math.PI*(i-150)/600) 
+						+ "," + Math.sin(Math.PI*(i-300)/600)
+		}
+		if (all || parameters.includes('vectorint')) {
+			record = record 
+						+ "," + Math.round(tf*Math.sin(Math.PI*i/600))
+						+ "," + Math.round(tf*Math.sin(Math.PI*i/600))
+						+ "," + Math.round(tf*Math.sin(Math.PI*i/600));
+		}
+		if (all || parameters.includes('vectorstr')) {
+			record = record 
+							+ "," + scalarstrs[(i) % scalarstrs.length]
+							+ "," + scalarstrs[(i+1) % scalarstrs.length]
+							+ "," + scalarstrs[(i+2) % scalarstrs.length];
+		}
+		if (all || parameters.includes('vectorcats')) {
+			record = record 
+						+ "," + scalarcats[(i)   % scalarcats.length]
+						+ "," + scalarcats[(i+1) % scalarcats.length]
+						+ "," + scalarcats[(i+2) % scalarcats.length];
+		}
+		if (all || parameters.includes('vectoriso')) {
+			record = record 
+						+ "," + (new Date((i+1)*tf).toISOString()).slice(0,-5) + "Z"
+						+ "," + (new Date((i+2)*tf).toISOString()).slice(0,-5) + "Z"
+						+ "," + (new Date((i+3)*tf).toISOString()).slice(0,-5) + "Z";
+		}
+		if (all || parameters.includes('vectormulti')) {
+			record = record 
+						+ "," + Math.sin(Math.PI*(i/600))
+						+ "," + Math.sin(Math.PI*(i-150)/600)
+						+ "," + Math.sin(Math.PI*(i-300)/600)
+						+ "," + Math.sin(Math.PI*(i/600))
+						+ "," + Math.sin(Math.PI*(i-150)/600) 
+						+ "," + Math.sin(Math.PI*(i-300)/600)
+		}
+		if (all || parameters.includes('transform')) {
+			for (var j = 0;j < 9;j++) {
+				record = record + "," + (j);
+			}
+		}
+		if (all || parameters.includes('transformmulti')) {
+			for (var j = 0;j < 9;j++) {
+				record = record + "," + (j);
+			}
+		}
+		if (all || parameters.includes('spectra')) {
+			record = record + "," + 0; // f = 0 bin.
+			for (var j = 1;j < 10;j++) {
+				record = record + "," + 1/j;
+			}
+		}
+		if (all || parameters.includes('spectranobins')) {
+			for (var j = 0;j < 10;j++) {
+				record = record + "," + j;
+			}
+		}
+		if (all || parameters.includes('spectralarge')) {
+			record = record + "," + 0; // f = 0 bin.
+			for (var j = 1;j < 100;j++) {
+				record = record + "," + 1/j;
+			}
+		}
+		if (all || parameters.includes('spectramulti')) {
+			record = record + "," + 0; // f = 0 bin.
+			for (var j = 1;j < 10;j++) {
+				record = record + "," + 1/j;
+			}
+			record = record + "," + 0; // f = 0 bin.
+			for (var j = 1;j < 10;j++) {
+				record = record + "," + 2/j;
+			}
+		}
+
+		if (id === "dataset0") {
+			record = record.replace(/,/g,", ");  // Make dataset0 use space after comma.
+		}
+
+		if (i > 9 && i < 20) {
+			continue;
+		}
+
+		if (records) {
+			records = records + "\n" + record;
+		} else {
+			records = record;
+		}
+
 	}
+	return records;
 }
+
+let _stopsec = startsec;
+//process.stderr.write(startsec + " " + stopsec + "\n")
+//process.stderr.write(startsec + " " + _stopsec + "\n")
+let no_nl = startsec > 9 && stopsec < 21; // No data returned for this interval
+
+function nextwrite() {
+	if (startsec > stopsec) {
+		if (no_nl == false) {
+			process.stdout.write("\n");
+		}
+		return;
+	}
+	_stopsec = Math.min(stopsec, _stopsec + Npw);
+	//process.stderr.write("\nCalling " + startsec + " " + _stopsec + "\n")
+	process.stdout.write(loop(startsec, _stopsec), nextwrite);
+	startsec = startsec + Npw;
+}
+nextwrite();
