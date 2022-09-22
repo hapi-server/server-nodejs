@@ -175,7 +175,7 @@ function loop(startsec, stopsec) {
 		}
 
 	}
-	return records;
+	return records + "\n";
 }
 
 let _stopsec = startsec;
