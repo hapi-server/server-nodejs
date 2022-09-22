@@ -1,10 +1,16 @@
 var argv = process.argv;
 var id = "dataset1";
 var parameters = "scalar";
-var start = "1970-01-01T00:00:01Z";
-var stop =  "1970-01-01T00:00:30Z";
+var start = "1970-01-01T00:00:09Z";
+var stop =  "1971-01-01T00:00:21Z";
 
-let Npw = 1000; // Number of records per write
+// Number of records per write
+// If this is too large, garbage collector does not get a chance
+// to run and memory usage monotonically increases. See
+// https://github.com/nodejs/node/issues/3524#issuecomment-151088049
+// https://github.com/nodejs/node/issues/3524
+// https://github.com/nodejs/node/issues/1741#issuecomment-190649817
+let Npw = 1000; 
 
 for (var i = 0; i < argv.length-1; i++) {
 	if (argv[i] == "--id") {
@@ -42,19 +48,30 @@ if (id === "dataset3") {
 	tf = 1000*3600*24;
 }
 
-var startsec = Math.ceil(new Date(start).valueOf()/tf);
-var stopsec  = Math.ceil(new Date(stop).valueOf()/tf);
-
-var records = ""; // Number of records (lines)
-var record  = ""; // A record with comma-separated fields (columns)
-var Nwrote  = 0;  // Number of records flushed
+let startsec = Math.ceil(new Date(start).valueOf()/tf);
+let stopsec  = Math.ceil(new Date(stop).valueOf()/tf);
 
 scalarstrs = ["P/P","P/F","F/P","F/F"];
 scalarcats = [0,1,2];
 
-// https://github.com/nodejs/node/issues/3524
-// https://github.com/nodejs/node/issues/1741#issuecomment-190649817
-//process.stdout._handle.setBlocking(true);
+//process.stderr.write(startsec + " " + stopsec + "\n")
+let _stopsec = startsec;
+
+if (startsec > 9 && stopsec <= 20) {
+	// No data, so done.
+} else {
+	nextwrite();	
+}
+
+function nextwrite() {
+	if (startsec > stopsec) {
+		return;
+	}
+	_stopsec = Math.min(stopsec, _stopsec + Npw);
+	//process.stderr.write("Calling " + startsec + " " + _stopsec + "\n")
+	process.stdout.write(loop(startsec, _stopsec), nextwrite);
+	startsec = startsec + Npw;
+}
 
 function loop(startsec, stopsec) {
 
@@ -62,10 +79,15 @@ function loop(startsec, stopsec) {
 	for (var i = startsec; i < stopsec; i++) {
 		var record = "";
 
+		if (i > 9 && i < 20) {
+			continue;
+		}
+
 		record = (new Date(i*tf).toISOString());
 		if (all || parameters.includes('scalar')) {
 			record = record + "," + Math.sin(Math.PI*i/600);
 		}
+
 		if (all || parameters.includes('scalarint')) {
 			record = record + "," + Math.round(tf*Math.sin(Math.PI*i/600));
 		}
@@ -164,10 +186,6 @@ function loop(startsec, stopsec) {
 			record = record.replace(/,/g,", ");  // Make dataset0 use space after comma.
 		}
 
-		if (i > 9 && i < 20) {
-			continue;
-		}
-
 		if (records) {
 			records = records + "\n" + record;
 		} else {
@@ -175,24 +193,9 @@ function loop(startsec, stopsec) {
 		}
 
 	}
-	return records + "\n";
-}
-
-let _stopsec = startsec;
-//process.stderr.write(startsec + " " + stopsec + "\n")
-//process.stderr.write(startsec + " " + _stopsec + "\n")
-let no_nl = startsec > 9 && stopsec < 21; // No data returned for this interval
-
-function nextwrite() {
-	if (startsec > stopsec) {
-		if (no_nl == false) {
-			process.stdout.write("\n");
-		}
-		return;
+	if (records) {
+		return records + "\n";
+	} else {
+		return "";
 	}
-	_stopsec = Math.min(stopsec, _stopsec + Npw);
-	//process.stderr.write("\nCalling " + startsec + " " + _stopsec + "\n")
-	process.stdout.write(loop(startsec, _stopsec), nextwrite);
-	startsec = startsec + Npw;
 }
-nextwrite();
