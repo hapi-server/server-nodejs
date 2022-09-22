@@ -1,7 +1,5 @@
 #!/bin/sh
-env
-whoami
-$NVM_DIR/versions/node/v8.17.0/bin/node \
+/home/ubuntu/.nvm/versions/node/v8.17.0/bin/node \
     --max-old-space-size=256 \
     server.js \
     --port 8999 --ignore \
