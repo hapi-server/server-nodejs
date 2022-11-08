@@ -119,13 +119,13 @@ python Example.py
 To run this example locally after [installation](#Install), execute
 
 ```bash
-./hapi-server --file metdata/Example0.json
+./hapi-server --file metadata/Example0.json
 ```
 
 and then open `http://localhost:8999/Example0/hapi`. You should see the same landing page as that at [http://hapi-server.org/servers/Example0/hapi](http://hapi-server.org/servers/Example1/hapi). Note that the `--open` command-line switch can be used to automatically open the landing page, e.g.,
 
 ```bash
-./hapi-server --file metdata/Example0.json --open
+./hapi-server --file metadata/Example0.json --open
 ```
 
 ### 2.2 Serve data from an enhanced Python program
@@ -260,7 +260,7 @@ Options:
 Basic usage:
 
 ```
-./hapi-server --file metdata/TestData.json
+./hapi-server --file metadata/TestData.json
 ```
 
 Starts HAPI server at [http://localhost:8999/TestData/hapi](http://localhost:8999/hapi) and serves datasets specified in the catalog [./metadata/TestData.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestData.json). 
