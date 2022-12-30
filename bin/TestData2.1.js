@@ -38,15 +38,15 @@ for (var i = startsec; i < stopsec; i++) {
 	var record = "";
 
 	record = (new Date(i*1000).toISOString());
+	if (all || parameters.includes('vectorstring')) {
+		record = record 
+					+ ',"a,b,c","d,e,f","g,h,i"';
+	}
 	if (all || parameters.includes('vector')) {
 		record = record 
 					+ "," + Math.sin(Math.PI*(i-startsec)/600) 
 					+ "," + Math.sin(Math.PI*(i-startsec-150)/600) 
 					+ "," + Math.sin(Math.PI*(i-startsec-300)/600)
-	}
-	if (all || parameters.includes('vectorstring')) {
-		record = record 
-					+ ',"a,b,c","d,e,f","g,h,i"';
 	}
 	if (all || parameters.includes('vectormulti')) {
 		record = record 
