@@ -422,7 +422,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   })
 
   app.get(PREFIX + '/hapi/$', function (req, res) {
-    res.header('Location', PREFIX + '/hapi');
+    res.header('Location', PREFIX.replace(/^\//,"") + '/hapi');
     res.status(301).send("");
   })
 
