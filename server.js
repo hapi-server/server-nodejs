@@ -421,6 +421,13 @@ function apiInit(CATALOGS, PREFIXES, i) {
     fs.createReadStream(file).pipe(res);
   })
 
+  app.get(PREFIX + '/hapi/$', function (req, res) {
+    res.header('Location', "../hapi");
+    // A 301 is more appropriate, but a relative URL is not allowed 
+    // Would need to obtain proxied URL in order to get the correct
+    // absolute URL.
+    res.status(302).send("");
+  })
 
   // Serve static files if a landing path given
   let landing_path = metadata(CATALOG,"landingPath");
