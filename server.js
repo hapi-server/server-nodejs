@@ -288,65 +288,63 @@ function main() {
 function serverInit(CATALOGS, PREFIXES) {
 
   function startupMessages(url_prefix){
-   log.info(clc.blue("Listening on port " + argv.port));
-   
-   let url = url_prefix + argv.port;
-   log.info("HAPI server list is at");
-   log.info("  " + url);
-   log.info("This server provides");
-   for (var i = 0;i < CATALOGS.length;i++) {
-    log.info("  " + url + "/" + PREFIXES[i] + "/hapi");
-  }
-  
-  log.info("To open a browser at " + url + ", use the --open option.");
-  log.info("To run test URLs and exit, use the --test option.");
-  log.info("To run command-line verification tests and exit, use the --verify option.");
-  
-  if (OPEN) {
-        // Open browser window
-        var start = (process.platform == 'darwin'
-          ? 'open': process.platform == 'win32'
-          ? 'start': 'xdg-open');
-        require('child_process').exec(start + ' ' + url);
-      }
-      
-      if (TEST) {
-        // Exits with signal 0 or 1
-        test.urls(CATALOGS, PREFIXES, url, TEST);
-      }
-      if (VERIFY) {
-        // TODO: This only verifies first
-        let s = metadata(PREFIXES[0],'server');
-        // verify() exits with code 0 or 1.
-        if (s.verify) {
-          // If server has many datasets, select subset to verify.
-          verify(url + "/" + PREFIXES[0] + "/hapi", s.verify);
-        } else {
-          verify(url + "/" + PREFIXES[0] + "/hapi");
-        }
-      }
-    }
-    
-    // TODO: Server startup should be a callback to apiInit.
-    if (HTTPS) {
-      // In-case of HTTPS, server.listen is used. app.listen() can only listen to HTTP requests
-      var url_prefix = 'https://localhost:';
-      server.listen(argv.port, function () {
-        startupMessages(url_prefix);
-      });
-    } else {
-      // HTTP connection
-      var url_prefix = 'http://localhost:';
-      app.listen(argv.port, function () {
-        startupMessages(url_prefix);
-      });
-    }
-  }
+    log.info(clc.blue("Listening on port " + argv.port));
 
-  function apiInit(CATALOGS, PREFIXES, i) {
+    let url = url_prefix + argv.port;
+    log.info("HAPI server list is at");
+    log.info("  " + url);
+    log.info("This server provides");
+    for (var i = 0;i < CATALOGS.length;i++) {
+      log.info("  " + url + "/" + PREFIXES[i] + "/hapi");
+    }
+  
+    log.info("To open a browser at " + url + ", use the --open option.");
+    log.info("To run test URLs and exit, use the --test option.");
+    log.info("To run command-line verification tests and exit, use the --verify option.");
+
+    if (OPEN) {
+      // Open browser window
+      var start = (process.platform == 'darwin' ? 'open': process.platform == 'win32' ? 'start': 'xdg-open');
+      require('child_process').exec(start + ' ' + url);
+    }
+
+    if (TEST) {
+      // Exits with signal 0 or 1
+      test.urls(CATALOGS, PREFIXES, url, TEST);
+    }
+
+    if (VERIFY) {
+      // TODO: This only verifies first
+      let s = metadata(PREFIXES[0],'server');
+      // verify() exits with code 0 or 1.
+      if (s.verify) {
+        // If server has many datasets, select subset to verify.
+        verify(url + "/" + PREFIXES[0] + "/hapi", s.verify);
+      } else {
+        verify(url + "/" + PREFIXES[0] + "/hapi");
+      }
+    }
+  }
+    
+  // TODO: Server startup should be a callback to apiInit.
+  if (HTTPS) {
+    // In-case of HTTPS, server.listen is used. app.listen() can only listen to HTTP requests
+    var url_prefix = 'https://localhost:';
+    server.listen(argv.port, function () {
+      startupMessages(url_prefix);
+    });
+  } else {
+    // HTTP connection
+    var url_prefix = 'http://localhost:';
+    app.listen(argv.port, function () {
+      startupMessages(url_prefix);
+    });
+  }
+}
+
+function apiInit(CATALOGS, PREFIXES, i) {
 
   if (arguments.length == 0) {
-
     let CATALOGS = [];
     let PREFIXES = [];
     let j = 0;
@@ -416,12 +414,16 @@ function serverInit(CATALOGS, PREFIXES) {
 
   // Serve all.json file
   app.get(PREFIX + '/hapi/all.json', function (req, res) {
-
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
     var file = __dirname + "/public/meta" + PREFIX + "-all.json";
     fs.createReadStream(file).pipe(res);
+  })
+
+  app.get(PREFIX + '/hapi/$', function (req, res) {
+    res.header('Location', PREFIX + '/hapi');
+    res.status(301).send("");
   })
 
   // Serve static files if a landing path given
