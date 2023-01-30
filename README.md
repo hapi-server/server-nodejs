@@ -122,7 +122,7 @@ To run this example locally after [installation](#Install), execute
 ./hapi-server --file metadata/Example0.json
 ```
 
-and then open `http://localhost:8999/Example0/hapi`. You should see the same landing page as that at [http://hapi-server.org/servers/Example0/hapi](http://hapi-server.org/servers/Example1/hapi). Note that the `--open` command-line switch can be used to automatically open the landing page, e.g.,
+and then open `http://localhost:8999/Example0/hapi`. You should see the same landing page as that at [http://hapi-server.org/servers-dev/Example0/hapi](http://hapi-server.org/servers-dev/Example0/hapi). Note that the `--open` command-line switch can be used to automatically open the landing page, e.g.,
 
 ```bash
 ./hapi-server --file metadata/Example0.json --open
@@ -156,7 +156,7 @@ The modified file is [Example2.json](https://github.com/hapi-server/server-nodej
 
 and then open `http://localhost:8999/Example2/hapi`.  The command-line program now produces binary output and performs parameter subsetting as needed and the response time for data should decrease.
 
-The server responses will be identical to that in the previous example. You should see the same landing page as that at [http://hapi-server.org/servers/Example2/hapi](http://hapi-server.org/servers/Example2/hapi).
+The server responses will be identical to that in the previous example. You should see the same landing page as that at [http://hapi-server.org/servers-dev/Example2/hapi](http://hapi-server.org/servers-dev/Example2/hapi).
 
 ### 2.3 Serve data from a non-HAPI web service
 
@@ -387,8 +387,8 @@ location /servers {proxy_pass http://localhost:8999/servers;}
 
 The metadata required for this server is similar to the `/catalog` and `/info` response of a HAPI server. 
 
-* Example HAPI [`/catalog`](http://hapi-server.org/servers/TestData/hapi/catalog) response
-* Example HAPI [`/info`](http://http://hapi-server.org/servers/TestData/hapi/info?id=dataset1) response
+* Example HAPI [`/catalog`](http://hapi-server.org/servers/TestData2.1/hapi/catalog) response
+* Example HAPI [`/info`](http://http://hapi-server.org/servers/TestData2.1/hapi/info?id=dataset1) response
 
 The server requires that the `/catalog` response is combined with the `/info` response for all datasets in the catalog in a single JSON catalog configuration file. Additional information about how to generate data must also be included in this JSON file.
 
