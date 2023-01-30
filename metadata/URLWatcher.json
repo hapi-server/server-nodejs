@@ -1,0 +1,16 @@
+{
+  "server": {
+    "id": "URLWatcher",
+    "prefix": "",
+    "contact": "rweigel@gmu.edu",
+    "landing": "",
+    "catalog-update": 86400
+  },
+  "HAPI": "3.0",
+  "data": {
+      "command": "$PYTHONEXE \"$HAPISERVERPATH/bin/URLWatcher.py\" --dataset ${id} --start ${start} --stop ${stop}",
+      "formats": ["csv"],
+      "contact": "rweigel@gmu.edu"
+  },
+  "catalog_command": "cd \"$HAPISERVERPATH/metadata/URLWatcher\"; \"$NODEEXE\" URLWatcher2HAPI.js"
+}
