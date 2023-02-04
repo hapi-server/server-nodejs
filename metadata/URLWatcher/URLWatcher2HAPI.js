@@ -9,7 +9,8 @@ let parameters =
           'label': 'Time of test',
           'type': 'isotime',
           'units': 'UTC',
-          'fill': ''
+          'fill': null,
+          'length': 24
         },
         {
           'name': 'status',
