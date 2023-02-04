@@ -58,6 +58,9 @@ let argv = yargs
   .alias('conf','c')
   .describe('ignore','Start server even if metadata errors')
   .alias('ignore','i')
+  .describe('ignore','Start server even if metadata errors')
+  .alias('skipchecks','s')
+  .describe('skipchecks','Skip startup metadata validation and server tests')
   .describe('logdir','Log directory')
   .alias('logdir','l')
   .describe('open','Open web page on start')
@@ -70,6 +73,7 @@ let argv = yargs
   .alias('l','l')
   .option('file',{'type': 'string'})
   .option('ignore',{'type': 'boolean'})
+  .option('skipchecks',{'type': 'boolean'})
   .option('https',{'type': 'boolean'})
   .option('open',{'type': 'boolean'})
   .option('test',{'type': 'boolean'})
@@ -77,12 +81,13 @@ let argv = yargs
   .option('verifier',{'description': 'Verifier server URL on landing page'})
   .option('plotserver',{'description': 'Plot server URL on landing page'})
   .option('help', {alias: 'h'})
-  .describe('server-ui-include','Also include these servers in server-ui server drop-down.')
+  .describe('server-ui-include','Also include these servers in server-ui server drop-down. Use multiple times for more than one list.')
   .describe('proxy-whitelist','Allow proxying of these servers (so one can use server=http://... in addressbar of server-ui).')
   .epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
   .usage('Usage: ' + usage + ' [options]')
   .default({
     'ignore': false,
+    'skipchecks': false,
     'loglevel': 'info',
     'https': false,
     'open': false,
@@ -109,6 +114,7 @@ for (key in config) {
 const FILE        = argv.file;
 const PORT        = argv.port;
 const FORCE_START = argv.ignore;
+const SKIP_CHECKS = argv.skipchecks;
 const OPEN        = argv.open;
 const TEST        = argv.test;
 const VERIFY      = argv.verify;
@@ -220,9 +226,13 @@ if (!fs.existsSync(LOGDIR)) {
 }
 log.LOGDIR = LOGDIR;
 
+//const proxy = require('./lib/proxy.js');
+//proxy.proxyInit(PROXY_WHITELIST, SERVER_UI_INCLUDE, '');
+//process.exit(0);
+
 // Populate metadata.cache array, which has elements of catalog objects
 // main() is callback.
-prepmetadata(FILES, FORCE_START, VERIFIER, PLOTSERVER, main);
+prepmetadata(FILES, FORCE_START, SKIP_CHECKS, main);
 
 function main() {
 
@@ -272,9 +282,10 @@ function main() {
                   + s.contact + ","
                   + d.contact + "\n";
   }
+
   app.get('/all.txt', function (req, res) {res.send(serverlist);});
 
-  if (PROXY_WHITELIST !== '' || SERVER_UI_INCLUDE !== '') {
+  if (PROXY_WHITELIST !== '' || SERVER_UI_INCLUDE.length > 0) {
     const proxy = require('./lib/proxy.js');
     proxy.proxyInit(PROXY_WHITELIST, SERVER_UI_INCLUDE, serverlist, app, cors, apiInit);
   } else {
@@ -360,7 +371,11 @@ function apiInit(CATALOGS, PREFIXES, i) {
     app.get('/', function (req,res) {
       res.on('finish', () => log.request(req, req.socket.bytesWritten));
       // TODO: read file async
-      let html = fs.readFileSync(indexFile, "utf8").toString()
+      let html = fs
+                  .readFileSync(indexFile, "utf8")
+                  .replace(/__VERIFIER__/g, VERIFIER)
+                  .replace(/__PLOTSERVER__/g, PLOTSERVER)
+                  .toString()
       res.send(html);
     });
 
@@ -472,15 +487,21 @@ function apiInit(CATALOGS, PREFIXES, i) {
       if (landingFile !== "") {
         //cors(res); // Set CORS headers
         res.contentType('text/html');
-        let tmp = metadata(CATALOG,"catalog");
+        let server = metadata(CATALOG,"server");
+        let serverContact = server.contact;
+        let data = metadata(CATALOG,"data");
+        let dataContact = data.contact;
+        let catalog = metadata(CATALOG,"catalog");
         let str = fs
-       .readFileSync(landingFile,"utf8")
-       .toString()
-       .replace(/__CATALOG__/g, CATALOG.replace(/.*\//,""))
-       .replace(/__VERSION__/g, tmp.HAPI)
-       .replace(/__VERIFIER__/g, VERIFIER)
-       .replace(/__PLOTSERVER__/g, PLOTSERVER);
-       res.send(str);
+                   .readFileSync(landingFile,"utf8")
+                   .toString()
+                   .replace(/__CATALOG__/g, CATALOG.replace(/.*\//,""))
+                   .replace(/__VERSION__/g, catalog.HAPI)
+                   .replace(/__VERIFIER__/g, VERIFIER)
+                   .replace(/__PLOTSERVER__/g, PLOTSERVER)
+                   .replace(/__DATACONTACT__/g, dataContact)
+                   .replace(/__SERVERCONTACT__/g, serverContact)
+        res.send(str);
      } else {
         // In this case, directory listing is served. See
         // serveIndex call.
@@ -572,9 +593,9 @@ function apiInit(CATALOGS, PREFIXES, i) {
     // TODO: Not tested under https.
     var proto = req.connection.encrypted ? 'https' : 'http';
     header["status"]["x_request"] = proto + "://" + req.headers.host + req.originalUrl;
-    header["status"]["x_startDateRequested"] = req.query["time.min"];
-    header["status"]["x_stopDateRequested"]  = req.query["time.max"];
-    header["status"]["x_parentDataset"]      = req.query["id"];
+    header["status"]["x_startDateRequested"] = req.query["time.min"] || req.query["start"];
+    header["status"]["x_stopDateRequested"]  = req.query["time.max"] || req.query["stop"];
+    header["status"]["x_parentDataset"]      = req.query["id"] || req.query["dataset"];
 
     // timeCheck() returns integer error code if error or true if no error.
     var timeOK = timeCheck(header)
@@ -602,20 +623,22 @@ function apiInit(CATALOGS, PREFIXES, i) {
       }
     }
     // If include was given, set include = true
-    var include = req.query["include"] === "header";
+    let include = req.query["include"] === "header";
 
     if (header["format"] === "csv")    {res.contentType("text/csv")};
     if (header["format"] === "binary") {res.contentType("application/octet-stream")};
     if (header["format"] === "json")   {res.contentType("application/json")};
 
-    var fname = "id-"
-                 + req.query["id"]
+    let start = req.query["time.min"] || req.query["start"];
+    let stop = req.query["time.max"] || req.query["stop"];
+    let fname = "dataset-"
+                 + (req.query["id"] || req.query["dataset"])
                  + "_parameters-"
                  + req.query["parameters"]
-                 + "_time.min-"
-                 + req.query["time.min"]
-                 + "_time.max-"
-                 + req.query["time.max"]
+                 + "_start-"
+                 + start
+                 + "_stop-"
+                 + stop
                  + "." + header["format"];
 
    if (req.query["attach"] === "false") {
@@ -653,9 +676,9 @@ function info(req,res,catalog) {
 
   // Read parameter metadata.
   if (req.query.resolve_references === "true") {
-    json = metadata(catalog,'info',req.query.id);
+    json = metadata(catalog,'info',req.query.id || req.query.dataset);
   } else {
-    json = metadata(catalog,'info-raw',req.query.id);
+    json = metadata(catalog,'info-raw',req.query.id || req.query.dataset);
   }
 
   // Copy string metadata (b/c json will be modified).
@@ -787,17 +810,20 @@ function data(req,res,catalog,header,include) {
       com = com.replace("${{parameters}}",'');
     }
 
+    let start = req.query["time.min"] || req.query["start"];
+    let stop = req.query["time.max"] || req.query["stop"];
+    let dataset = req.query["id"] || req.query["dataset"];
     // Times don't need to be quoted
-    com = com.replace("${start}",normalizeTime(req.query["time.min"]));
-    com = com.replace("${stop}",normalizeTime(req.query["time.max"]));
+    com = com.replace("${start}",normalizeTime(start));
+    com = com.replace("${stop}",normalizeTime(stop));
 
-    com = com.replace("${{start}}",normalizeTime(req.query["time.min"]));
-    com = com.replace("${{stop}}",normalizeTime(req.query["time.max"]));
+    com = com.replace("${{start}}",normalizeTime(start));
+    com = com.replace("${{stop}}",normalizeTime(stop));
 
     if (process.platform.startsWith("win")) {
-      com = com.replace("${id}",'"' + req.query["id"] + '"');
+      com = com.replace("${id}",'"' + dataset + '"');
     } else {
-      com = com.replace("${id}","'" + req.query["id"] + "'");
+      com = com.replace("${id}","'" + dataset + "'");
     }
     if (req.query["parameters"]) {
       if (process.platform.startsWith("win")) {
@@ -821,7 +847,7 @@ function data(req,res,catalog,header,include) {
       let fieldstr = "";
       if (req.query["parameters"] && !/\$\{{1,2}parameters\}{1,2}/.test(d.command)) {
         var params = req.query["parameters"].split(",");
-        var headerfull = metadata(catalog,'info',req.query.id);
+        var headerfull = metadata(catalog,'info',req.query.id || req.query.dataset);
         if (params[0] !== headerfull.parameters[0].name) {
           // If time variable was not requested, add it
           // so first column is always output.
@@ -851,8 +877,8 @@ function data(req,res,catalog,header,include) {
       return fieldstr;
     }
 
-    var start = normalizeTime(req.query["time.min"]);
-    var stop = normalizeTime(req.query["time.max"]);
+    var start = normalizeTime(req.query["time.min"] || req.query["start"]);
+    var stop = normalizeTime(req.query["time.max"] || req.query["stop"]);
 
     let com = "";
 
@@ -1156,17 +1182,19 @@ function csvTo(records,first,last,header,include) {
           pos = pos + 4;
         }
         if (types[j] === 'string' || types[j] === 'isotime') {
-          if (record[j].length > lengths[j]) {
+          let buffer = Buffer.from(record[j],'utf8');
+          if (buffer.length > lengths[j]) {
+            console.log(ds() + clc.red("Truncated:",record[j],buffer.length,"bytes"));
             truncated = truncated + 1;
           }
-          recordbuff.write(record[j],pos)
+          recordbuff.write(record[j],pos,'utf8')
           pos = pos + lengths[j];
         }
       }
     }
     if (truncated > 0) {
       log.info(clc.red((truncated) 
-                    + " strings were truncated because they"
+                    + " string(s) were truncated because they"
                     + " were longer than length given in metadata"));
     }
     return recordbuff;
@@ -1248,33 +1276,57 @@ function queryCheck(req, res, hapiversion, catalog, type) {
   // If invalid query parameter, send error and return false
   // If req.query.resolve_references === undefined, set to "true"
 
-  // Check for required id parameter
-  if (!req.query.id) {
-    error(req, res, hapiversion, 1400, "A dataset id must be given.");
+  let catalogObj = metadata(catalog,"catalog");
+
+  // Check for required id or dataset parameter
+  let dataset = req.query.id;
+  let emsg = "A dataset id must be given.";
+  if (parseInt(catalogObj.HAPI) >= 3) {
+    dataset = dataset || req.query.dataset
+    emsg = "A dataset must be given.";
+  }
+  if (!dataset) {
+    error(req, res, hapiversion, 1400, emsg);
+    return false;
+  }
+
+  if (req.query.id && req.query.dataset) {
+    error(req, res, hapiversion, 1400, "Only one of 'id' and 'dataset' is allowed.");
     return false;
   }
 
   let ids = metadata(catalog,'ids');
-  if (!ids.includes(req.query.id)) {
+  if (!ids.includes(dataset)) {
     error(req,res,hapiversion,1406);
     return false;
   }
 
   if (type === 'info') {
     // Check if extra parameters given
+    let allowed = ["id", "parameters", "resolve_references"];
+    let emsg = "'id', 'parameters', and 'resolve_references' are the only valid query parameters."
+    if (parseInt(catalogObj.HAPI) >= 3) {
+      allowed.push('dataset');
+      let emsg = "'dataset' or 'id', 'parameters', and 'resolve_references' are the only valid query parameters."
+    }
     for (var key in req.query) {
-      if (!["id", "parameters", "resolve_references"].includes(key)) {
-        error(req, res, hapiversion, 1401,
-              "'id', 'parameters', and 'resolve_references' are the only valid query parameters.");
+      if (!allowed.includes(key)) {
+        error(req, res, hapiversion, 1401, emsg);
         return false;
       }
     }
   } else {
     // Check if query parameters are all valid
-    var allowed = [
+    let allowed = [
       "id","parameters","time.min","time.max",
       "format","include","attach","resolve_references"
     ];
+    if (parseInt(catalogObj.HAPI) >= 3) {
+      allowed.push("dataset");
+      allowed.push("start");
+      allowed.push("stop");
+    }
+
     for (var key in req.query) {
       if (!allowed.includes(key)) {
         error(req, res, hapiversion, 1401,
@@ -1283,11 +1335,11 @@ function queryCheck(req, res, hapiversion, catalog, type) {
       }
     }
 
-    if (!req.query["time.min"]) {
+    if (!req.query["time.min"] && !req.query["start"]) {
       error(req,res,hapiversion,1402);
       return;
     }
-    if (!req.query["time.max"]) {
+    if (!req.query["time.max"] && !req.query["start"]) {
       error(req,res,hapiversion,1403);
       return;
     }
@@ -1396,15 +1448,23 @@ function timeCheck(header) {
 // HAPI errors
 function error(req,res,hapiversion,code,message,messageFull) {
 
+  let start = "time.min";
+  let stop = "time.max";
+  let dataset = "id";  
+  if (parseInt(hapiversion) >= 3) {
+    start = req.query['start'] ? 'start' : start;
+    stop = req.query['stop'] ? 'stop': stop;
+    dataset = req.query['dataset'] ? 'dataset': dataset;
+  }
   // TODO: Need to determine if headers and/or data were already sent.
   var errs = {
     "1400": {status: 400, "message": "HAPI error 1400: user input error"},
     "1401": {status: 400, "message": "HAPI error 1401: unknown request field"},
-    "1402": {status: 400, "message": "HAPI error 1402: error in time.min"},
-    "1403": {status: 400, "message": "HAPI error 1403: error in time.max"},
-    "1404": {status: 400, "message": "HAPI error 1404: time.min equal to or after time.max"},
+    "1402": {status: 400, "message": "HAPI error 1402: error in " + start},
+    "1403": {status: 400, "message": "HAPI error 1403: error in " + stop},
+    "1404": {status: 400, "message": "HAPI error 1404: " + start + " equal to or after " + stop},
     "1405": {status: 400, "message": "HAPI error 1405: time outside valid range"},
-    "1406": {status: 404, "message": "HAPI error 1406: unknown dataset id"},
+    "1406": {status: 404, "message": "HAPI error 1406: unknown " + dataset},
     "1407": {status: 404, "message": "HAPI error 1407: unknown dataset parameter"},
     "1408": {status: 400, "message": "HAPI error 1408: too much time or data requested"},
     "1409": {status: 400, "message": "HAPI error 1409: unsupported output format"},
