@@ -13,6 +13,7 @@
     -f /home/ubuntu/server-nodejs-dev/metadata/TestData2.1.json \
     -f /home/ubuntu/server-nodejs-dev/metadata/TestData3.0.json \
     -f /home/ubuntu/server-nodejs-dev/metadata/TestData3.1.json \
+    -f /home/ubuntu/server-nodejs-dev/metadata/URLWatcher.json \
     -f /home/ubuntu/server-nodejs-dev/metadata/SSCWeb-curl.json \
     -f /home/ubuntu/server-nodejs-dev/metadata/CAIO.json \        
     2>&1
