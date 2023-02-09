@@ -1,7 +1,9 @@
 #!/bin/sh
 
-APPDIR=/home/ubuntu/server-nodejs-dev
-/home/ubuntu/.nvm/versions/node/v8.17.0/bin/node \
+USER=/Users/weigel
+APPDIR=$USER/git/hapi/server-nodejs
+
+$USER/.nvm/versions/node/v8.17.0/bin/node \
     --max-old-space-size=256 \
     $APPDIR/server.js \
     --port 8999 --ignore \
