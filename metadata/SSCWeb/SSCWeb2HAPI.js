@@ -1,34 +1,44 @@
-var request = require("request");
-var xml2js = require('xml2js');
-const fs = require('fs');
+const fs      = require('fs');
 const process = require('process');
+const request = require("request");
+const xml2js  = require('xml2js');
+const argv    = require('yargs')
+                  .default
+                    ({
+                        'ltfloats': false,
+                        'force': false
+                    })
+                  .option('ltfloats',{'type': 'boolean'})
+                  .option('force',{'type': 'boolean'})
+                  .argv;
 
-var urlo = "https://sscweb.gsfc.nasa.gov/WS/sscr/2/observatories";
-var cfile = "SSCWeb-catalog.json";
+let LTFLOATS = argv.ltfloats;
+let FORCE    = argv.force; // Force update even if last update was < 60 minutes.
 
-const force = false; // Force update even if last update was < 60 minutes.
-
-let max_age = 3600; // max-age found in HTTP headers of urlo.
+let max_age = 3600;     // max-age found in HTTP headers of urlo at one time.
 // TODO: The header should be saved and the value in the header should
 // be used. If max_age changes, this code will be up-to-date.
 
+let cfile = "SSCWeb-catalog.json";
+let pfile = "SSCWeb-parameters.txt";
+if (LTFLOATS) {
+  cfile = "SSCWeb-catalog-ltfloats.json";
+  pfile = "SSCWeb-parameters-ltfloats.txt";
+}
+
+var urlo = "https://sscweb.gsfc.nasa.gov/WS/sscr/2/observatories";
 
 
-SSCWeb2HAPI(
-	function (err, catalog) {
-		if (err) {
-			console.error(err);
-			process.exit(1);
-		}
-
-		console.log(JSON.stringify(catalog,null,4));
-		//console.log(fs.readFileSync(cfile, 'utf8'));
-		//process.exit(0);
+SSCWeb2HAPI(function (err, catalog) {
+	if (err) {
+		console.error(err);
+		process.exit(1);
 	}
-)
+	console.log(JSON.stringify(catalog,null,4));
+});
 
 function getUrlo(cb) {
-	//Fetches the urlo writes it to the cfile
+	// Fetches urlo and writes it to cfile
 	console.error("Getting " + urlo)
 	request({uri: urlo, strictSSL: false},
 		function (error, response, body) {
@@ -43,16 +53,10 @@ function getUrlo(cb) {
 				}
 				return;
 			}
-			var parser = new xml2js.Parser();
+			let parser = new xml2js.Parser();
 			parser.parseString(body, function (err, jsonraw) {
-				if (err) {
-					cb(err);
-				}
-
-				//loading the catalog file
+				if (err) {cb(err);}
 				fs.writeFileSync(cfile, JSON.stringify(jsonraw, null, 4));
-
-				//triggering the callback
 				makeHAPI(jsonraw, cb);
 			})
 		});
@@ -68,14 +72,14 @@ function SSCWeb2HAPI(cb) {
 	if (fs.existsSync(cfile)) {
 		age = new Date().getTime() - fs.statSync(cfile).mtime;
 		age = age / (max_age * 1000);
-		if (!force && age < 1) {
+		if (!FORCE && age < 1) {
 			// Cache file less than max_age
 			//console.error("Returning cache file " + cfile + " because it is less than " + max_age + " seconds.")
 			console.log(fs.readFileSync(cfile, 'utf8'));
 			// TODO: Could pipe this.
 		} else {
 			// Save current version. Only archived by day.
-			ymd = new Date().toISOString().substring(0, 10);
+			let ymd = new Date().toISOString().substring(0, 10);
 			cfilec = cfile.replace(/\.json/, "-" + ymd + ".json");
 			if (!fs.existsSync(__dirname + "/old/")) {
 				fs.mkdirSync(__dirname + "/old/")
@@ -86,15 +90,12 @@ function SSCWeb2HAPI(cb) {
 				.pipe(fs.createWriteStream(__dirname + "/old/" + cfilec))
 				.on('finish', function () {
 					getUrlo(cb);
-
 				});
 		}
 	} else {
-		//if there is no cached file
+		// if there is no cached file
 		getUrlo(cb);
-
 	}
-
 }
 exports.SSCWeb2HAPI = SSCWeb2HAPI;
 
@@ -104,7 +105,7 @@ function makeHAPI(jsonraw, cb) {
 	// cache file.
 	makeHAPI.writing = makeHAPI.writing || false;
 
-	var params = fs.readFileSync("SSCWeb-parameters.txt").toString();
+	var params = fs.readFileSync(pfile).toString();
 	params = params.replace(/\n\s*\n/g, '\n').replace(/\n$/, '').split(/\n/);
 	var catalog = [];
 	var obs = jsonraw.ObservatoryResponse.Observatory;
@@ -126,7 +127,6 @@ function makeHAPI(jsonraw, cb) {
 			catalog[i]["info"]["parameters"][j]["description"] = paraminfo[2].replace(/"/g, "");
 			catalog[i]["info"]["parameters"][j]["units"] = paraminfo[3].replace(/"/g, "") || "dimensionless";
 			catalog[i]["info"]["parameters"][j]["fill"] = paraminfo[4].replace(/"/g, "") || null;
-
 
 			var type = paraminfo[5].replace(/"/g, "");
 			//console.log(catalog[i]["info"]["parameters"][j]["type"],type,parseInt(type.replace(/%|s/,"")));
