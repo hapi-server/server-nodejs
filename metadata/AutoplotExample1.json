@@ -9,18 +9,15 @@
     "data": {
         "command": "java -Djava.awt.headless=true -cp $HAPISERVERPATH/autoplot.jar org.autoplot.AutoplotDataServer --uri=http://autoplot.org/data/autoplot.cdf?BGSM -f hapi-data 2> >( sed '/Autoplot version/d' >&2 )",
         "contact": "rweigel@gmu.edu",
-        "testcommands": [
-            {"command": "java -Djava.awt.headless=true -cp $HAPISERVERPATH/autoplot.jar org.autoplot.AutoplotDataServer --uri=http://autoplot.org/data/autoplot.cdf?BGSM -f hapi-data | python lib/subset.py --start 2006-01-01T00:00:00.000Z --stop 2006-01-01T23:00:00.000Z --columns 1,2","Nlines": 23}
-        ],
         "testurls": [
-            {"url": "data?id=ACE&parameters=Bx__GSM_&time.min=2006-01-01T00:00:00.000Z&time.max=2006-01-02T00:00:00.000Z&attach=false","Nlines": 24}
+            {"url": "data?id=ACE&parameters=Bx__GSM_&time.min=2006-01-01T00:00:00.000Z&time.max=2006-01-02T00:00:00.000Z","Nlines": 24}
         ]
     },
     "catalog_inline":
     [
          {
             "id": "ACE",
-            "info": "java -Djava.awt.headless=true -cp $HAPISERVER_BIN_DIR/autoplot.jar org.autoplot.AutoplotDataServer --uri='http://autoplot.org/data/autoplot.cdf?BGSM' -f hapi-info"
+            "info": "java -Djava.awt.headless=true -cp $HAPISERVERPATH/bin/autoplot.jar org.autoplot.AutoplotDataServer --uri='http://autoplot.org/data/autoplot.cdf?BGSM' -f hapi-info"
         }
     ]
 }
