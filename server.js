@@ -420,6 +420,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
 
   let CATALOG = CATALOGS[i];
   let PREFIX = "/" + PREFIXES[i]
+  let PREFIXe = encodeURIComponent(PREFIX).replace("%2F","/");
 
   let capabilities = metadata(CATALOG,"capabilities");
   let hapiversion = capabilities["HAPI"];
@@ -427,10 +428,10 @@ function apiInit(CATALOGS, PREFIXES, i) {
   log.info(clc.green("Initializing endpoints for http://localhost:" + argv.port + PREFIX + "/hapi"));
 
   // Serve static files in ./public/data (no directory listing provided)
-  app.use(PREFIX + "/data", express.static(__dirname + '/public/data'));
+  app.use(PREFIXe + "/data", express.static(__dirname + '/public/data'));
 
   // Serve all.json file
-  app.get(PREFIX + '/hapi/all.json', function (req, res) {
+  app.get(PREFIXe + '/hapi/all.json', function (req, res) {
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
     res.contentType("application/json");
@@ -438,7 +439,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
     fs.createReadStream(file).pipe(res);
   })
 
-  app.get(PREFIX + '/hapi/$', function (req, res) {
+  app.get(PREFIXe + '/hapi/$', function (req, res) {
     res.header('Location', "../hapi");
     // A 301 is more appropriate, but a relative URL is not allowed 
     // Would need to obtain proxied URL in order to get the correct
@@ -513,7 +514,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   landing(landingFile);
 
   // /capabilities
-  app.get(PREFIX + '/hapi/capabilities', function (req, res) {
+  app.get(PREFIXe + '/hapi/capabilities', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
@@ -530,7 +531,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   })
 
   // /catalog
-  app.get(PREFIX + '/hapi/catalog', function (req, res) {
+  app.get(PREFIXe + '/hapi/catalog', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
@@ -547,7 +548,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   })
 
   // /info
-  app.get(PREFIX + '/hapi/info', function (req, res) {
+  app.get(PREFIXe + '/hapi/info', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
@@ -573,7 +574,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   })
 
   // /data
-  app.get(PREFIX + '/hapi/data', function (req, res) {
+  app.get(PREFIXe + '/hapi/data', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
     cors(res);
@@ -658,9 +659,9 @@ function apiInit(CATALOGS, PREFIXES, i) {
 
   // Anything that does not match
   // PREFIX + {/hapi,/hapi/capabilities,/hapi/info,/hapi/data}
-  app.get(PREFIX + '/*', function (req, res) {
+  app.get(PREFIXe + '/*', function (req, res) {
     let base = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-    let msg = "Invalid URL. See " + base + PREFIX + "/hapi";
+    let msg = "Invalid URL. See " + base + PREFIXe + "/hapi";
     error(req, res, hapiversion, 1400, msg, req.originalUrl);
   })
 

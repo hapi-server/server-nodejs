@@ -4,7 +4,7 @@ APPDIR=/home/ubuntu/server-nodejs-dev
 
 /home/ubuntu/.nvm/versions/node/v8.17.0/bin/node \
     --max-old-space-size=256 \
-    /home/ubuntu/server-nodejs-dev/server.js \
+    $APPDIR/server.js \
     --port 8998 --ignore \
     --server-ui-include https://raw.githubusercontent.com/hapi-server/servers/master/dev.txt \
     --server-ui-include https://raw.githubusercontent.com/hapi-server/servers/master/all_.txt \
