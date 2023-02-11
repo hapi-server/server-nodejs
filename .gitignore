@@ -12,9 +12,6 @@ pkg/tgz
 pkg/GITHUB_TOKEN
 public/data/QinDenton/
 nohup.out
-metadata/SSCWeb/SSCWeb-catalog.json
-metadata/SSCWeb/old
-metadata/SSCWeb/old/*
 metadata/CAIO/meta
 metadata/CAIO/old
 metadata/CAIO/tmp
