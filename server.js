@@ -99,8 +99,8 @@ let argv = yargs
     'proxy-whitelist': '',
     'server-ui-include': '',
     'conf': __dirname + '/conf/server.json',
-    'verifier': 'http://hapi-server.org/verify',
-    'plotserver': 'http://hapi-server.org/plot'
+    'verifier': '',
+    'plotserver': ''
   })
   .argv
 
@@ -371,11 +371,13 @@ function apiInit(CATALOGS, PREFIXES, i) {
     app.get('/', function (req,res) {
       res.on('finish', () => log.request(req, req.socket.bytesWritten));
       // TODO: read file async
-      let html = fs
-                  .readFileSync(indexFile, "utf8")
-                  .replace(/__VERIFIER__/g, VERIFIER)
-                  .replace(/__PLOTSERVER__/g, PLOTSERVER)
-                  .toString()
+      let html = fs.readFileSync(indexFile, "utf8")
+      if (VERIFIER) {
+        html = html.replace(/__VERIFIER__/g, VERIFIER);
+      }
+      if (PLOTSERVER) {
+        html = html.replace(/__PLOTSERVER__/g, PLOTSERVER);
+      }
       res.send(html);
     });
 
