@@ -1,0 +1,18 @@
+serial run
+starting a
+finished a
+starting b
+finished b
+
+real	0m2.471s
+user	0m0.127s
+sys	0m0.112s
+
+parallel run
+starting a
+starting b
+a and b finished
+
+real	0m1.241s
+user	0m0.121s
+sys	0m0.103s
