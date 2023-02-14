@@ -1,23 +1,23 @@
 {
     "server": {
-        "id": "CDAWeb-APDS",
+        "id": "CDAWeb-apds",
         "prefix": "",
         "contact": "rweigel@gmu.edu",
         "landing": "",
         "catalog-update": null
     },
     "data": {
-        "command": "java -Djava.awt.headless=true -cp \"$HAPISERVERPATH\"/bin/autoplot.jar org.autoplot.AutoplotDataServer --uri='vap+cdaweb:ds=${{id}}&id=${{parameters}}&timerange=${{start}}/${{stop}}' -f hapi-data 2> >( sed '/Autoplot version/d' >&2 )",
+        "command": "java -Djava.awt.headless=true -cp \"$HAPISERVERPATH\"/bin/autoplot.jar org.autoplot.AutoplotDataServer -q --uri='vap+cdaweb:ds=${{id}}&id=${{parameters}}&timerange=${{start}}/${{stop}}' -f hapi-data",
         "contact": "rweigel@gmu.edu",
         "testurls": [
-            {"url": "data?id=ACE&parameters=Bx__GSM_&time.min=2006-01-01T00:00:00.000Z&time.max=2006-01-02T00:00:00.000Z","Nlines": 24}
+            {"url": "data?id=OMNI2_H0_MRG1HR&parameters=DST1800&time.min=2006-01-01T00:00:00.000Z&time.max=2006-01-02T00:00:00.000Z","Nlines": 24}
         ]
     },
-    "catalog_command":
+    "catalog_inline":
     [
          {
-            "id": "ACE",
-            "info": "java -Djava.awt.headless=true -cp $HAPISERVERPATH/bin/autoplot.jar org.autoplot.AutoplotDataServer --uri='vap+cdaweb:ds=${{id}}' -f hapi-info"
+            "id": "OMNI2_H0_MRG1HR",
+            "info": "java -Djava.awt.headless=true -cp $HAPISERVERPATH/bin/autoplot.jar org.autoplot.AutoplotDataServer -q --uri='vap+cdaweb:ds=OMNI2_H0_MRG1HR&id=DST1800' -f hapi-info"
         }
     ]
 }

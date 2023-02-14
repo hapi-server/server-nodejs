@@ -1,4 +1,5 @@
 // Call the SSCWeb API and respond with HAPI CSV.
+// Splits request into chunks of less than 6 days.
 var fs      = require('fs');
 var request = require('request');
 var moment  = require('moment');

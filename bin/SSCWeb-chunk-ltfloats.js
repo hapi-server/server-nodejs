@@ -1,4 +1,5 @@
 // Call the SPDF/SSCWeb API and respond with HAPI CSV.
+// Adds floating point time variables.
 const fs      = require('fs');
 const request = require('request');
 const moment  = require('moment');

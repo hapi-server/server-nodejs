@@ -1,4 +1,5 @@
 // Call the SPDF/SSCWeb API and respond with HAPI CSV.
+// Adds ability to parallelize requests.
 const fs      = require('fs');
 const request = require('request');
 const moment  = require('moment');
@@ -151,6 +152,7 @@ function makeRequestParallel(start, stop) {
   }
 
   function doRequest(cidx, url, start, stop) {
+
     if (DEBUG) {
       console.log(`Starting request ${cidx} ${start.toISOString()} to ${stop.toISOString()}`);
     }
@@ -176,7 +178,7 @@ function makeRequestParallel(start, stop) {
           console.log("Finished request " + cidx);
         }
         finished(cidx, extractData(body, stop));
-    })    
+    })
   }
 
 }
