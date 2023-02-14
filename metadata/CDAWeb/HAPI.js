@@ -1,12 +1,17 @@
 // Create a HAPI all.json catalog using HAPI /catalog
 // and /info responses from https://cdaweb.gsfc.nasa.gov/hapi.
 
-let DATSET_ID_RE = new RegExp(/^AC_/);
+const fs      = require('fs');
+const request = require("request");
+const xml2js  = require('xml2js').parseString;
+const argv    = require('yargs')
+                  .default
+                    ({
+                      'idregex': '^AC_'
+                    })
+                  .argv;
 
-let fs      = require('fs');
-let request = require("request");
-let moment  = require('moment');
-let xml2js  = require('xml2js').parseString;
+let DATSET_ID_RE = new RegExp(argv.idregex);
 
 // pool should be set outside of loop. See
 // https://www.npmjs.com/package/request#requestoptions-callback
@@ -14,6 +19,7 @@ let xml2js  = require('xml2js').parseString;
 let pool = {maxSockets: 3};  
 
 let hapiurl = "https://cdaweb.gsfc.nasa.gov/hapi";
+//let hapiurl = "https://cdaweb.gsfc.nasa.gov/registry/hdp/hapi/catalog";
 
 if (!fs.existsSync('hapi')) {fs.mkdirSync('hapi')}
 

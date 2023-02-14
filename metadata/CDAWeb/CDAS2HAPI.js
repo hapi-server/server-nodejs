@@ -1,14 +1,20 @@
-// Create a HAPI catalog based on
+// Create a HAPI all.json catalog based on
 //   https://spdf.gsfc.nasa.gov/pub/catalogs/all.xml
 // and queries to
 //   https://cdaweb.gsfc.nasa.gov/WebServices/REST/
 
-let DATSET_ID_RE = new RegExp(/^AC_H0_MFI/);
+const fs      = require('fs');
+const request = require("request");
+const moment  = require('moment');
+const xml2js  = require('xml2js').parseString;
+const argv    = require('yargs')
+                  .default
+                    ({
+                      'idregex': '^AC_'
+                    })
+                  .argv;
 
-let fs      = require('fs');
-let request = require("request");
-let moment  = require('moment');
-let xml2js  = require('xml2js').parseString;
+let DATSET_ID_RE = new RegExp(argv.idregex);
 
 // pool should be set outside of loop. See
 // https://www.npmjs.com/package/request#requestoptions-callback
@@ -124,14 +130,14 @@ function variables(CATALOG) {
       //console.log("Wrote:   " + fname);
     }
 
-    CATALOG[ididx]['_parameters'] = {};
+    CATALOG[ididx]['x_parameters'] = {};
     let VariableDescription = body['VariableDescription'];
     for (variable of VariableDescription) {
       parameter = {
                     'name': variable['Name'],          
                     'description': variable['LongDescription'] || variable['ShortDescription']
                   };
-      CATALOG[ididx]['_parameters'][variable['Name']] = parameter;
+      CATALOG[ididx]['x_parameters'][variable['Name']] = parameter;
     }
 
     if (finished.N == CATALOG.length) {
@@ -145,7 +151,7 @@ function variableDetails(CATALOG) {
   for (ididx = 0; ididx < CATALOG.length; ididx++) {
     parameters = null;
     parameters = [];
-    for (name of Object.keys(CATALOG[ididx]['_parameters'])) {
+    for (name of Object.keys(CATALOG[ididx]['x_parameters'])) {
       parameters.push(name);
     }
     parameters = parameters.join(",")
@@ -254,8 +260,31 @@ function variableDetails(CATALOG) {
       //process.exit(1);
     }
 
-    // Keep only first two data records.
+    if (body['Warning'].length > 0) {
+      if (fromCache == false) {
+        //let fnameWarn = fname.replace(".json", ".warning.json");
+        //console.log("Writing: " + fnameWarn);
+        //fs.writeFileSync(fnameWarn, JSON.stringify(body['Warning'], null, 4));
+      }      
+    }
+
     let cdfVariables = body['CDF'][0]['cdfVariables'];
+    if (cdfVariables.length > 1) {        
+      console.error("Case of more than one cdfVariable not implemented.");
+      console.error(cdfVariables)
+      process.exit(1);
+    }
+
+    let orphanAttributes = body['CDF'][0]['orphanAttributes'];
+    if (orphanAttributes && orphanAttributes['attribute'].length > 0) {
+      if (fromCache == false) {
+        let fnameOrphan = fname.replace(".json", ".orphan.json");
+        console.log("Writing: " + fnameOrphan);
+        fs.writeFileSync(fnameOrphan, JSON.stringify(orphanAttributes['attribute'], null, 4));
+      }      
+    }
+
+    // Keep only first two data records.
     for ([idx, variable] of Object.entries(cdfVariables['variable'])) {
       let cdfVarRecords = variable['cdfVarData']['record'];
       if (cdfVarRecords.length > 2) {
@@ -269,33 +298,38 @@ function variableDetails(CATALOG) {
       //console.log("Wrote:   " + fname);
     }
 
-    let cdfGAttributes = body['CDF'][0]['cdfGAttributes']['attribute'];
-    for (attribute of cdfGAttributes) {
+
+    let cdfGAttributes = body['CDF'][0]['cdfGAttributes'];
+    CATALOG[ididx]['x_gAttributes'] = body['CDF'][0]['cdfGAttributes'];
+
+    for (attribute of cdfGAttributes['attribute']) {
       if (attribute['name'] === 'TIME_RESOLUTION') {
         CATALOG[ididx]['cadence'] = attribute['entry'][0]['value'];
       }
-    }
-
-    //let cdfVariables = body['CDF'][0]['cdfVariables'];
-    if (cdfVariables.length > 1) {        
-      console.log("More than one cdfVariable");
-      console.error(cdfVariables)
-      process.exit(1);
+      if (attribute['name'] === 'SPASE_DATASETRESOURCEID') {
+        CATALOG[ididx]['resourceID'] = attribute['entry'][0]['value'];
+      }
+      if (attribute['name'] === 'GENERATION_DATE') {
+        CATALOG[ididx]['creationDate'] = attribute['entry'][0]['value'];
+      }
+      // MODS => modificationDate
+      // ACKNOWLEDGEMENT => citation or datasetCitation
+      // RULES_OF_USE => newly proposed datasetTermsOfUse https://github.com/hapi-server/data-specification/issues/155
     }
 
     for (variable of cdfVariables['variable']) {
       let vAttributesKept = cdfVAttributes(variable['cdfVAttributes']['attribute']);
 
-      if (!CATALOG[ididx]['_parameters'][variable['name']]) {
-        CATALOG[ididx]['_parameters'][variable['name']] = {};
-        // CATALOG[ididx]['_parameters'] was initialized with
+      if (!CATALOG[ididx]['x_parameters'][variable['name']]) {
+        CATALOG[ididx]['x_parameters'][variable['name']] = {};
+        // CATALOG[ididx]['x_parameters'] was initialized with
         // all of the variables returned by /variables endpoint.
         // This list does not include support variables. So we add them
         // here. 
-        CATALOG[ididx]['_parameters'][variable['name']]['name'] = variable['name'];
+        CATALOG[ididx]['x_parameters'][variable['name']]['name'] = variable['name'];
       }
-      CATALOG[ididx]['_parameters'][variable['name']]['vAttributesKept'] = vAttributesKept;
-      CATALOG[ididx]['_parameters'][variable['name']]['variable'] = variable;
+      CATALOG[ididx]['x_parameters'][variable['name']]['vAttributesKept'] = vAttributesKept;
+      CATALOG[ididx]['x_parameters'][variable['name']]['variable'] = variable;
     }
 
     if (finished.N == CATALOG.length) {
@@ -334,9 +368,37 @@ function extractDepend1(depend1Variable) {
     return depend1;
 }
 
+function extractVectorComponents(depend1) {
+  let vectorComponents = false;
+
+  if (depend1.length == 3) {
+    // TODO: Get coordinateSystemName
+    if (depend1[0] === 'x_component' && depend1[1] === 'y_component' && depend1[2] === 'z_component') {
+      vectorComponents = ['x', 'y', 'z'];
+    }
+    if (depend1[0] === 'x' && depend1[1] === 'y' && depend1[2] === 'z') {
+      vectorComponents = ['x', 'y', 'z'];
+    }
+  }
+  return vectorComponents;
+}
+
+function extractCoordinateSystemName(dataset) {
+
+  let coordinateSystemName = false;
+  let knownNames = ["GSM", "GCI", "GSE", "RTN", "GEO", "MAG"]
+  for (knownName of knownNames) {
+    if (dataset['name'].includes(knownName)) {
+      coordinateSystemName = knownName;
+      return coordinateSystemName;
+    }
+  }
+}
+
 function finalizeCatalog(CATALOG) {
 
   for (dataset of CATALOG) {
+
 
     let pidx = 0;
     dataset['parameters'] = [];
@@ -345,46 +407,61 @@ function finalizeCatalog(CATALOG) {
       dataset['cadence'] = str2ISODuration(dataset['cadence']);
     }  
 
-    for (parameter of Object.keys(dataset['_parameters'])) {
+    //console.log(dataset['id']);
+    //console.log(Object.keys(dataset['x_parameters']));
 
-      if (dataset['_parameters'][parameter]['vAttributesKept']['VAR_TYPE'] === "metadata") {
+    for (parameter of Object.keys(dataset['x_parameters'])) {
+
+      //console.log(dataset['x_parameters'][parameter]);
+
+      if (dataset['x_parameters'][parameter]['vAttributesKept']['VAR_TYPE'] === "metadata") {
         continue;
       }
 
-      let copy = JSON.parse(JSON.stringify(dataset['_parameters'][parameter]));
+      let copy = JSON.parse(JSON.stringify(dataset['x_parameters'][parameter]));
       dataset['parameters'].push(copy);
 
       // Move kept vAttributes up
-      for (key of Object.keys(dataset['_parameters'][parameter]['vAttributesKept'])) {
-        dataset['parameters'][pidx][key] = dataset['_parameters'][parameter]['vAttributesKept'][key];
+      for (key of Object.keys(dataset['x_parameters'][parameter]['vAttributesKept'])) {
+        dataset['parameters'][pidx][key] = dataset['x_parameters'][parameter]['vAttributesKept'][key];
       }
       // Remove non-HAPI content
       delete dataset['parameters'][pidx]['vAttributesKept'];
       delete dataset['parameters'][pidx]['variable']
       delete dataset['parameters'][pidx]['VAR_TYPE'];
 
+      let vectorComponents = false;
       // Extract DEPEND_1
-      if (dataset['_parameters'][parameter]['vAttributesKept']['DEPEND_1']) {
-        let DEPEND_1 = dataset['_parameters'][parameter]['vAttributesKept']['DEPEND_1'];
-        let depend1 = extractDepend1(CATALOG[ididx]['_parameters'][DEPEND_1]['variable'])
-        if (depend1.length == 3 && depend1[0] === 'x_component' && depend1[1] === 'y_component' && depend1[2] === 'z_component') {
-          dataset['parameters'][pidx]['vectorComponents'] = ['x', 'y', 'z']
-        } else {
-          dataset['parameters'][pidx]['depend1'] = depend1;
+      if (dataset['x_parameters'][parameter]['vAttributesKept']['DEPEND_1']) {
+        let DEPEND_1 = dataset['x_parameters'][parameter]['vAttributesKept']['DEPEND_1'];
+        let depend1 = extractDepend1(dataset['x_parameters'][DEPEND_1]['variable'])
+        vectorComponents = extractVectorComponents(depend1)
+        if (vectorComponents) {
+          dataset['parameters'][pidx]['vectorComponents'] = ['x', 'y', 'z'];
           delete dataset['parameters'][pidx]['DEPEND_1'];
+        } else {
+          dataset['parameters'][pidx]['_x_DEPEND_1'] = depend1;
         }
       }
 
       // Extract labels
-      if (dataset['_parameters'][parameter]['vAttributesKept']['LABL_PTR_1']) {
-        let LABL_PTR_1 = dataset['_parameters'][parameter]['vAttributesKept']['LABL_PTR_1'];
-        let label = extractLabel(CATALOG[ididx]['_parameters'][LABL_PTR_1]['variable'])
+      if (dataset['x_parameters'][parameter]['vAttributesKept']['LABL_PTR_1']) {
+        let LABL_PTR_1 = dataset['x_parameters'][parameter]['vAttributesKept']['LABL_PTR_1'];
+        let label = extractLabel(dataset['x_parameters'][LABL_PTR_1]['variable'])
         dataset['parameters'][pidx]['label'] = label;
         delete dataset['parameters'][pidx]['LABL_PTR_1'];
       }
 
+      if (vectorComponents) {
+        let coordinateSystemName = extractCoordinateSystemName(dataset['parameters'][pidx]);
+        if (coordinateSystemName) {
+          dataset['parameters'][pidx]['coordinateSystemName'] = coordinateSystemName;
+        }
+      }
+
       pidx = pidx + 1;
     }
+
   }
 
   let fnameAllFull = 'all-cdas-full.json' 
@@ -392,8 +469,15 @@ function finalizeCatalog(CATALOG) {
   fs.writeFileSync(fnameAllFull, JSON.stringify(CATALOG, null, 2));
 
   for (dataset of CATALOG) {
-    delete dataset['_parameters'];
+    delete dataset['x_parameters'];
   }
+
+  for (dataset of CATALOG) {
+    let fnameDataset = 'cdas/' + dataset['id'] + '.json' 
+    console.log("Writing: " + fnameDataset);
+    fs.writeFileSync(fnameDataset, JSON.stringify(dataset, null, 2));
+  }
+
   let fnameAll = 'all-cdas.json' 
   console.log("Writing: " + fnameAll);
   fs.writeFileSync(fnameAll, JSON.stringify(CATALOG, null, 2));
