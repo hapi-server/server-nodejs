@@ -1521,7 +1521,7 @@ function error(req,res,hapiversion,code,message,messageFull) {
 function errorHandler(err, req, res, next) {
   let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   let msg = "Request from " + addr + ": " + req.originalUrl;
-  error(req, res, "2.0", "1500", null, msg + "\n" + err.stack);
+  error(req, res, catalog.HAPI, "1500", null, msg + "\n" + err.stack);
 }
 
 // Errors in non-API part of application
