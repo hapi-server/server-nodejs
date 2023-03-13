@@ -522,8 +522,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
 
     // Send error if query parameters given
     if (Object.keys(req.query).length > 0) {
-      error(req, res, hapiversion, 1401,
-       "This endpoint takes no query string.");
+      error(req, res, hapiversion, 1401, "This endpoint takes no query string.");
       return;
     }
 
@@ -539,8 +538,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
 
     // Send error if query parameters given
     if (Object.keys(req.query).length > 0) {
-      error(req, res, hapiversion, 1401,
-       "This endpoint takes no query string.");
+      error(req, res, hapiversion, 1401, "This endpoint takes no query string.");
       return;
     }
 
@@ -949,11 +947,6 @@ function data(req,res,catalog,header,include) {
   function executecom(com, d, req, res, header, include) {
 
     function dataErrorMessage() {
-      if (wroteheader) {
-        // Set error header and exit if header not sent.
-        res.end();
-        return;
-      }
       let msg = "Problem with the data server.";
       if (d.contact) {
         error(req, res, header["HAPI"], 1500, msg + " Please send URL to " + d.contact + ".");
@@ -1452,14 +1445,15 @@ function timeCheck(header) {
 function error(req,res,hapiversion,code,message,messageFull) {
 
   let start = "time.min";
-  let stop = "time.max";
-  let dataset = "id";  
+  let stop  = "time.max";
+  let dataset = "id";
+
   if (parseInt(hapiversion) >= 3) {
     start = req.query['start'] ? 'start' : start;
     stop = req.query['stop'] ? 'stop': stop;
     dataset = req.query['dataset'] ? 'dataset': dataset;
   }
-  // TODO: Need to determine if headers and/or data were already sent.
+
   var errs = {
     "1400": {status: 400, "message": "HAPI error 1400: user input error"},
     "1401": {status: 400, "message": "HAPI error 1401: unknown request field"},
@@ -1480,7 +1474,7 @@ function error(req,res,hapiversion,code,message,messageFull) {
   // Defaults
   var json = {
                 "HAPI" : hapiversion,
-                "status": { "code": 1500, "message": "Internal server error"}
+                "status": {"code": 1500, "message": "Internal server error"}
               };
   var httpcode = 500;
   var httpmesg = "Internal server error. Please report URL attempted to the "
@@ -1504,6 +1498,7 @@ function error(req,res,hapiversion,code,message,messageFull) {
   }
 
   if (res.headersSent) {
+    res.end();
     return;
   }
 
