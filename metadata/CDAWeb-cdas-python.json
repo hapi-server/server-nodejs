@@ -8,7 +8,7 @@
       "catalog-update": null
   },
   "data": {
-      "command": "\"$NODEEXE\" \"$HAPISERVERPATH/../cdaweb-hapi-metadata/CDAS2HAPIcsv.js\" --id ${id} --parameters ${parameters} --start ${start} --stop ${stop} --infodir \"$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/info\"",
+      "command": "\"$PYTHONEXE\" \"$HAPISERVERPATH/../cdaweb-hapi-metadata/CDAS2HAPIcsv.py\" --id ${id} --parameters ${parameters} --start ${start} --stop ${stop} --infodir \"$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/info\"",
       "formats": ["csv"],
       "contact": "rweigel@gmu.edu"
   },
