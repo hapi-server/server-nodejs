@@ -8,57 +8,10 @@
     "catalog-update": null
   },
   "data": {
-    "file": "$HAPISERVERPATH/../cdaweb-hapi-metadata/cache/bw/AC/AC_OR_SSC/AC_OR_SSC-files.csv",
+    "file": "$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/info/${{id}}-files.csv",
     "fileformat": "csv",
     "contact": "rweigel@gmu.edu"
   },
-  "catalog_inline":
-    [
-      {
-        "id": "AC_OR_SSC",
-        "title": "",
-        "info": 
-            {
-              "startDate": "1998-01-01Z",
-              "stopDate" : "2023-01-01Z",
-              "parameters":
-                [
-                  { 
-                    "name": "Time",
-                    "type": "isotime",
-                    "units": "UTC",
-                    "fill": null,
-                    "length": 11
-                  },
-                  { 
-                    "name": "URL",
-                    "type": "string",
-                    "units": null,
-                    "fill": null,
-                    "length": 1000
-                  },
-                  { 
-                    "name": "LastModified",
-                    "type": "isotime",
-                    "units": "UTC",
-                    "fill": null,
-                    "length": 17
-                  },
-                  { 
-                    "name": "FileSize",
-                    "type": "integer",
-                    "fill": null,
-                    "units": "bytes"
-                  },
-                  { 
-                    "name": "FileVersion",
-                    "type": "string",
-                    "fill": null,
-                    "units": null
-                  }
-                ]
-            }       
-      }
-    ]
+  "catalog_file": "$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/all-files.json"
 }
 
