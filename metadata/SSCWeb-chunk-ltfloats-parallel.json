@@ -13,5 +13,5 @@
         "contact": "rweigel@gmu.edu",
         "test": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/SSCWeb-chunk-ltfloats-parallel.js\" --ltfloats --id ace --parameters Time --start 2000-01-01T00:00:00.000Z --stop 2000-01-01T23:59:59.000Z"
     },
-    "catalog_command": "cd \"$HAPISERVERPATH/metadata/SSCWeb\" && \"$NODEEXE\" SSCWeb2HAPI.js --ltfloats"
+    "catalog_command": "cd \"$HAPISERVERPATH/metadata/SSCWeb\" && cpulimit -q -l 5 -- nice -20 \"$NODEEXE\" SSCWeb2HAPI.js --ltfloats"
 }
