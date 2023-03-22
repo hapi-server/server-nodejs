@@ -1,0 +1,16 @@
+{
+  "HAPI": "3.1",
+  "server": {
+      "id": "CDAWeb-cdas",
+      "prefix": "",
+      "contact": "rweigel@gmu.edu",
+      "landing": "",
+      "catalog-update": null
+  },
+  "data": {
+      "command": "\"$NODEEXE\" \"$HAPISERVERPATH/../cdaweb-hapi-metadata/HAPIdata.js\" --from cdaweb-csv-using-js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop} --infodir \"$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/info\"",
+      "formats": ["csv"],
+      "contact": "rweigel@gmu.edu"
+  },
+  "catalog_file": "$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/all.json"
+}
