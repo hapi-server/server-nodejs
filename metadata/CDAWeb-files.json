@@ -8,10 +8,10 @@
     "catalog-update": null
   },
   "data": {
-    "file": "$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/info/${{id}}-files.csv",
+    "file": "$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/CDAWeb-files/data/${{id}}-files.csv",
     "fileformat": "csv",
     "contact": "rweigel@gmu.edu"
   },
-  "catalog_file": "$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/all-files.json"
+  "catalog_file": "$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/CDAWeb-files/all.json"
 }
 

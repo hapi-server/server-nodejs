@@ -8,9 +8,9 @@
       "catalog-update": null
   },
   "data": {
-      "command": "\"$NODEEXE\" \"$HAPISERVERPATH/../cdaweb-hapi-metadata/bin/HAPIdata.js\" --from cdaweb-csv-using-js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop} --infodir \"$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/info\"",
+      "command": "\"$NODEEXE\" \"$HAPISERVERPATH/../cdaweb-hapi-metadata/bin/HAPIdata.js\" --from cdaweb-csv-using-js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop} --infodir \"$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/CDAWeb/info\"",
       "formats": ["csv"],
       "contact": "rweigel@gmu.edu"
   },
-  "catalog_file": "$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/all.json"
+  "catalog_file": "$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/CDAWeb/all.json"
 }
