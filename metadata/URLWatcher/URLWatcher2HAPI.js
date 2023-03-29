@@ -1,4 +1,5 @@
 const fs = require("fs");
+const superagent = require('superagent');
 
 let catalog = [];
 let parameters = 
@@ -8,7 +9,8 @@ let parameters =
           'label': 'Time of test',
           'type': 'isotime',
           'units': 'UTC',
-          'fill': ''
+          'fill': null,
+          'length': 24
         },
         {
           'name': 'status',
@@ -53,8 +55,8 @@ let parameters =
           'fill': "-1"
         }
       ];
-const urlwatcher = 'http://localhost:4444/';
-const superagent = require('superagent');
+const urlwatcher = 'https://hapi-server.org/urlwatcher/';
+//const urlwatcher = 'http://localhost:4444/';
 
 superagent
   .get(urlwatcher + 'log/tests.json')
@@ -92,7 +94,7 @@ function processDirs(err, dirs) {
 
 function dataset(id, files, settings) {
   let N = files.length - 1;
-  let start = files[0].split("/").slice(-1)[0].slice(0,10) + "Z"
+  let start = files[0].split("/").slice(-1)[0].slice(0,10) + "Z";
   let stop  = files[N].split("/").slice(-1)[0].slice(0,10) + "Z";
   stop = new Date(stop);
   stop = new Date(stop.getTime() + 60*60*24*1000).toISOString().slice(0,10) + "Z";

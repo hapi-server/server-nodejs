@@ -8,7 +8,7 @@
   },
   "HAPI": "3.0",
   "data": {
-      "command": "$PYTHONEXE \"$HAPISERVERPATH/bin/URLWatcher.py\" --dataset ${id} --start ${start} --stop ${stop}",
+      "command": "python3 \"$HAPISERVERPATH/bin/URLWatcher.py\" --dataset ${id} --start ${start} --stop ${stop} --parameters ${parameters}",
       "formats": ["csv"],
       "contact": "rweigel@gmu.edu"
   },
