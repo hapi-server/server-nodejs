@@ -939,7 +939,7 @@ function data(req,res,catalog,header,include) {
         com = '"' + com + '"';
       }
     } else {
-      com = "cpulimit -l 10 -q -- nice -n 20 " + com;
+      com = "cpulimit -l 30 -q -- nice -n 20 " + com;
     }
     return com;
   }
