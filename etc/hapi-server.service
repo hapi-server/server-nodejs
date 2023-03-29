@@ -12,6 +12,10 @@ Documentation=https://github.com/rweigel/hapi-server/server-nodejs
 [Service]
 Type=simple
 User=ubuntu
+CPUWeight=100
+CPUQuota=50%
+IOWeight=20
+MemorySwapMax=0
 WorkingDirectory=/home/ubuntu/server-nodejs
 ExecStart=/usr/bin/sh -c etc/hapi-server.sh
 Restart=always
