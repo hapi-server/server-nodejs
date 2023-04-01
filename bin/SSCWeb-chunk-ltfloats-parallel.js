@@ -101,6 +101,7 @@ function makeRequestParallel(start, stop) {
     if (DEBUG) {
       console.log("start: " + start.toISOString());
       console.log("stop:  " + stop.toISOString());
+      console.log(url);
     }
     urls.push(url);
     starts.push(start.clone());
