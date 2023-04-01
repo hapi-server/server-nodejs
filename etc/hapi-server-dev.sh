@@ -4,7 +4,7 @@ APPDIR=/home/ubuntu/server-nodejs-dev
 
 #cpulimit -l 5 -- nice -20 \
 /home/ubuntu/.nvm/versions/node/v18.10.0/bin/node \
-    --max-old-space-size=256 \
+    --max-old-space-size=192 \
     $APPDIR/server.js \
     --port 8998 --ignore \
     --server-ui-include https://raw.githubusercontent.com/hapi-server/servers/master/dev.txt \

@@ -7,7 +7,7 @@
 		"catalog-update": null
 	},
 	"data": {
-		"command": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/TestData2.0.js\" --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
+		"command": "\"$NODEEXE\" --max-old-space-size=96 \"$HAPISERVERPATH/bin/TestData2.0.js\" --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
 		"testurls": [
