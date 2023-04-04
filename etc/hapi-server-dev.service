@@ -6,11 +6,11 @@ Documentation=https://github.com/rweigel/hapi-server/server-nodejs
 Type=simple
 User=ubuntu
 CPUWeight=10
-CPUQuota=20%
+CPUQuota=40%
 IOWeight=20
 MemorySwapMax=0
 WorkingDirectory=/home/ubuntu/server-nodejs-dev
-ExecStart=/usr/bin/sh -c etc/hapi-server-dev.sh
+ExecStart=/usr/bin/bash -c etc/hapi-server-dev.sh
 Restart=always
 
 [Install]
