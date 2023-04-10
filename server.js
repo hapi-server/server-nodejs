@@ -129,11 +129,9 @@ const METADIR     = __dirname + "/public/meta";
 const PROXY_WHITELIST   = argv["proxy-whitelist"];
 const SERVER_UI_INCLUDE = argv["server-ui-include"];
 
-let server;
-
+let options = {};
 if (HTTPS === false) {
   log.info("Server will use http.");
-  server = require("http").createServer(app);
 } else {
   log.info("Starting HTTPS Server");
   if (KEY_PATH  == undefined && CERT_PATH != undefined) {
@@ -184,25 +182,24 @@ if (HTTPS === false) {
       }
     }
 
-    if (child.status == 0) {
-
-      // TODO: Report error and exit if key.pem and cert.pem not found.
-      options = {
-        key:  fs.readFileSync(require("path").resolve(__dirname, "./ssl/key.pem")),
-        cert: fs.readFileSync(require("path").resolve(__dirname, "./ssl/cert.pem"))
-      };
-      
-      server = require("https").createServer(options, app);
-
-    } else {
+    if (child.status !== 0) {
       console.log(clc.red("Command returned non-zero status: " + com + "."));
-      console.log("\nstdout:\n" + child.stdout.toString());
-      console.log("\nstderr:\n" + child.stderr.toString());
+      if (child.stdout.toString().trim().length > 0)
+        console.log("\nstdout:\n" + child.stdout.toString());
+      if (child.stderr)
+        console.log("\nstderr:\n" + child.stderr.toString());
       console.log("Exiting.");
       process.exit(1);
     }
- }
+    // TODO: Report error and exit if key.pem and cert.pem not found.
+    options = {
+      key:  fs.readFileSync(require("path").resolve(__dirname, "./ssl/key.pem")),
+      cert: fs.readFileSync(require("path").resolve(__dirname, "./ssl/cert.pem"))
+    };
+  }
 }
+
+let server = require("https").createServer(options, app);
 
 let FILES;
 if (typeof(FILE) == 'string') {
@@ -756,9 +753,10 @@ function data(req,res,catalog,header,include) {
         log.info("Responded with proxy of " + url);
       })
       .on('error', function (err) {
-        error(req, res, header["HAPI"], 1500, null, "Proxy " + url + " error: " + err);
+        error(req, res, header["HAPI"], 1500, null,
+              "Proxy " + url + " error: " + err);
       })
-      .web(req, res, { target: d.proxy });
+      .web(req, res, {target: d.proxy});
     return;
   } else {
     let com = buildcom(d, header, req);
@@ -800,11 +798,13 @@ function data(req,res,catalog,header,include) {
     return timestr;
   }
 
-  function replacevars(com) {
+  function replacevars(com, isURL) {
+
+    let dataset = req.query["id"] || req.query["dataset"];
 
     // Double {{ }} means don't quote
-    com = com.replace("${{id}}",req.query["id"]);
-    
+    com = com.replace("${{id}}", dataset);
+    com = com.replace("${{dataset}}", dataset);
     if (req.query["parameters"]) {   
       com = com.replace("${{parameters}}",req.query["parameters"]);
     } else {
@@ -813,24 +813,34 @@ function data(req,res,catalog,header,include) {
 
     let start = req.query["time.min"] || req.query["start"];
     let stop = req.query["time.max"] || req.query["stop"];
-    let dataset = req.query["id"] || req.query["dataset"];
     // Times don't need to be quoted
     com = com.replace("${start}",normalizeTime(start));
     com = com.replace("${stop}",normalizeTime(stop));
-
     com = com.replace("${{start}}",normalizeTime(start));
     com = com.replace("${{stop}}",normalizeTime(stop));
 
-    if (process.platform.startsWith("win")) {
-      com = com.replace("${id}",'"' + dataset + '"');
-    } else {
-      com = com.replace("${id}","'" + dataset + "'");
+    if (!isURL) {
+      if (process.platform.startsWith("win")) {
+        com = com.replace("${id}",'"' + dataset + '"');
+        com = com.replace("${dataset}",'"' + dataset + '"');
+      } else {
+        com = com.replace("${id}","'" + dataset + "'");
+        com = com.replace("${dataset}",'"' + dataset + '"');
+      }
     }
     if (req.query["parameters"]) {
       if (process.platform.startsWith("win")) {
-        com = com.replace("${parameters}",'"' + req.query["parameters"] + '"');
+        if (isURL) {
+          com = com.replace("${parameters}",'"' + req.query["parameters"] + '"');
+        } else {
+          com = com.replace("${parameters}",req.query["parameters"]);
+        }
       } else {
-        com = com.replace("${parameters}","'" + req.query["parameters"] + "'");
+        if (isURL === true) {
+          com = com.replace("${parameters}",req.query["parameters"]);
+        } else {
+          com = com.replace("${parameters}","'" + req.query["parameters"] + "'");
+        }
       }
     } else {
       com = com.replace("${parameters}",'""');
@@ -890,7 +900,7 @@ function data(req,res,catalog,header,include) {
       //com = config.PYTHONEXE + " " + __dirname + "/lib/subset.py";
       com = '"' + config.NODEEXE + '" ' + __dirname + "/lib/subset.js";
       if (d.file) com = com + ' --file "' + replacevars(d.file) + '"';
-      if (d.url)  com = com + ' --url "' + replacevars(d.url) + '"';
+      if (d.url)  com = com + ' --url "' + replacevars(d.url,false) + '"';
       com = com + " --start " + start;
       com = com + " --stop " + stop;
       let columns = columnsstr();
@@ -939,7 +949,7 @@ function data(req,res,catalog,header,include) {
         com = '"' + com + '"';
       }
     } else {
-      com = "cpulimit -l 30 -q -- nice -n 20 " + com;
+      //com = "cpulimit -l 30 -q -- nice -n -20 " + com;
     }
     return com;
   }
@@ -949,7 +959,8 @@ function data(req,res,catalog,header,include) {
     function dataErrorMessage() {
       let msg = "Problem with the data server.";
       if (d.contact) {
-        error(req, res, header["HAPI"], 1500, msg + " Please send URL to " + d.contact + ".");
+        error(req, res, header["HAPI"], 1500, 
+              msg + " Please send URL to " + d.contact + ".");
       } else {
         error(req, res, header["HAPI"], 1500, "Problem with the data server.");
       }
@@ -960,11 +971,9 @@ function data(req,res,catalog,header,include) {
     // See if cmd line program supports requested format
     let formats = d.formats; // formats supported by cmd line program
     let convert = true;      // true if conversion is needed
-    if (formats) {
-      if (formats.includes(req.query["format"])) {
-        // cmd line program can create requested format
-        convert = false;
-      }
+    if (formats && formats.includes(req.query["format"])) {
+      // cmd line program can create requested format
+      convert = false;
     }
 
     // Call the cmd line command and send output.
@@ -972,25 +981,138 @@ function data(req,res,catalog,header,include) {
       let opts = {shell: true, stdio: "pipe", encoding: "buffer"};
       var child = require('child_process').spawn('cmd.exe', ['/s','/c', com], opts);
     } else {
-      let opts = {"encoding": "buffer"};
+      // See https://azimi.me/2014/12/31/kill-child_process-node-js.html for
+      // reason for detached: true
+      let opts = {"encoding": "buffer", detached: true};
       var child = require('child_process').spawn('sh', ['-c', com], opts);
     }
 
+    child.stderr.on('data', function (err) {
+      log.error(`Command ${com} gave stderr: '${err.toString().trim()}'`);
+    });
+
+    child.on('error', function (err) {
+      log.error(`Command ${com} gave err: '${err.toString().trim()}'`);
+    });
+
+    let usePipe = true; 
+    let gotData = false;     // First chunk of data received.
+    let wroteHeader = false; // If header already sent.
+    let childFinished = false;
+    let connectionClosed = false;
+
     req.connection.on('close',function () {
-      // If request closes and child has not exited, kill child.
-      if (child.exitCode == null) {
-        log.info('HTTP Connection closed. Killing ' + com);
-        child.kill('SIGINT');
+      // https://azimi.me/2014/12/31/kill-child_process-node-js.html
+      connectionClosed = true;
+      if (childFinished === false) {
+        log.info(`HTTP Connection closed before child finished. Killing ${com}`);
+        process.kill(-child.pid);
+      } else {
+        log.debug(`HTTP Connection closed.`);
       }
       log.info("Executed: " + com);
     });
 
-    child.stderr.on('data', function (err) {
-      log.error("Command " + com + " gave stderr:\n" + err);
-    })
+    if (usePipe) {
 
-    let wroteheader = false; // If header already sent.
-    let gotdata = false;     // First chunk of data received.
+      child.stdout.on('end', function () {
+
+        log.info(`Child end event.`);
+        if (gotData === false) {
+          header["status"]["code"] = 1201;
+          header["status"]["message"] = "OK - No data in interval";
+          if (convert && header["format"] === "json") {
+            // Send header only
+            res.write(csvTo("",true,true,header,include));
+          } else if (include === true) {
+            res.write("#" + JSON.stringify(header) + "\n");
+          }
+        }
+      });
+
+      child.stdout.on('data', function () {
+        gotData = true;
+        log.debug(`Child data event.`);
+        // TODO: Only need this called once. Disable after first call?
+      });
+
+      child.on('close', function (code) {
+
+        childFinished = true;
+        if (code !== 0 && connectionClosed === false) {
+          log.error(`Child closed with status ${code}: ${com}`);
+          dataErrorMessage();
+          return;
+        } else {
+          log.info(`Child closed with status ${code}: ${com}`);
+        }
+
+      });
+
+      // Use pipe to prevent backpressure causing large memory usage.
+      const { Transform } = require("stream");
+
+      const writeTransform = new Transform({
+
+        transform(chunk, encoding, callback) {
+
+          log.debug("Got chunk.")
+          let headerStr = undefined;
+          if (include === true && wroteHeader === false) {
+            // If header requested and header not written
+            wroteHeader = true;
+            if (header["format"] === "csv" || header["format"] === "binary") {
+              headerStr = "#" + JSON.stringify(header) + "\n";
+            }
+          }
+          if (header["format"] === "csv") {
+            if (headerStr === undefined) {
+              callback(null, chunk.toString());
+            } else {
+              callback(null, headerStr + chunk.toString());                
+            }
+          }
+          if (convert === false) {
+            if (header["format"] === "json") {
+              if (headerStr === undefined) {
+                callback(null, chunk.toString());
+              } else {
+                callback(null, headerStr + chunk.toString());                
+              }
+            }
+            if (header["format"] === "binary") {
+              if (headerStr === undefined) {
+                callback(null, chunk);
+              } else {
+                callback(null, headerStr + chunk);                
+              }
+            }
+          } else {
+            if (header["format"] === "json") {
+            }
+            if (header["format"] === "binary") {
+            }
+          }
+
+        }
+      });
+
+      const { pipeline } = require("stream");
+      pipeline(child.stdout, writeTransform, res,
+        (err) => {
+          if (err) {
+            if (err.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+              log.debug("ERR_STREAM_PREMATURE_CLOSE");
+            } else {
+              console.error(err);
+            }
+          }
+        });
+    }
+
+    if (usePipe == true) {
+      return;
+    }
 
     let incrementalBinary = false;
     let bufferstr = "";
@@ -998,12 +1120,16 @@ function data(req,res,catalog,header,include) {
 
     child.on('close', function (code) {
 
-      if (code != 0) {
+      childFinished = true;
+
+      log.info(`Child closed with status ${code}: ${com}`);
+
+      if (code !== 0 && connectionClosed === false) {
         dataErrorMessage();
         return;
       }
 
-      if (gotdata) { // Data returned and normal exit.
+      if (gotData) { // Data returned and normal exit.
         if (!incrementalBinary && convert) {
           // Convert accumulated data and send it.
           res.send(csvTo(bufferstr,true,true,header,include));
@@ -1027,12 +1153,11 @@ function data(req,res,catalog,header,include) {
     })
 
     child.stdout.on('data', function (buffer) {
-
-      gotdata = true;
-      if (!wroteheader && include && header["format"] !== "json") {
+      gotData = true;
+      if (!wroteHeader && include && header["format"] !== "json") {
         // If header not written, header requested, and format requested
         // is not JSON, so send header.
-        wroteheader = true;
+        wroteHeader = true;
         res.write("#" + JSON.stringify(header) + "\n");
       }
 
@@ -1079,7 +1204,7 @@ function data(req,res,catalog,header,include) {
           }
         }
       }
-    })
+    });
   }
 }
 

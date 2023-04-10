@@ -44,7 +44,7 @@
     "test-subset": "node test/subset-test.js",
     "start-dev": "npm run link-verifier link-ui; node server.js --port 8998",
     "link-verifier": "cd ../verifier-nodejs; npm link; npm link hapi-server-verifier",
-    "link-ui": "cd ../server-ui; npm link; npm link hapi-server-ui",
+    "link-ui-dev": "cd node_modules; mv hapi-server-ui hapi-server-ui-orig; ln -s ../../server-ui-dev hapi-server-ui",
     "clean": "rm -rf node_modules/; rm -rf public/data/QinDenton/",
     "version": "cd pkg; make version VERSION=v$npm_package_version",
     "package": "cd pkg; make update VERSION=v$npm_package_version",

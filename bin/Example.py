@@ -34,7 +34,7 @@ import re
 #   https://bugs.python.org/issue11380
 # The error message can be ignored.
 
-# Trap broke pipe signal so usage in the form of
+# Trap broken pipe signal so usage in the form of
 # python ./bin/Example.py | python lib/subset.py ...
 # does not throw error when subset.py terminates read
 # of output of Example.py.
