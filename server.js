@@ -33,10 +33,13 @@ const test = require('./lib/test.js');
 const log = require('./lib/log.js');
 
 // HAPI schema tests
+//let verifierPath = fs.realpathSync('./node_modules/hapi-server-verifier');
+//const is = require(verifierPath + "/is.js");
 const is = require('hapi-server-verifier').is;
 
 // Verify function
 const verify = require('hapi-server-verifier').tests.run;
+//const verify = require(verifierPath + "/tests.js").run;
 
 let usage = "node server.js";
 if (/server$/.test(process.execPath)) {
@@ -56,11 +59,11 @@ let argv = yargs
   .alias('port','p')
   .describe('conf','Server configuration file')
   .alias('conf','c')
-  .describe('ignore','Start server even if metadata errors')
+  .describe('ignore','Start server even if metadata validation errors')
   .alias('ignore','i')
-  .describe('ignore','Start server even if metadata errors')
+  .describe('ignore','Start server even if metadata validation errors')
   .alias('skipchecks','s')
-  .describe('skipchecks','Skip startup metadata validation and server tests')
+  .describe('skipchecks','Skip startup metadata validation and command line tests')
   .describe('logdir','Log directory')
   .alias('logdir','l')
   .describe('open','Open web page on start')
@@ -995,7 +998,7 @@ function data(req,res,catalog,header,include) {
       log.error(`Command ${com} gave err: '${err.toString().trim()}'`);
     });
 
-    let usePipe = true; 
+    let usePipe = false;
     let gotData = false;     // First chunk of data received.
     let wroteHeader = false; // If header already sent.
     let childFinished = false;
