@@ -2,116 +2,39 @@
 
 const fs   = require('fs');
 const clc  = require('chalk'); // Colorize command line output
-const ver  = parseInt(process.version.slice(1).split('.')[0]);
 
-if (parseInt(ver) < 6) {
-  // TODO: On windows, min version is 8
-  console.log(clc.red("!!! node.js version >= 6 required.!!! "
-    + "node.js -v returns " + process.version
-    + ".\nConsider installing https://github.com/creationix/nvm and then 'nvm install 6'.\n"));
-  process.exit(1);
-}
+const compress   = require('compression');  // Express compression module
+const moment     = require('moment');       // Time library http://moment.js
 
-process.on('SIGINT', function() {
-  process.exit(1);
-});
-
-const superagent = require('superagent');
-const express    = require('express');    // Client/server library
+const express    = require('express');      // Client/server library
 const app        = express();
 const serveIndex = require('serve-index');
-const compress   = require('compression');  // Express compression module
-const moment     = require('moment');     // Time library http://moment.js
-const yargs      = require('yargs');
-const metadata   = require('./lib/metadata.js').metadata;
+
+// Object that stores all metadata
+const metadata = require('./lib/metadata.js').metadata;
+
+// Prepare metadata and store in metadata object
 const prepmetadata = require('./lib/metadata.js').prepmetadata;
 
-// Test commands and urls
+// Command line interface
+const argv = require('./lib/cli.js').argv;
+
+// Test commands and URLs
 const test = require('./lib/test.js');
 
 // Logging
 const log = require('./lib/log.js');
 
-// HAPI schema tests
-//let verifierPath = fs.realpathSync('./node_modules/hapi-server-verifier');
-//const is = require(verifierPath + "/is.js");
 const is = require('hapi-server-verifier').is;
-
-// Verify function
 const verify = require('hapi-server-verifier').tests.run;
-//const verify = require(verifierPath + "/tests.js").run;
+const validHAPITime = is.HAPITime;
 
-let usage = "node server.js";
-if (/server$/.test(process.execPath)) {
-  // Binary executable caled.
-  usage = "server";
-}
+log.set('level', argv.loglevel);
 
-let argv = yargs
-  .strict()
-  .help()
-  .describe('https','Start https server')
-  .describe('cert','https certificate file path')
-  .describe('key','https key file path')
-  .describe('file','Catalog configuration file or file pattern')
-  .alias('file','f')
-  .describe('port','Server port')
-  .alias('port','p')
-  .describe('conf','Server configuration file')
-  .alias('conf','c')
-  .describe('ignore','Start server even if metadata validation errors')
-  .alias('ignore','i')
-  .describe('ignore','Start server even if metadata validation errors')
-  .alias('skipchecks','s')
-  .describe('skipchecks','Skip startup metadata validation and command line tests')
-  .describe('logdir','Log directory')
-  .alias('logdir','l')
-  .describe('open','Open web page on start')
-  .alias('open','o')
-  .describe('test','Run URL tests and exit')
-  .alias('test','t')
-  .describe('verify','Run verification tests on command line and exit')
-  .alias('verify','v')
-  .describe('loglevel','info or debug')
-  .alias('l','l')
-  .option('file',{'type': 'string'})
-  .option('ignore',{'type': 'boolean'})
-  .option('skipchecks',{'type': 'boolean'})
-  .option('https',{'type': 'boolean'})
-  .option('open',{'type': 'boolean'})
-  .option('test',{'type': 'boolean'})
-  .option('verify',{'type': 'boolean'})
-  .option('verifier',{'description': 'Verifier server URL on landing page'})
-  .option('plotserver',{'description': 'Plot server URL on landing page'})
-  .option('help', {alias: 'h'})
-  .describe('server-ui-include','Also include these servers in server-ui server drop-down. Use multiple times for more than one list.')
-  .describe('proxy-whitelist','Allow proxying of these servers (so one can use server=http://... in addressbar of server-ui).')
-  .epilog("For more details, see README at https://github.com/hapi-server/server-nodejs/")
-  .usage('Usage: ' + usage + ' [options]')
-  .default({
-    'ignore': false,
-    'skipchecks': false,
-    'loglevel': 'info',
-    'https': false,
-    'open': false,
-    'test': false,
-    'verify': false,
-    'logdir': __dirname + "/log",
-    'file': __dirname + '/metadata/TestData2.0.json',
-    'port': 8999,
-    'proxy-whitelist': '',
-    'server-ui-include': '',
-    'conf': __dirname + '/conf/server.json',
-    'verifier': '',
-    'plotserver': ''
-  })
-  .argv
-
-log.set('level',argv.loglevel);
-
-const config = require(__dirname + "/lib/metadata.js").configVars(argv.conf);
+// Get default configuration variables stored in ./conf/server.json
+const config = require("./lib/conf.js").configVars(argv);
 for (key in config) {
-  log.info(key + " = " + configd[key]);
+  log.info(key + " = " + config[key]);
 }
 
 const FILE        = argv.file;
@@ -168,7 +91,7 @@ if (HTTPS === false) {
       process.exit(1);
     }
     let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
-    
+
     // execSync requires a callback. Replaced it with spawnSync.
     let child;
     try {
@@ -212,9 +135,8 @@ if (typeof(FILE) == 'string') {
 }
 
 // Deal with file patterns.
-const expandfiles = require(__dirname + '/lib/expandfiles.js').expandfiles;
-
-FILES = expandfiles(FILES);
+const expandglob = require("./lib/expandglob.js").expandglob;
+FILES = expandglob(FILES);
 
 exceptions(); // Catch common start-up exceptions and un--caught exceptions
 
@@ -308,7 +230,7 @@ function serverInit(CATALOGS, PREFIXES) {
     for (var i = 0;i < CATALOGS.length;i++) {
       log.info("  " + url + "/" + PREFIXES[i] + "/hapi");
     }
-  
+
     log.info("To open a browser at " + url + ", use the --open option.");
     log.info("To run test URLs and exit, use the --test option.");
     log.info("To run command-line verification tests and exit, use the --verify option.");
@@ -325,18 +247,21 @@ function serverInit(CATALOGS, PREFIXES) {
     }
 
     if (VERIFY) {
-      // TODO: This only verifies first
-      let s = metadata(PREFIXES[0],'server');
-      // verify() exits with code 0 or 1.
-      if (s.verify) {
+      // Run verifier
+      // TODO: This only verifies first server
+
+      let serverConfig = metadata(PREFIXES[0],'server');
+      // verify() exits with code 1 if error.
+      let vopts = {"url": url + "/" + PREFIXES[0] + "/hapi", "output": "console"}
+      if (serverConfig.verify) {
         // If server has many datasets, select subset to verify.
-        verify(url + "/" + PREFIXES[0] + "/hapi", s.verify);
+        verify({...vopts, "id": serverConfig.verify});
       } else {
-        verify(url + "/" + PREFIXES[0] + "/hapi");
+        verify(vopts);
       }
     }
   }
-    
+
   // TODO: Server startup should be a callback to apiInit.
   if (HTTPS) {
     // In-case of HTTPS, server.listen is used. app.listen() can only listen to HTTP requests
@@ -392,29 +317,16 @@ function apiInit(CATALOGS, PREFIXES, i) {
 
     // Serve content needed in index.htm (no directory listing provided)
     let uidir = '/node_modules/hapi-server-ui';
-    app.use("/css", express.static(__dirname + uidir + '/css'));
-    app.use("/js", express.static(__dirname + uidir + '/js'));
-    app.use("/scripts", express.static(__dirname + uidir + '/scripts'));
-    app.use("/examples", express.static(__dirname + uidir + '/examples'));
+    app.use("/", express.static(__dirname + uidir));
 
     apiInit(CATALOGS, PREFIXES, i);
     return;
   }
 
   if (i == CATALOGS.length) {
-    // Finalize API.
-    // The following must occur after last app.get() call.
-    // Any requests not matching set app.get() patterns will see error response.
-    app.get('*', function(req, res) {
-      if (PREFIXES.length == 1) {
-        res.status(404).send("Invalid URL. See <a href='" + PREFIXES[0] + "/hapi'>" + PREFIXES[0] + "/hapi</a>");
-      } else {
-        res.status(404).send("Invalid URL. See <a href='/'>start page</a>");
-      }
-    });
-
     // Handle uncaught errors in API request code.
     app.use(errorHandler);
+    // Start server
     serverInit(CATALOGS, PREFIXES);
     return;
   }
@@ -431,94 +343,76 @@ function apiInit(CATALOGS, PREFIXES, i) {
   // Serve static files in ./public/data (no directory listing provided)
   app.use(PREFIXe + "/data", express.static(__dirname + '/public/data'));
 
-  // Serve all.json file
-  app.get(PREFIXe + '/hapi/all.json', function (req, res) {
-    res.on('finish', () => log.request(req, req.socket.bytesWritten));
-    cors(res);
-    res.contentType("application/json");
-    var file = __dirname + "/public/meta" + PREFIX + "-all.json";
-    fs.createReadStream(file).pipe(res);
+  app.get(PREFIXe + '/$', function (req, res) {
+    res.header('Location', "hapi");
+    res.status(302).send("");
+  })
+
+  app.get(PREFIXe + '$', function (req, res) {
+    res.header('Location', PREFIXe + "/hapi");
+    res.status(302).send("");
   })
 
   app.get(PREFIXe + '/hapi/$', function (req, res) {
     res.header('Location', "../hapi");
-    // A 301 is more appropriate, but a relative URL is not allowed 
+    // A 301 is more appropriate, but a relative URL is not allowed. 
     // Would need to obtain proxied URL in order to get the correct
     // absolute URL.
     res.status(302).send("");
   })
 
-  // Serve static files if a landing path given
-  let landing_path = metadata(CATALOG,"landingPath");
-  if (landing_path !== "") {
-    log.info("Allowing access to files in " + landing_path);
-    app.use(PREFIX + "/", express.static(metadata(CATALOG,"landingPath")));
-  }
+  // Serve all.json file
+  app.get(PREFIXe + '/hapi/all.json', function (req, res) {
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
+    setCORSHeaders(res);
+    res.contentType("application/json");
+    var file = __dirname + "/public/meta" + PREFIX + "-all.json";
+    fs.createReadStream(file).pipe(res);
+  })
 
-  // Serve landing web page
-  // If landing file, serve it.
-  // If no landing file but landing path, serve index.htm or index.html if
-  // found in landing path. If neither found, serve directory listing of
-  // landing path.
-  // If no landing file and no landing path, default page is served (this is
-  // handled in metadata.js, so case will never occur here).
-  let landingFile = "";
-  if (metadata(CATALOG,"landingFile") !== "") {
-    // Serve landing file
-    landingFile = metadata(CATALOG,"landingFile");
-  } else {
-    let file1 = metadata(CATALOG,"landingPath") + "/index.htm";
-    let file2 = metadata(CATALOG,"landingPath") + "/index.html";
-    if (fs.existsSync(file1)) {
-      landingFile = file1;
-    } else {
-      if (fs.existsSync(file2)) {
-        landingFile = file2;
-      } else {
-        // Serve directory listing
-        log.info("Did not find index.{htm,html}. "
-                 + "In " + landing_path 
-                 + ". Allowing directory listing.");
-        app.use(PREFIX + '/hapi', serveIndex(landing_path));
-      }
+  // /hapi
+  app.get(PREFIX + '/hapi', function (req, res) {
+
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
+
+    let landingHTML = metadata(CATALOG, "server", "landingHTML");
+    let landingPath = metadata(CATALOG, "server", "landingPath");
+
+    setCORSHeaders(res);
+    if (landingHTML !== "") {
+      res.contentType('text/html');
+      res.send(landingHTML);
     }
-  }
+    if (landingPath !== "") {
+      app.use(PREFIX + '/hapi', serveIndex(landingPath));
+    }
+    if (landingPath === "" && landingHTML === "") {
+      // This will only occur if force=true; otherwise server will not start.
+      res.status(404).send("Not found.");
+    }
+  });
 
-  function landing(landingFile) {
-    app.get(PREFIX + '/hapi', function (req, res) {
-      res.on('finish', () => log.request(req, req.socket.bytesWritten));
+  // /about
+  app.get(PREFIXe + '/hapi/about', function (req, res) {
 
-      if (landingFile !== "") {
-        //cors(res); // Set CORS headers
-        res.contentType('text/html');
-        let server = metadata(CATALOG,"server");
-        let serverContact = server.contact;
-        let data = metadata(CATALOG,"data");
-        let dataContact = data.contact;
-        let catalog = metadata(CATALOG,"catalog");
-        let str = fs
-                   .readFileSync(landingFile,"utf8")
-                   .toString()
-                   .replace(/__CATALOG__/g, CATALOG.replace(/.*\//,""))
-                   .replace(/__VERSION__/g, catalog.HAPI)
-                   .replace(/__VERIFIER__/g, VERIFIER)
-                   .replace(/__PLOTSERVER__/g, PLOTSERVER)
-                   .replace(/__DATACONTACT__/g, dataContact)
-                   .replace(/__SERVERCONTACT__/g, serverContact)
-        res.send(str);
-     } else {
-        // In this case, directory listing is served. See
-        // serveIndex call.
-      }
-    })
-  }
-  landing(landingFile);
+    res.on('finish', () => log.request(req, req.socket.bytesWritten));
+    setCORSHeaders(res);
+    res.contentType("application/json");
+
+    // Send error if query parameters given
+    if (Object.keys(req.query).length > 0) {
+      error(req, res, hapiversion, 1401, "This endpoint takes no query string.");
+      return;
+    }
+
+    res.send(metadata(CATALOG,"about"));
+  })
 
   // /capabilities
   app.get(PREFIXe + '/hapi/capabilities', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
-    cors(res);
+    setCORSHeaders(res);
     res.contentType("application/json");
 
     // Send error if query parameters given
@@ -534,7 +428,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   app.get(PREFIXe + '/hapi/catalog', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
-    cors(res);
+    setCORSHeaders(res);
     res.contentType("application/json");
 
     // Send error if query parameters given
@@ -550,7 +444,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   app.get(PREFIXe + '/hapi/info', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
-    cors(res);
+    setCORSHeaders(res);
     res.contentType("application/json");
 
     // Check query string and set defaults as needed.
@@ -576,7 +470,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   app.get(PREFIXe + '/hapi/data', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
-    cors(res);
+    setCORSHeaders(res);
 
     // Check query string and set defaults as needed.
     if (!queryCheck(req,res,hapiversion,CATALOG,'data')) {
@@ -657,17 +551,21 @@ function apiInit(CATALOGS, PREFIXES, i) {
   })
 
   // Anything that does not match
-  // PREFIX + {/hapi,/hapi/capabilities,/hapi/info,/hapi/data}
+  // PREFIX + {/hapi,/hapi/capabilities,/hapi/info,/hapi/data,/hapi/about}
   app.get(PREFIXe + '/*', function (req, res) {
-    let base = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-    let msg = "Invalid URL. See " + base + PREFIXe + "/hapi";
-    error(req, res, hapiversion, 1400, msg, req.originalUrl);
+    if (req.path.startsWith(PREFIXe + '/hapi/')) {
+      let base = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+      let msg = "Invalid URL. See " + base + PREFIXe + "/hapi";
+      error(req, res, hapiversion, 1400, msg, req.originalUrl);
+    } else {
+      res.status(404).send("Not found");
+    }
   })
 
   apiInit(CATALOGS, PREFIXES, ++i);
 }
 
-function cors(res) {
+function setCORSHeaders(res) {
   // CORS headers
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET');
@@ -1215,6 +1113,7 @@ function data(req,res,catalog,header,include) {
 // Multiply all elements in array
 function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
 
+
 function csvTo(records,first,last,header,include) {
 
   // Helper function
@@ -1515,11 +1414,11 @@ function timeCheck(header) {
     times[i] = times[i].replace(/\.Z/,".0Z"); // moment.js says .Z is invalid.
   }
 
-  var r = is.HAPITime(times[0],header["HAPI"]);
+  var r = validHAPITime(times[0],header["HAPI"]);
   if (r.error) {
     return 1402;
   }
-  var r = is.HAPITime(times[1],header["HAPI"]);
+  var r = validHAPITime(times[1],header["HAPI"]);
   if (r.error) {
     return 1403;
   }
@@ -1645,7 +1544,7 @@ function error(req,res,hapiversion,code,message,messageFull) {
 function errorHandler(err, req, res, next) {
   let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   let msg = "Request from " + addr + ": " + req.originalUrl;
-  error(req, res, catalog.HAPI, "1500", null, msg + "\n" + err.stack);
+  error(req, res, "", "1500", null, msg);
 }
 
 // Errors in non-API part of application

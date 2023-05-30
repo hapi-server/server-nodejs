@@ -1,10 +1,7 @@
 {
 	"server": {
 		"id": "TestData3.0",
-		"prefix": "",
-		"contact": "rweigel@gmu.edu",
-		"landing": "",
-		"catalog-update": null
+		"contact": "rweigel@gmu.edu"
 	},
 	"data": {
 		"command": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/TestData3.0.js\" --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
@@ -14,7 +11,20 @@
 			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10}
 		]
 	},
-	"HAPI": "3.0",
+  "about": {
+        "id": "TestData3.0",
+        "title": "Server using HAPI 3.0 additions",
+				"HAPI": "3.0",
+        "contact": "rweigel@gmu.edu",
+        "dataTest": {
+                      "query": {
+                             "dataset": "dataset1",
+                             "start": "1970-01-01T00:00:00Z",
+                             "stop": "1970-01-01T00:00:10Z",
+                             "parameters": "scalar"
+                         }
+   }
+  },
 	"catalog_inline" :
 		[
 			{
@@ -79,7 +89,7 @@
 														"name": "frequency",
 														"units": "Hz",
 														"centers": "frequency_centers",
-														"ranges": "frequency_ranges"														
+														"ranges": "frequency_ranges"
 													}
 												]
 									},
@@ -160,7 +170,7 @@
 										"description": "Bin ranges spectra pitch angles"
 									}
 								]
-						}				
+						}
 			}
 		]
 }

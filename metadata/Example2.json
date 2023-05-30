@@ -1,10 +1,8 @@
 {
 	"server": {
 		"id": "Example2",
-		"prefix": "",
 		"contact": "rweigel@gmu.edu",
-		"landing": "",
-		"catalog-update": null
+		"HAPI": "2.0"		
 	},
 	"data": {
 		"command": "\"$PYTHONEXE\" \"$HAPISERVERPATH/bin/Example.py\" --params ${parameters} --start ${start} --stop ${stop} --fmt ${format}",

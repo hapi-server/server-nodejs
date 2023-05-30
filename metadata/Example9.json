@@ -1,13 +1,11 @@
 {
 	"server": {
 		"id": "Example9",
-		"prefix": "",
 		"contact": "rweigel@gmu.edu",
-		"landing": "",
-		"catalog-update": null
+		"HAPI": "2.0"
 	},
 	"data": {
-		"url": "http://hapi-server.org/servers/TestData2.0/hapi/data?id=${id}&parameters=${parameters}&time.min=${start}&time.max=${stop}",
+		"url": "http://hapi-server.org/servers/TestData2.0/hapi/data?id=${{id}}&parameters=${{parameters}}&time.min=${start}&time.max=${stop}",
 		"urlformat": "csv",
 		"contact": "rweigel@gmu.edu",
 		"testurls": [

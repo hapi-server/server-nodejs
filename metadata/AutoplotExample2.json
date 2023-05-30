@@ -1,10 +1,8 @@
 {
     "server": {
         "id": "AutoplotExample2",
-        "prefix": "",
         "contact": "rweigel@gmu.edu",
-        "landing": "",
-        "catalog-update": null
+        "HAPI": "2.0"
     },
 	"data": {
 		"command": "bash $(HAPISERVER_BIN_DIR)/AutoplotExample2.sh ${parameters} ${start} ${stop} ${cwd}",

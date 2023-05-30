@@ -1,10 +1,8 @@
 {
     "server": {
         "id": "CDAWeb-apds",
-        "prefix": "",
         "contact": "rweigel@gmu.edu",
-        "landing": "",
-        "catalog-update": null
+        "HAPI": "3.1"
     },
     "data": {
         "command": "java -Djava.awt.headless=true -cp \"$HAPISERVERPATH\"/bin/autoplot.jar org.autoplot.AutoplotDataServer -q --uri='vap+cdaweb:ds=${{id}}&id=${{parameters}}&timerange=${{start}}/${{stop}}' -f hapi-data",

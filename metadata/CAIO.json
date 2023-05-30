@@ -3,6 +3,7 @@
 		"id": "CAIO",
 		"prefix": "",
 		"contact": "rweigel@gmu.edu",
+  		"HAPI": "2.0",
 		"landing": "",
 		"verify": "ace"
 	},

@@ -1,10 +1,8 @@
 {
     "server": {
         "id": "AutoplotExample1",
-        "prefix": "",
         "contact": "rweigel@gmu.edu",
-        "landing": "",
-        "catalog-update": null
+        "HAPI": "2.0"
     },
     "data": {
         "command": "java -Djava.awt.headless=true -cp $HAPISERVERPATH/autoplot.jar org.autoplot.AutoplotDataServer --uri=http://autoplot.org/data/autoplot.cdf?BGSM -f hapi-data 2> >( sed '/Autoplot version/d' >&2 )",

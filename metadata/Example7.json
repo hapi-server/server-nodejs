@@ -1,9 +1,8 @@
 {
 	"server": {
 		"id": "Example7",
-		"prefix": "",
 		"contact": "rweigel@gmu.edu",
-		"landing": "",
+		"HAPI": "2.0",
 		"catalog-update": 10
 	},
 	"data": {

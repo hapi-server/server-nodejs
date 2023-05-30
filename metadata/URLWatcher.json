@@ -3,7 +3,6 @@
     "id": "URLWatcher",
     "prefix": "",
     "contact": "rweigel@gmu.edu",
-    "landing": "",
     "catalog-update": 86400
   },
   "HAPI": "3.0",

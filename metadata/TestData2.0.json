@@ -1,10 +1,8 @@
 {
 	"server": {
 		"id": "TestData2.0",
-		"prefix": "",
-		"contact": "rweigel@gmu.edu",
-		"landing": "",
-		"catalog-update": null
+		"HAPI": "2.0",
+		"contact": "rweigel@gmu.edu"
 	},
 	"data": {
 		"command": "\"$NODEEXE\" --max-old-space-size=96 \"$HAPISERVERPATH/bin/TestData2.0.js\" --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
@@ -27,7 +25,6 @@
 			{"command": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/TestData2.0.js\" --id dataset3 --parameters scalar --start 1970-01-11T00:00:00.000000000Z --stop 1970-01-21T00:00:00.000000000Z", "Nlines": 0}
 		]
 	},
-	"HAPI": "2.0",
 	"catalog_inline" :
 		[
 			{

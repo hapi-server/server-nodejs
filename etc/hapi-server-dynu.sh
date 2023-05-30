@@ -15,7 +15,6 @@ $USER/.nvm/versions/node/v8.17.0/bin/node \
     -f $APPDIR/metadata/TestData2.1.json \
     -f $APPDIR/metadata/TestData3.0.json \
     -f $APPDIR/metadata/TestData3.1.json \
-    -f $APPDIR/metadata/INTERMAGNET.json \
     -f $APPDIR/metadata/SSCWeb-chunk-ltfloats-parallel.json     \
     -f $APPDIR/metadata/CDAWeb-cdas-cdf-using-pycdf.json        \
     -f $APPDIR/metadata/CDAWeb-files.json

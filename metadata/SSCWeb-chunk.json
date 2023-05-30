@@ -1,9 +1,8 @@
 {
   "server": {
     "id": "SSCWeb",
-    "prefix": "",
     "contact": "rweigel@gmu.edu",
-    "landing": "",
+    "HAPI": "2.0"
     "catalog-update": 86400,
     "verify": "ace"
   },

@@ -34,9 +34,6 @@ var records = ""; // Number of records (lines)
 var record  = ""; // A record with comma-separated fields (columns)
 var Nwrote  = 0;  // Number of records flushed
 
-scalarstrs = ["P/P","P/F","F/P","F/F"];
-scalarcats = [0,1,2];
-
 try {
 	// https://github.com/nodejs/node/issues/3524
 	// https://github.com/nodejs/node/issues/1741#issuecomment-190649817
@@ -45,6 +42,7 @@ try {
 	// If executed from command line, _handle will not exist.
 }
 
+var frequency_ranges = [[0,2],[2,4],[4,6],[6,8],[8,10],[10,12],[12,14],[14,16],[16,18],[18,20]];
 for (var i = startsec; i < stopsec; i++) {
 	var record = "";
 	var offset = 0;
@@ -56,12 +54,10 @@ for (var i = startsec; i < stopsec; i++) {
 
 	if (all || parameters.includes('spectra') || parameters.includes('spectra_time_dependent_bins')) {
 		record = record + "," + 0; // f = 0 bin.
-		for (var j = 1;j < 10;j++) {
+		for (var j = 1;j < frequency_ranges.length;j++) {
 			record = record + "," + 1/j;
 		}
 	}
-
-	var frequency_ranges = [[0,2],[2,4],[4,6],[6,8],[8,10],[10,12],[12,14],[14,16],[16,18],[18,20]];
 
 	if (all || parameters.includes('frequency_centers')) {
 		offset = 0;
@@ -143,7 +139,7 @@ for (var i = startsec; i < stopsec; i++) {
 
 	if (all || parameters.includes('spectramulti') || parameters.includes('spectramulti_time_dependent_bins')) {
 		for (var k = 0;k < 3;k++) {
-			for (var j = 0;j < 10;j++) {
+			for (var j = 0;j < frequency_ranges.length;j++) {
 				record = record + "," + (k+j);
 			}
 		}
@@ -157,8 +153,7 @@ for (var i = startsec; i < stopsec; i++) {
 	}
 
 	// Flush to output at end and every 100 records (lines)
-	var flush = (i == stopsec - 1) 
-				|| (i > startsec && (i-startsec) % 100 === 0);
+	var flush = (i == stopsec - 1) || (i > startsec && (i-startsec) % 100 === 0);
 
 	if (flush) {
 		if (id !== "dataset0") {

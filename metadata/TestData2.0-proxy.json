@@ -1,10 +1,8 @@
 {
     "server": {
         "id": "TestData2.0",
-        "prefix": "",
         "contact": "rweigel@gmu.edu",
-        "landing": "",
-        "catalog-update": null
+        "HAPI": "2.0"
     },
     "data": {
         "proxy": "http://rweigel.dynu.net/servers/",
@@ -19,7 +17,6 @@
             {"url": "data/?id=dataset3&parameters=scalar&time.min=1970-01-11T00:00:00Z&time.max=1970-01-21T00:00:00Z", "Nlines": 0}
         ]
     },
-    "HAPI": "2.0",
     "catalog_inline" :
         [
             {

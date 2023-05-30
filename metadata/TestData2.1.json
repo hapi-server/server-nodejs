@@ -1,10 +1,8 @@
 {
 	"server": {
 		"id": "TestData2.1",
-		"prefix": "",
 		"contact": "rweigel@gmu.edu",
-		"landing": "",
-		"catalog-update": null
+		"HAPI": "2.1"
 	},
 	"data": {
 		"command": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/TestData2.1.js\" --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
@@ -19,7 +17,6 @@
 			{"command": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/TestData2.1.js\" --id dataset1 --parameters vectormulti --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:00:10.000000000Z", "Nlines": 10, "Ncommas": 60}
 		]
 	},
-	"HAPI": "2.1",
 	"catalog_inline" :
 		[
 			{
@@ -63,7 +60,7 @@
 									{ 
 										"name": "vectormulti",
 										"type": "double",
-										"units": [["nT"],["nT","degrees","nT"]],
+										"units": [["nT","degrees","nT"],["nT","degrees","nT"]],
 										"label": [["$H_1$","$D_1$","$Z_1$"],["$H_2$","$D_2$","$Z_2$"]],
 										"fill": "-1e31",
 										"size": [2,3],
@@ -104,12 +101,12 @@
 										"size" : [2,10],
 										"bins": [
 													{"name": "instrumentID", "units": "kHz", "centers": [1,2]},
-													{"name": "frequency", "units": "MHz","centers": [10,11,12,13,14,15,16,17,18,19]}
+													{"name": "frequency", "units": "MHz", "centers": [10,11,12,13,14,15,16,17,18,19]}
 												],
 										"description": "Two time independent 1/f spectra."
-									}									
+									}
 								]
-						}				
+						}
 			}
 		]
 }

@@ -1,10 +1,8 @@
 {
-  "HAPI": "3.1",
   "server": {
       "id": "CDAWeb-cdaweb-csv-using-js",
-      "prefix": "",
       "contact": "rweigel@gmu.edu",
-      "landing": "",
+      "HAPI": "3.1",
       "catalog-update": null
   },
   "data": {

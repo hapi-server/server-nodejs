@@ -1,10 +1,8 @@
 {
-  "HAPI": "3.1",
   "server": {
       "id": "CDAWeb-cdas-cdf-using-pycdf",
-      "prefix": "",
+      "HAPI": "3.1",
       "contact": "rweigel@gmu.edu",
-      "landing": "",
       "catalog-update": null
   },
   "data": {
