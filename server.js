@@ -404,8 +404,12 @@ function apiInit(CATALOGS, PREFIXES, i) {
       error(req, res, hapiversion, 1401, "This endpoint takes no query string.");
       return;
     }
-
-    res.send(metadata(CATALOG,"about"));
+    const about = metadata(CATALOG,"about");
+    if (about !== undefined) {
+      res.send(metadata(CATALOG,"about"));
+    } else {
+      res.sendStatus(404);
+    }
   })
 
   // /capabilities
