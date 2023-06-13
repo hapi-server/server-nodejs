@@ -87,8 +87,8 @@
 														"name": "frequency",
 														"label": ["low f","low f","low f","low f","low f","high f","high f","high f","high f","high f"],
 														"units": ["Hz","Hz","Hz","Hz","Hz","Hz","MHz","MHz","MHz",null],
-														"centers":[0,1,2,3,4,5,6,7,8,null],
-														"ranges":[[-0.5,0.5],[0.5,1.5],[1.5,2.5],[2.5,3.5],[3.5,4.5],[4.5,5.5],[5.5,6.5],[6.5,7.5],[7.5,8.5],[null,null]]
+														"centers":[0,1,2,3,4,5,6,7,8,9],
+														"ranges":[[-0.5,0.5],[0.5,1.5],[1.5,2.5],[2.5,3.5],[3.5,4.5],[4.5,5.5],[5.5,6.5],[6.5,7.5],[7.5,8.5],[9.5, 10.5]]
 													}
 										],
 										"description": "A time independent 1/f spectra."
