@@ -10,9 +10,9 @@
     "contact": "rweigel@gmu.edu"
   },
   "about": {
-    "id": "TestData3.0",
-    "title": "Server using HAPI 3.0 additions",
-    "HAPI": "3.0",
+    "id": "TestData3.1",
+    "title": "Server using HAPI 3.1 additions",
+    "HAPI": "3.1",
     "contact": "rweigel@gmu.edu",
     "dataTest": {
                   "query": {
@@ -122,7 +122,7 @@
                                 "length": 4,
                                 "fill": null,
                                 "description": "A scalar string where strings are Unicode"
-                            },                               
+                            },
                             { 
                                 "name": "unicodevector",
                                 "type": "string",
@@ -132,9 +132,9 @@
                                 "length": 4,
                                 "fill": null,
                                 "description": "A vector string where strings are Unicode"
-                            }                                 
+                            }
                         ]
-                }               
+                }
     },
     {
       "id": "dataset1-Zα☃",
