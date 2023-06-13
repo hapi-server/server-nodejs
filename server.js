@@ -209,7 +209,7 @@ function main() {
 
   if (PROXY_WHITELIST !== '' || SERVER_UI_INCLUDE.length > 0) {
     const proxy = require('./lib/proxy.js');
-    proxy.proxyInit(PROXY_WHITELIST, SERVER_UI_INCLUDE, serverlist, app, cors, apiInit);
+    proxy.proxyInit(PROXY_WHITELIST, SERVER_UI_INCLUDE, serverlist, app, setCORSHeaders, apiInit);
   } else {
     app.get('/proxy', function (req, res) {
       res.status(403).send("Server is not configured to proxy URLs.");
