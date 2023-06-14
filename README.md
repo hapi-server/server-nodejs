@@ -35,43 +35,10 @@ A list of catalogs that are served using this software is given at [http://hapi-
 ## 2. Installation
 
 ```
-npm install -g "@hapi-server/server"
-```
-
-[Binary packages](https://github.com/hapi-server/server-nodejs/releases) are available for OS-X x64 and Linux x64. A [Docker image](https://cloud.docker.com/repository/docker/rweigel/hapi-server) is also available. Installation and startup commands are given below the binary packages and docker image. See the [Development](#Development) section for instructions on installing from source.
-
-OS-X x64:
-
-```bash
-curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.12/hapi-server-v1.0.12-darwin-x64.tgz | tar zxf -
-cd hapi-server-v1.0.12
-./hapi-server --open
-```
-
-Linux x64:
-
-```bash
-curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.12/hapi-server-v1.0.12-linux-x64.tgz | tar zxf -
-cd hapi-server-v1.0.12
-./hapi-server --open
-```
-
-Windows x64:
-
-```bash
-curl -L https://github.com/hapi-server/server-nodejs/releases/download/v1.0.12/hapi-server-v1.0.12-win-x64.zip
-unzip hapi-server-v1.0.12-win-x64.zip
-cd hapi-server-v1.0.12
-./hapi-server --open
-```
-
-Docker:
-
-```
-docker pull rweigel/hapi-server:v1.0.12
-docker run -dit --name hapi-server-v1.0.12 --expose 8999 -p 8999:8999 rweigel/hapi-server:v1.0.12
-docker exec -it hapi-server-v1.0.12 ./hapi-server
-# Open http://localhost:8999/TestData/hapi in a web browser
+git clone https://github.com/hapi-server/server-nodejs.git
+cd server-nodejs
+npm install
+node server.js
 ```
 
 <a name="Examples"></a>
