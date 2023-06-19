@@ -1,0 +1,164 @@
+# To create a release
+
+#   git checkout master
+#   git pull
+#   npm test
+
+# Edit version in package.json to X.Y.Z
+#   npm run version
+
+# The next command is only needed if tag already exists
+#   git tag -d vX.Y.Z; git push --delete origin vX.Y.Z
+
+# Make final commit
+#   git commit -a -m "Final X.Y.Z commit"
+#   git push
+
+#   git checkout deploy
+#   git merge -X theirs origin/master --squash
+#   git commit -a -m "vX.Y.Z Release"
+#   git push
+#   git checkout master
+
+# Create docker release
+#   cd /tmp; git clone https://github.com/hapi-server/server-nodejs
+#   cd server-nodejs/pkg; make docker && make docker-test && make docker-release
+
+# Manually bump version in package.json to next minor, e.g., X.Y.(Z+1)-beta.
+
+env:
+  global:
+    - npm_ver0=`curl https://raw.githubusercontent.com/hapi-server/server-nodejs/master/package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
+    - npm_ver=v`curl https://raw.githubusercontent.com/hapi-server/server-nodejs/master/package.json | grep version | head -1 | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/'`
+    - tgz=https://github.com/hapi-server/server-nodejs/releases/download
+
+cache: false
+
+before_install:
+  - npm install
+  - npm cache clean --force # needed?
+  - npm update hapi-server-verifier # b/c dependency is master branch
+
+script:
+  - npm test
+
+jobs:
+  include:
+    - os: linux
+      if: branch = master
+      language: node_js
+      node_js: "16"
+      python: "2.7"
+      branches:
+         only: master
+
+    - os: windows
+      if: branch = master
+      language: node_js
+      node_js: "16"
+      python: "2.7"
+      branches:
+        only: master
+
+    - os: osx
+      if: branch = master
+      language: node_js
+      node_js: "16"
+      python: "2.7"
+      branches:
+        only: master
+
+    - stage: deploy
+      if: branch = deploy
+      os: linux
+      language: generic
+      before_install: skip
+      script: skip
+      on:
+        branch: deploy
+
+      before_deploy:
+        - git config --local user.name "rweigel"
+        - git config --local user.email "rweigel@gmu.edu"
+        - npm i
+        - npm run package
+        - export TRAVIS_TAG=$npm_ver
+        - git tag $npm_ver
+
+      deploy:
+        provider: releases
+        on:
+          branch: deploy
+        api_key: $GITHUB_OAUTH_TOKEN
+        file_glob: true
+        file: pkg/dist/*
+        skip_cleanup: true
+
+    - stage: linux-x64
+      if: branch = deploy
+      os: linux
+      language: generic
+      before_install: skip
+      branches:
+        only:
+          - deploy
+      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-linux-x64.tgz && tar zxf hapi-server-$npm_ver-linux-x64.tgz && cd hapi-server-$npm_ver && ls -l bin && bin/node test/server-test.js
+
+    - stage: darwin-x64
+      if: branch = deploy
+      os: osx
+      language: generic
+      before_install: skip
+      branches:
+        only:
+          - deploy
+      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-darwin-x64.tgz && tar zxf hapi-server-$npm_ver-darwin-x64.tgz && cd hapi-server-$npm_ver && bin/node test/server-test.js
+
+    - stage: win-x64
+      if: branch = deploy
+      language: shell
+      os: windows
+      before_install: skip
+      branches:
+        only:
+          - deploy
+      script: curl -O -L $tgz/$npm_ver/hapi-server-$npm_ver-win-x64.zip; unzip -q hapi-server-$npm_ver-win-x64.zip; cd hapi-server-$npm_ver; bin/node test/server-test.js
+
+    - stage: npm-deploy
+      if: branch = deploy
+      os: linux
+      language: generic
+      before_install: skip
+      script: skip
+      branches:
+        only:
+          deploy
+
+      deploy:
+        provider: npm
+        email: '$NPM_EMAIL'
+        api_key: '$NPM_TOKEN'
+        on:
+          branch: deploy
+        skip_cleanup: true
+
+    - stage: npm-deploy-test
+      if: branch = deploy
+      language: node_js
+      node_js: "16"
+      os: linux
+      before_install: skip
+      git:
+        clone: false
+      install: npm uninstall "@hapi-server/server"; npm install -g "@hapi-server/server@$npm_ver0"
+      branches:
+        only:
+          - deploy
+      script: hapi-server test
+
+notifications:
+  email:
+    recipients:
+      - rweigel@gmu.edu
+  on_success: change
+  on_failure: always

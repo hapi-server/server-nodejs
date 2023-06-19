@@ -1,0 +1,3 @@
+sudo pkill -f hapi-server-dynu.sh
+#sudo launchctl load -w /Library/LaunchDaemons/hapi-server-dynu.plist
+#sudo launchctl start hapi-server-dynu.plist
