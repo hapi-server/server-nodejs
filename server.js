@@ -465,8 +465,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
       error(req, res, hapiversion, 1407);
       return;
     } else {
-      //res.send(JSON.stringify(header,null,2));
-      res.send(header);
+      res.send(JSON.stringify(header,null,2));
       return;
     }
   })
