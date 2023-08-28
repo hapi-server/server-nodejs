@@ -37,7 +37,7 @@ for (let i = 0;i < testarr.length; i++) {
 	let prefix = "Test " + (i+1) + "/" + (testarr.length) + ": ";
 	process.stdout.write(clc.blue(prefix) + testarr[i]["command"] + "\n");
 	let results = test.commands0([testarr[i]], "subset.js");
-	
+
 	// https://stackoverflow.com/a/15397506
 	// Flatten results array.
 	// Newer Javascript has flat() - can use results = results.flat();

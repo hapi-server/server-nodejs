@@ -96,11 +96,14 @@
 									{ 
 										"name": "spectramulti",
 										"type": "double",
-										"units": [["m","m","m","m","m","km","km","km","km",null],["m","m","m","m","m","km","km","km",null,"km"]],
+										"units": [
+															["m","m","m","m","m","km","km","km","km",null],
+															["m","m","m","m","m","km","km","km",null,"km"]
+														],
 										"fill": "-1e31",
 										"size" : [2,10],
 										"bins": [
-													{"name": "instrumentID", "units": "kHz", "centers": [1,2]},
+													{"name": "instrumentID", "units": null, "centers": [1,2]},
 													{"name": "frequency", "units": "MHz", "centers": [10,11,12,13,14,15,16,17,18,19]}
 												],
 										"description": "Two time independent 1/f spectra."

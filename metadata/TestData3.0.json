@@ -15,16 +15,8 @@
         "id": "TestData3.0",
         "title": "Server using HAPI 3.0 additions",
 				"HAPI": "3.0",
-        "contact": "rweigel@gmu.edu",
-        "dataTest": {
-                      "query": {
-                             "dataset": "dataset1",
-                             "start": "1970-01-01T00:00:00Z",
-                             "stop": "1970-01-01T00:00:10Z",
-                             "parameters": "scalar"
-                         }
-   }
-  },
+        "contact": "rweigel@gmu.edu"
+   },
 	"catalog_inline" :
 		[
 			{
@@ -42,8 +34,8 @@
 								"fill": "1e-31",
 								"frequency_centers": [ 1,    3,    5,    7,    9,      11,    13,     15,     17,     19],
 								"frequency_ranges": [[0,2],[2,4],[4,6],[6,8],[8,10],[10,12],[12,14],[14,16],[16,18],[18,20]],
-								"pitch_angle_centers": [ 11.25,      45,      79.75],
-								"pitch_angle_ranges": [[0,22.5],[22.5,67.5],[67.5,90]]
+								"pitch_angle_centers": [ 11.25,      45,        78.75],
+								"pitch_angle_ranges": [[0,22.5],[22.5,67.5], [67.5,90]]
 							},
 							"parameters":
 								[
@@ -53,13 +45,6 @@
 										"units": "UTC",
 										"fill": null,
 										"length": 24
-									},
-									{ 
-										"name": "scalar",
-										"type": "double",
-										"units": "m",
-										"fill": {"$ref": "#/definitions/fill"},
-										"description": "Sine wave with 600 s period"
 									},
 									{ 
 										"name": "spectra",
@@ -88,57 +73,13 @@
 													{
 														"name": "frequency",
 														"units": "Hz",
-														"centers": "frequency_centers",
-														"ranges": "frequency_ranges"
-													}
-												]
-									},
-									{ 
-										"name": "spectramulti",
-										"type": "double",
-										"units": "m",
-										"fill": "-1e31",
-										"size" : [2,10],
-										"description": "A 10x2 element with time-independent bins",
-										"bins": [
-													{
-														"name": "frequency",
-														"units": "Hz",
-														"ranges": {"$ref": "#/definitions/frequency_ranges"},
-														"centers": {"$ref": "#/definitions/frequency_centers"}
-													},
-													{
-														"name": "pitch_angle",
-													 	"units": "degrees",
-														"ranges": {"$ref": "#/definitions/pitch_angle_ranges"},
-													 	"centers": {"$ref": "#/definitions/pitch_angle_centers"}
-													}
-												]
-									},
-									{ 
-										"name": "spectramulti_time_dependent_bins",
-										"type": "double",
-										"units": "m",
-										"fill": "-1e31",
-										"size" : [2,10],
-										"description": "A 10x2 element with time-independent bins",
-										"bins": [
-													{
-														"name": "frequency",
-														"units": "Hz",
-														"ranges": "frequency_ranges",
-														"centers": "frequency_centers"
-													},
-													{
-														"name": "pitch_angle",
-													 	"units": "degrees",
-														"ranges": "pitch_angle_ranges",
-													 	"centers": "pitch_angle_centers"
+														"centers": "frequency_centers_time_varying",
+														"ranges": "frequency_ranges_time_varying"
 													}
 												]
 									},
 									{
-										"name": "frequency_centers",
+										"name": "frequency_centers_time_varying",
 										"type": "double",
 										"units": "Hz",
 										"fill": "-1e31",
@@ -146,28 +87,12 @@
 										"description": "Bin centers for spectra frequencies"
 									},
 									{
-										"name": "frequency_ranges",
+										"name": "frequency_ranges_time_varying",
 										"type": "double",
 										"units": "Hz",
 										"fill": "-1e31",
-										"size": [2,10],
+										"size": [10,2],
 										"description": "Bin ranges for spectra frequencies"
-									},
-									{
-										"name": "pitch_angle_centers",
-										"type": "double",
-										"units": "degrees",
-										"fill": "-1e31",
-										"size": [3],
-										"description": "Bin centers for spectra pitch angles"
-									},
-									{
-										"name": "pitch_angle_ranges",
-										"type": "double",
-										"units": "degrees",
-										"fill": "-1e31",
-										"size": [2,3],
-										"description": "Bin ranges spectra pitch angles"
 									}
 								]
 						}

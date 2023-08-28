@@ -14,7 +14,7 @@ let argv = yargs
 let metadir, nodeexe;
 if (process.platform.startsWith("win")) {
   nodeexe =  '"' + process.execPath + '" server.js --port 7999';
-  metadir =  __dirname + '\\..\\metadata';  
+  metadir =  __dirname + '\\..\\metadata';
 } else {
   nodeexe = "'" + process.execPath + "' server.js --port 7999";
   metadir = __dirname + '/../metadata';
@@ -35,7 +35,7 @@ if (argv.https) {
   server_args = "--https";
   if (process.platform.startsWith("win")) {
     console.log(clc.yellow(" Not running https tests on Windows\n"));
-    process.exit(0);    
+    process.exit(0);
   }
 }
 
@@ -48,8 +48,8 @@ function execute(com,i) {
   if (process.platform.startsWith("win")) {
     if (com.startsWith('"')) {com = '"' + com + '"';}
     child = require('child_process')
-          .spawnSync('cmd.exe', ['/s', '/c', com],
-            {stdio: "pipe", "shell": true, "encoding": "buffer"});
+             .spawnSync('cmd.exe', ['/s', '/c', com],
+             {stdio: "pipe", "shell": true, "encoding": "buffer"});
   } else {
     child = spawnSync('sh', ['-c', com], {stdio: 'pipe'});
   }
@@ -73,7 +73,7 @@ function filelist(metadir, includes) {
     let ext = path.extname(file);
     let basename = path.basename(file,'.json');
     if (ext !== ".json") return;
-    for (include of includes) {
+    for (let include of includes) {
       if ((new RegExp(include)).test(basename))
         files.push(file);
     }

@@ -1,0 +1,17 @@
+{
+  "server": {
+      "id": "CDAWeb-cdas-text-using-js",
+      "contact": "rweigel@gmu.edu",
+      "HAPI": "3.1",
+      "catalog-update": null
+  },
+  "data": {
+      "command": "\"$NODEEXE\" \"$HAPISERVERPATH/../cdaweb-hapi-metadata/bin/HAPIdata.js\" --from cdas-text-using-js --id ${id} --parameters ${parameters} --start ${start} --stop ${stop} --infodir \"$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/CDAWeb/info\"",
+      "formats": ["csv"],
+      "contact": "rweigel@gmu.edu",
+      "testcommands": [
+        {"command": "\"$NODEEXE\" \"$HAPISERVERPATH/../cdaweb-hapi-metadata/bin/HAPIdata.js\" --from cdas-text-using-js --id AC_OR_SSC --parameters GSE_LAT,GSE_LON --start 2023-05-10T23:36:00.000000000Z --stop 2023-05-11T01:24:00.000000000Z --infodir \"$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/CDAWeb/info\"","Nlines": 9}
+      ]
+  },
+  "catalog_file": "$HAPISERVERPATH/../cdaweb-hapi-metadata/hapi/bw/CDAWeb/all.json"
+}

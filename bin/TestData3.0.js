@@ -42,24 +42,35 @@ try {
 	// If executed from command line, _handle will not exist.
 }
 
-var frequency_ranges = [[0,2],[2,4],[4,6],[6,8],[8,10],[10,12],[12,14],[14,16],[16,18],[18,20]];
+let frequency_ranges = [[0,2],[2,4],[4,6],[6,8],[8,10],[10,12],[12,14],[14,16],[16,18],[18,20]];
+//let frequency_ranges = [[0,2],[2,4],[4,6]];
+let pitch_angle_ranges = [[0,22.5],[22.5,67.5], [67.5,90]];
+
 for (var i = startsec; i < stopsec; i++) {
 	var record = "";
 	var offset = 0;
 
 	record = (new Date(i*1000).toISOString());
+
 	if (all || parameters.includes('scalar')) {
-		record = record + "," + Math.sin(Math.PI*i/600);
+		//record = record + "," + Math.sin(Math.PI*i/600);
 	}
 
-	if (all || parameters.includes('spectra') || parameters.includes('spectra_time_dependent_bins')) {
+	if (all || parameters.includes('spectra')) {
 		record = record + "," + 0; // f = 0 bin.
 		for (var j = 1;j < frequency_ranges.length;j++) {
 			record = record + "," + 1/j;
 		}
 	}
 
-	if (all || parameters.includes('frequency_centers')) {
+	if (all || parameters.includes('spectra_time_dependent_bins')) {
+		record = record + "," + 0; // f = 0 bin.
+		for (var j = 1;j < frequency_ranges.length;j++) {
+			record = record + "," + 1/j;
+		}
+	}
+
+	if (all || parameters.includes('frequency_centers_time_varying')) {
 		offset = 0;
 		if (parseInt(record[15]) % 2 == 0) {
 			// Records with even-numbered minute
@@ -68,16 +79,16 @@ for (var i = startsec; i < stopsec; i++) {
 		for (var k = 0;k < frequency_ranges.length;k++) {
 			if (k == 0 && record[17] == "0" && record[18] == "2") {
 				// first bin when second = 02.
-				record = record + ",-1e31";	
+				record = record + ",-1e31";
 			} else if (k == 1 && j == 1 && record[17] == "0" && record[18] == "5") {
-				record = record + ",-1e31";	
+				record = record + ",-1e31";
 			} else {
 				record = record + "," + ((frequency_ranges[k][0]+frequency_ranges[k][1])/2.0 + offset);
 			}
 		}
 	}
 
-	if (all || parameters.includes('frequency_ranges')) {
+	if (all || parameters.includes('frequency_ranges_time_varying')) {
 		offset = 0;
 		if (parseInt(record[15]) % 2 == 0) {
 			// Records with even-numbered minute
@@ -87,9 +98,9 @@ for (var i = startsec; i < stopsec; i++) {
 			for (var j = 0;j < 2;j++) {
 				if (k == 0 && record[17] == "0" && record[18] == "2") {
 					// first bin when second = 02.
-					record = record + ",-1e31";	
+					record = record + ",-1e31";
 				} else if (k == 1 && j == 1 && record[17] == "0" && record[18] == "5") {
-					record = record + ",-1e31";	
+					record = record + ",-1e31";
 				} else {
 					record = record + "," + (frequency_ranges[k][j] + offset);
 				}
@@ -97,9 +108,8 @@ for (var i = startsec; i < stopsec; i++) {
 		}
 	}
 
-	var pitch_angle_ranges = [[0,22.5],[22.5,67.5],[67.5,90]];
 
-	if (all || parameters.includes('pitch_angle_centers')) {
+	if (0) {//(all || parameters.includes('pitch_angle_centers_time_varying')) {
 		offset = 0;
 		if (parseInt(record[15]) % 2 == 0) {
 			// Records with even-numbered minute
@@ -108,16 +118,16 @@ for (var i = startsec; i < stopsec; i++) {
 		for (var k = 0;k < pitch_angle_ranges.length;k++) {
 			if (k == 0 && record[17] == "0" && record[18] == "2") {
 				// first bin when second = 02.
-				record = record + ",-1e31";	
+				record = record + ",-1e31";
 			} else if (k == 1 && j == 1 && record[17] == "0" && record[18] == "5") {
-				record = record + ",-1e31";	
+				record = record + ",-1e31";
 			} else {
 				record = record + "," + ((pitch_angle_ranges[k][0]+pitch_angle_ranges[k][1])/2.0 + offset);
 			}
 		}
 	}
 
-	if (all || parameters.includes('pitch_angle_ranges')) {
+	if (0) {//(all || parameters.includes('pitch_angle_ranges_time_varying')) {
 		offset = 0;
 		if (parseInt(record[15]) % 2 == 0) {
 			// Records with even-numbered minute
@@ -127,9 +137,9 @@ for (var i = startsec; i < stopsec; i++) {
 			for (var j = 0;j < 2;j++) {
 				if (k == 0 && record[17] == "0" && record[18] == "2") {
 					// first bin when second = 02.
-					record = record + ",-1e31";	
+					record = record + ",-1e31";
 				} else if (k == 1 && j == 1 && record[17] == "0" && record[18] == "5") {
-					record = record + ",-1e31";	
+					record = record + ",-1e31";
 				} else {
 					record = record + "," + (pitch_angle_ranges[k][j] + offset);
 				}
@@ -137,7 +147,7 @@ for (var i = startsec; i < stopsec; i++) {
 		}
 	}
 
-	if (all || parameters.includes('spectramulti') || parameters.includes('spectramulti_time_dependent_bins')) {
+	if (0) { //(all || parameters.includes('spectramulti') || parameters.includes('spectramulti_time_dependent_bins')) {
 		for (var k = 0;k < 3;k++) {
 			for (var j = 0;j < frequency_ranges.length;j++) {
 				record = record + "," + (k+j);
@@ -156,26 +166,8 @@ for (var i = startsec; i < stopsec; i++) {
 	var flush = (i == stopsec - 1) || (i > startsec && (i-startsec) % 100 === 0);
 
 	if (flush) {
-		if (id !== "dataset0") {
-			if (records.length > 0)
-				process.stdout.write(records + "\n"); // Correct way.
-		} else {
-			// Make time non-monotonic for dataset0.
-			records = records.split("\n");
-			var l = records.length-1;
-			first = records[0];
-			last = records[l];
-			records[0] = last;
-			records[l] = first;
-			records = records.join("\n");
-			if ((i == stopsec - 1) && parameters.includes('scalariso')) {
-				// Omit newline at end of file for dataset0 if scalariso requested
-				process.stdout.write(records);
-			} else {
-				// Add extra newline at end of file for dataset0 if scalariso not requested
-				process.stdout.write(records + "\n\n");
-			}
-		}
+		if (records.length > 0)
+			process.stdout.write(records + "\n");
 		records = "";
 		Nwrote  = (i-startsec);
 	}

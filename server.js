@@ -465,6 +465,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
       error(req, res, hapiversion, 1407);
       return;
     } else {
+      //res.send(JSON.stringify(header,null,2));
       res.send(header);
       return;
     }
@@ -579,23 +580,23 @@ function setCORSHeaders(res) {
 function info(req,res,catalog) {
 
   // Read parameter metadata.
-  if (req.query.resolve_references === "true") {
-    json = metadata(catalog,'info',req.query.id || req.query.dataset);
-  } else {
-    json = metadata(catalog,'info-raw',req.query.id || req.query.dataset);
+  let infoType = 'info';
+  if (req.query.resolve_references === "false") {
+    infoType = 'info-raw';
   }
+  let json = metadata(catalog,infoType,req.query.id || req.query.dataset);
 
   // Copy string metadata (b/c json will be modified).
-  var json = JSON.parse(JSON.stringify(json));
+  json = JSON.parse(JSON.stringify(json));
 
   // Create array of known parameter names
-  var knownparams = [];
-  for (var i = 0;i < json.parameters.length;i++) {
+  let knownparams = [];
+  for (let i = 0;i < json.parameters.length;i++) {
     knownparams[i] = json.parameters[i].name;
   }
 
   // Create array from comma-separated parameters in query
-  var wantedparams = [];
+  let wantedparams = [];
   if (req.query.parameters) {
     wantedparams = req.query.parameters.split(",");
   } else {
@@ -604,7 +605,7 @@ function info(req,res,catalog) {
   }
 
   // Remove repeated parameters from query
-  var wantedparams = Array.from(new Set(wantedparams));
+  wantedparams = Array.from(new Set(wantedparams));
 
   // Catches case where parameters= is given in query string.
   // Assume it means same as if no parameters field was given
@@ -612,8 +613,8 @@ function info(req,res,catalog) {
   if (wantedparams.length == 0) {return json;}
 
   // Determine if any parameters requested are invalid
-  validparams = []; iv = 0;
-  invalidparams = []; ii = 0;
+  let validparams   = []; let iv = 0;
+  let invalidparams = []; let ii = 0;
   for (var i = 0;i < wantedparams.length;i++) {
     if (knownparams.includes(wantedparams[i])) {
       // TODO: Consider using objects if parameter lists are very long.
@@ -640,7 +641,7 @@ function info(req,res,catalog) {
   // Remove nulls placed when array element is deleted
   json.parameters = json.parameters.filter(function (n) {return n != undefined});
 
-  // Return JSON string
+  // Return JSON object
   return json;
 }
 
