@@ -378,6 +378,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
     app.use("/css", express.static(__dirname + uidir + '/css'));
     app.use("/js", express.static(__dirname + uidir + '/js'));
     app.use("/scripts", express.static(__dirname + uidir + '/scripts'));
+    app.use("/examples", express.static(__dirname + uidir + '/examples'));
 
     apiInit(CATALOGS, PREFIXES, i);
     return;
