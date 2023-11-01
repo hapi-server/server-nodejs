@@ -365,6 +365,7 @@ The top-level structure of the configuration file is
   {
     "id": "",
     "prefix": "",
+    "HAPI": "",
     "contact": "",
     "landingFile": "",
     "landingPath": "",
@@ -419,16 +420,11 @@ The server node has the form
 
 ```
 "server": {
-  "id": "",
-  "prefix": "",
-  "contact": "", 
-  "landingFile": "",
-  "landingPath": "",
-  "verify": "",
-  "catalog-update": null
-  "id": "", 		// Default is file name without extension.
-  "prefix": "", 	// Default is id.
+  "id": "", 		    // Default is file name without extension.
+  "prefix": "", 	  // Default is id.
   "contact": "",    // Required. Server will not start without this set.
+  "HAPI": "",       // Default is 2.1. HAPI API and schema to use for checking metadata.
+  "contact": "",
   "landingFile": "",
   "landingPath": "",
   "verify": "",
