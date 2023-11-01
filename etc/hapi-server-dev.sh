@@ -2,7 +2,7 @@
 
 APPDIR=.
 
-source /home/ubuntu/.nvm/nvm.sh && nvm use 18
+source /home/ubuntu/.nvm/nvm.sh && nvm use 8
 
 node \
   --max-old-space-size=256 \
@@ -19,6 +19,5 @@ node \
   -f $APPDIR/metadata/URLWatcher.json   \
   -f $APPDIR/metadata/SSCWeb-chunk-ltfloats-parallel.json \
   -f $APPDIR/metadata/Example0.json \
-  -f $APPDIR/metadata/Example2.json \
-  -f $APPDIR/metadata/CAIO.json \
+  -f $APPDIR/metadata/Example2.json 
   2>&1
