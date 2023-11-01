@@ -1,8 +1,6 @@
 {
 	"HAPISERVERPATH": "",
 	"HAPISERVERHOME": "",
-	"NODEEXE": "",
-	"PYTHONEXE": "",
-	"HAPIVERIFIER": "",
-	"HAPIPLOTSERVER": ""
+	"NODEJSEXE": "",
+	"PYTHONEXE": ""
 }

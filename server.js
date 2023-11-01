@@ -804,7 +804,7 @@ function data(req,res,catalog,header,include) {
       // (unless request is for all variables over
       // full range of response, which is not addressed)
       //com = config.PYTHONEXE + " " + __dirname + "/lib/subset.py";
-      com = '"' + config.NODEEXE + '" ' + __dirname + "/lib/subset.js";
+      com = '"' + config.NODEJSEXE + '" ' + __dirname + "/lib/subset.js";
       if (d.file) com = com + ' --file "' + replacevars(d.file) + '"';
       if (d.url)  com = com + ' --url "' + replacevars(d.url,false) + '"';
       com = com + " --start " + start;
@@ -837,7 +837,7 @@ function data(req,res,catalog,header,include) {
       if (subsetcols || subsettime) {
         com = com
                + ' | "'
-               + config.NODEEXE
+               + config.NODEJSEXE
                + '" "' + __dirname
                + '/lib/subset.js"';
         if (subsettime) {

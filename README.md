@@ -196,30 +196,42 @@ List command-line options:
 ```
 ./hapi-server -h
 
+Usage: node server.js [options]
+
 Options:
-  --help, -h           Show help                      [boolean]
+  --help, -h           Show help                                       [boolean]
   --https              Start https server             [boolean] [default: false]
   --cert               https certificate file path
   --key                https key file path
-  --file, -f           Catalog configuration file or file pattern
-  --port, -p           Server port                    [default: 8999]
+  --file, -f           Catalog configuration file or file pattern [string]
+                                 [default: "./lib/../metadata/TestData2.0.json"]
+  --port, -p           Server port                               [default: 8999]
   --conf, -c           Server configuration file
-  --ignore, -i         Start server even if metadata error
+  --ignore, -i         Start server even if metadata validation errors
                                                       [boolean] [default: false]
-  --logdir, -l         Log directory
+  --skipchecks, -s     Skip startup metadata validation and command line tests
+                                                      [boolean] [default: false]
+  --logdir, -l         Log directory                   [default: "./lib/../log"]
   --open, -o           Open web page on start         [boolean] [default: false]
   --test, -t           Run URL tests and exit         [boolean] [default: false]
   --verify, -v         Run verification tests on command line and exit
                                                       [boolean] [default: false]
-  --loglevel           info or debug                  [default: "info"]
-  --verifier           Verifier server URL on landing page
-                                        [default: "http://hapi-server.org/verify"]
-  --plotserver         Plot server URL on landing page
-                                        [default: "http://hapi-server.org/plot"]
+  --loglevel           info or debug                           [default: "info"]
+  --verifier           Verifier server URL on landing page (__VERIFIER__ in html
+                       is replaced with this value)                [default: ""]
+  --plotserver         Plot server URL on landing page (__PLOTSERVER__ in html
+                       is replaced with this value)                [default: ""]
+  --python             Location of Python binary to use (if needed for command
+                       line calls).                                [default: ""]
+  --nodejs             Location of NodeJS binary to use (if needed for command
+                       line calls).
   --server-ui-include  Also include these servers in server-ui server drop-down.
-                                                      [default: ""]
+                       Use multiple times for more than one list.  [default: ""]
   --proxy-whitelist    Allow proxying of these servers (so one can use
-                       server=http://... in addressbar of server-ui). [default: ""]
+                       server=http://... in addressbar of server-ui).
+                                                                   [default: ""]
+
+For more details, see README at https://github.com/hapi-server/server-nodejs/
 ```
 
 Basic usage:
@@ -255,7 +267,7 @@ And the page at `http://localhost:8999/` will point to these two URLs.
 
 ### 4.1 `conf/config.json`
 
-The variables `HAPISERVERPATH`, `HAPISERVERHOME`, `NODEEXE`, and `PYTHONEXE` can be set in `conf/config.json` or as environment variables. These variables can be used in commands, files, and URLs in the server metadata (the file passed using the command-line `--file` switch). 
+The variables `HAPISERVERPATH`, `HAPISERVERHOME`, `PYTHONEXE`, and `NODEEXE` can be set in `conf/config.json` or as environment variables. These variables can be used in commands, files, and URLs in the server metadata (which are files passed using the command-line `--file` switch). See [the examples](https://github.com/hapi-server/server-nodejs/tree/master/metadata) for use cases.
 
 The default configuration file is `conf/config.json` and this location can be set using a command-line argument, e.g.,
 
@@ -266,7 +278,7 @@ The default configuration file is `conf/config.json` and this location can be se
 To set variables using environment variables, use, e.g.,
 
 ```
-PYTHONEXE=/opt/python/bin/python ./hapi-server
+HAPISERVERHOME=/var/www/hapi-config/json ./hapi-server
 ```
 
 Variables set as environment variables take precedence over those set in `conf/config.json`.
@@ -275,8 +287,12 @@ Variables set as environment variables take precedence over those set in `conf/c
 
 These two variables can be used in metadata to reference a directory. For example,
 
-```
-"catalog": "$HAPISERVERHOME/mymetadata/Data.json"
+```javascript
+{
+  "server": {...},
+  "data": {...},
+  "catalog_file": "$HAPISERVERHOME/mymetadata/Data.json"
+}
 ```
 
 By default, `$HAPISERVERPATH` is the installation directory (the directory containing the shell launch script `hapi-server`) and should not be changed as it is referenced in the demonstration metadata files. Modify `HAPISERVERHOME` in `conf/config.json` to use a custom path.
@@ -301,13 +317,19 @@ is read and relative paths in `TestData.json` have `/home/username/` prepended.
 
 This is the command used to call Python. By default, it is `python`. If `python` is not in the path, this can be set using a relative or absolute path. Python is used by several of the demonstration catalogs. 
 
+This variable can also be set using the `--python` command line switch, which has the highest precedence.
+
 Example:
 
-```
-"command": "$PYTHONEXE $HAPISERVERHOME/mybin/Data.py"
+```javascript
+data: {
+  "command": "$PYTHONEXE $HAPISERVERHOME/mybin/Data.py"
+}
 ```
 
-**`NODEEXE`**
+**`NODEJSEXE`**
+
+This variable can also be set using the `--nodejs` command line switch, which has the highest precedence.
 
 This is the command used to call NodeJS. By default, it is the command used to start the server. The start-up script looks for a NodeJS executable in `$HAPISERVERPATH/bin` and then tries `node` and then `nodejs`.
 
