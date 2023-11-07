@@ -303,6 +303,9 @@ function apiInit(CATALOGS, PREFIXES, i) {
       if (PLOTSERVER) {
         html = html.replace(/__PLOTSERVER__/g, PLOTSERVER);
       }
+      if (SERVER_UI_INCLUDE.length > 0) {
+        html = html.replace(/__SERVER_LIST__/g, "all-combined.txt");
+      }
       res.send(html);
     });
 
