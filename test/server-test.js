@@ -1,3 +1,7 @@
+let testAll = true; // If false, only run one test.
+const exampleIncludes = ["^Example*", "^TestData2.0"];
+const testIncludes = ["^Deprecated"];
+
 const fs        = require('fs');
 const path      = require("path");
 const clc       = require('chalk');
@@ -5,30 +9,9 @@ const yargs     = require('yargs');
 const spawnSync = require('child_process').spawnSync;
 
 let argv = yargs
-        .option('https',{'type': 'boolean'})
-        .default({
-          'https': false,
-        })
-        .argv
-
-let metadir, nodeexe;
-if (process.platform.startsWith("win")) {
-  nodeexe =  '"' + process.execPath + '" server.js --port 7999';
-  metadir =  __dirname + '\\..\\metadata';
-} else {
-  nodeexe = "'" + process.execPath + "' server.js --port 7999";
-  metadir = __dirname + '/../metadata';
-}
-
-let testAll = true;
-
-metadir = path.normalize(metadir);
-
-const includes =
-  [
-    "^Example*",
-    "^TestData2.0"
-  ];
+            .option('https',{'type': 'boolean'})
+            .default({'https': false})
+            .argv
 
 let server_args = "";
 if (argv.https) {
@@ -39,7 +22,23 @@ if (argv.https) {
   }
 }
 
-let files = filelist(metadir, includes);
+let metadir, testdir, nodeexe;
+if (process.platform.startsWith("win")) {
+  nodeexe =  '"' + process.execPath + '" server.js --port 7999';
+  metadir =  __dirname + '\\..\\metadata';
+  testdir =  __dirname + '\\metadata';
+} else {
+  nodeexe = "'" + process.execPath + "' server.js --port 7999";
+  metadir = __dirname + '/../metadata';
+  testdir =  __dirname + '/metadata';
+}
+
+metadir = path.normalize(metadir);
+testdir = path.normalize(testdir);
+
+let filesExample = filelist(metadir, exampleIncludes);
+let filesTest = filelist(testdir, testIncludes);
+let files = [...filesExample, ...filesTest];
 
 function execute(com,i) {
   let prefix = "Test " + (i+1) + "/" + (2*files.length) + ": ";
@@ -70,12 +69,16 @@ function filelist(metadir, includes) {
 
   let files = [];
   fs.readdirSync(metadir).forEach(file => {
+    let slash = "/";
+    if (process.platform.startsWith("win")) {
+      slash = "\\";
+    }
     let ext = path.extname(file);
     let basename = path.basename(file,'.json');
     if (ext !== ".json") return;
     for (let include of includes) {
       if ((new RegExp(include)).test(basename))
-        files.push(file);
+        files.push(metadir + slash + file);
     }
   })
   return files;
@@ -86,17 +89,14 @@ console.log('_________');
 
 let fails = 0;
 for (var i = 0; i < files.length; i++) {
-  let slash = "/";
-  if (process.platform.startsWith("win")) {
-    slash = "\\";
-  }
-  // Run node server.js --test -f metadata/CATALOG.json
-  let comt = nodeexe + " --test " + server_args + " -f " + '"' + metadir + slash + files[i] + '"';
+  // Run node server.js --test -f FILENAME
+  let comt = nodeexe + " --test " + server_args + " -f " + '"' + files[i] + '"';
   fails = fails + execute(comt,2*i);
 
-  // Run node server.js --verify -f metadata/CATALOG.json
-  let comv = nodeexe + " --verify " + server_args + " -f " + metadir + slash + files[i];
+  // Run node server.js --verify -f FILENAME
+  let comv = nodeexe + " --verify " + server_args + " -f " + '"' + files[i] + '"';
   fails = fails + execute(comv,2*i+1);
+
   if (argv.https || !testAll) {
     // Only run one test.
     if (fails == 0) {
