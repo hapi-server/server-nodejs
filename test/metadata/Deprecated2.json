@@ -1,9 +1,8 @@
 {
 	"server": {
-		"id": "Example6",
+		"id": "Deprecated2",
 		"contact": "rweigel@gmu.edu",
-		"HAPI": "2.0",
-		"catalog-update": 3
+		"HAPI": "2.0"
 	},
 	"data": {
 		"command": "\"$PYTHONEXE\" \"$HAPISERVERPATH/bin/Example.py\" --id ${id} --params ${parameters} --start ${start} --stop ${stop} --fmt ${format}",
@@ -17,5 +16,5 @@
 			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-12-31T23:50Z&time.max=1971-01-01Z", "Nlines": 10}
 		]
 	},
-	"catalog_file": "$HAPISERVERPATH/metadata/Example5/catalog.json"
+	"catalog": "$HAPISERVERPATH/test/metadata/Deprecated1/catalog.json"
 }
