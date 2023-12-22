@@ -275,55 +275,35 @@ And the page at `http://localhost:8999/` will point to these two URLs.
 
 ## 5.1 conf/config.json
 
-The variables `HAPISERVERPATH`, `HAPISERVERHOME`, `PYTHONEXE`, and `NODEEXE` can be set in `conf/config.json` or as environment variables. These variables can be used in commands, files, and URLs in the server metadata (which are files passed using the command-line `--file` switch). See [the examples](https://github.com/hapi-server/server-nodejs/tree/master/metadata) for use cases.
+The variables `$HAPISERVERPATH`, `$PYTHONEXE`, and `$NODEJSEXE` can be used in commands, files, and URLs in the server metadata (which are files passed using the command-line `--file` switch). See [the examples](https://github.com/hapi-server/server-nodejs/tree/master/metadata) for use cases.
 
-The default configuration file is `conf/config.json` and this location can be set using a command-line argument, e.g.,
+These variables can be passed as command line arguments or set in the default configuration file `conf/server.json`; an alternative location can be set using a command-line argument, e.g.,
 
 ```
 ./hapiserver -c /tmp/config.json
 ```
 
-To set variables using environment variables, use, e.g.,
+Variables set on the command line take precedence over those set in `conf/server.json`.
 
-```
-HAPISERVERHOME=/var/www/hapi-config/json ./hapi-server
-```
+**`$HAPISERVERPATH`**
 
-Variables set as environment variables take precedence over those set in `conf/config.json`.
-
-**`HAPISERVERPATH`** and **`HAPISERVERHOME`**
-
-These two variables can be used in metadata to reference a directory. For example,
+`$HAPISERVERPATH` can be used in metadata files. For example,
 
 ```javascript
 {
   "server": {...},
   "data": {...},
-  "catalog_file": "$HAPISERVERHOME/mymetadata/Data.json"
+  "catalog_file": "$HAPISERVERPATH/mymetadata/Data.json"
 }
 ```
 
-By default, `$HAPISERVERPATH` is the installation directory (the directory containing the shell launch script `hapi-server`) and should not be changed as it is referenced in the demonstration metadata files. Modify `HAPISERVERHOME` in `conf/config.json` to use a custom path.
+By default, `$HAPISERVERPATH` is the installation directory (the directory containing the shell launch script `hapi-server`). Modify `HAPISERVERPATH` in `conf/server.json` to use a custom path.
 
 All relative paths in commands in metadata files are relative to the directory where `hapi-server` was executed.
 
-For example, if
-
-```
-/tmp/hapi-server
-```
-
-is executed from `/home/username`, the file
-
-```
-/home/username/metadata/TestData2.0.json
-```
-
-is read and relative paths in `TestData2.0.json` have `/home/username/` prepended.
-
 **`PYTHONEXE`**
 
-This is the command used to call Python. By default, it is `python`. If `python` is not in the path, this can be set using a relative or absolute path. Python is used by several of the demonstration catalogs. 
+This is the command used to call Python. By default, it is `python`. If `python` is not in the path, this can be set using a relative or absolute path. Python is used by several of the demonstration catalogs.
 
 This variable can also be set using the `--python` command line switch, which has the highest precedence.
 
@@ -331,7 +311,7 @@ Example:
 
 ```javascript
 data: {
-  "command": "$PYTHONEXE $HAPISERVERHOME/mybin/Data.py"
+  "command": "$PYTHONEXE $HAPISERVERPATH/mybin/Data.py"
 }
 ```
 

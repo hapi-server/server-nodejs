@@ -6,7 +6,7 @@ const fs        = require('fs');
 const path      = require("path");
 const clc       = require('chalk');
 const yargs     = require('yargs');
-const spawnSync = require('child_process').spawnSync;
+const shellcmd  = require('../lib/shellcmd.js');
 
 let argv = yargs
             .option('https',{'type': 'boolean'})
@@ -24,13 +24,13 @@ if (argv.https) {
 
 let metadir, testdir, nodeexe;
 if (process.platform.startsWith("win")) {
-  nodeexe =  '"' + process.execPath + '" server.js --port 7999';
-  metadir =  __dirname + '\\..\\metadata';
-  testdir =  __dirname + '\\metadata';
+  nodeexe = '"' + process.execPath + '" server.js --port 7999';
+  metadir = __dirname + '\\..\\metadata';
+  testdir = __dirname + '\\metadata';
 } else {
   nodeexe = "'" + process.execPath + "' server.js --port 7999";
   metadir = __dirname + '/../metadata';
-  testdir =  __dirname + '/metadata';
+  testdir = __dirname + '/metadata';
 }
 
 metadir = path.normalize(metadir);
@@ -40,55 +40,11 @@ let filesExample = filelist(metadir, exampleIncludes);
 let filesTest = filelist(testdir, testIncludes);
 let files = [...filesExample, ...filesTest];
 
-function execute(com,i) {
-  let prefix = "Test " + (i+1) + "/" + (2*files.length) + ": ";
-  process.stdout.write(clc.blue(prefix) + com + "\n");
-  let child;
-  if (process.platform.startsWith("win")) {
-    if (com.startsWith('"')) {com = '"' + com + '"';}
-    child = require('child_process')
-             .spawnSync('cmd.exe', ['/s', '/c', com],
-             {stdio: "pipe", "shell": true, "encoding": "buffer"});
-  } else {
-    child = spawnSync('sh', ['-c', com], {stdio: 'pipe'});
-  }
-  let status = 0;
-  if (child.status == 0) {
-    status = 0;
-    console.log(clc.blue(prefix) + clc.green.bold("PASS") + "\n");
-  } else {
-    status = 1;
-    console.log(clc.blue(prefix) + clc.red.bold("FAIL") + "\n");
-    console.log("\n" + child.stdout.toString());
-    console.log("\n" + child.stderr.toString());
-  }
-  return status;
-}
-
-function filelist(metadir, includes) {
-
-  let files = [];
-  fs.readdirSync(metadir).forEach(file => {
-    let slash = "/";
-    if (process.platform.startsWith("win")) {
-      slash = "\\";
-    }
-    let ext = path.extname(file);
-    let basename = path.basename(file,'.json');
-    if (ext !== ".json") return;
-    for (let include of includes) {
-      if ((new RegExp(include)).test(basename))
-        files.push(metadir + slash + file);
-    }
-  })
-  return files;
-}
-
-console.log('URL tests');
+console.log('Server tests');
 console.log('_________');
 
 let fails = 0;
-for (var i = 0; i < files.length; i++) {
+for (let i = 0; i < files.length; i++) {
   // Run node server.js --test -f FILENAME
   let comt = nodeexe + " --test " + server_args + " -f " + '"' + files[i] + '"';
   fails = fails + execute(comt,2*i);
@@ -111,4 +67,37 @@ if (fails == 0) {
   process.exit(0);
 } else {
   process.exit(1);
+}
+
+function execute(cmd, i) {
+  let prefix = "Test " + (i+1) + "/" + (2*files.length) + ": ";
+  process.stdout.write(clc.blue(prefix) + cmd + "\n");
+  let child = shellcmd.spawnSync(cmd, {"logerror": false});
+  if (child.status == 0) {
+    console.log(clc.blue(prefix) + clc.green.bold("PASS") + "\n");
+  } else {
+    console.log(clc.blue(prefix) + clc.red.bold("FAIL") + "\n");
+    console.log("\n" + child.stdout.toString());
+    console.log("\n" + child.stderr.toString());
+  }
+  return child.status;
+}
+
+function filelist(metadir, includes) {
+
+  let files = [];
+  fs.readdirSync(metadir).forEach(file => {
+    let slash = "/";
+    if (process.platform.startsWith("win")) {
+      slash = "\\";
+    }
+    let ext = path.extname(file);
+    let basename = path.basename(file,'.json');
+    if (ext !== ".json") return;
+    for (let include of includes) {
+      if ((new RegExp(include)).test(basename))
+        files.push(metadir + slash + file);
+    }
+  })
+  return files;
 }

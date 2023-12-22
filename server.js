@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const fs   = require('fs');
-const clc  = require('chalk'); // Colorize command line output
 
 const compress   = require('compression');  // Express compression module
 const moment     = require('moment');       // Time library http://moment.js
@@ -19,17 +18,12 @@ const prepmetadata = require('./lib/metadata.js').prepmetadata;
 // Command line interface
 const argv = require('./lib/cli.js').argv;
 
-// Test commands and URLs
-const test = require('./lib/test.js');
-
 // Logging
 const log = require('./lib/log.js');
+log.set('logdir', argv.logdir);      // Sets process.env.HAPILOGDIR and creates, if needed.
+log.set('loglevel', argv.loglevel);  // Sets process.env.HAPILOGLEVEL
 
-const is = require('hapi-server-verifier').is;
-const verify = require('hapi-server-verifier').tests.run;
-const validHAPITime = is.HAPITime;
-
-log.set('level', argv.loglevel);
+exceptions(); // Catch uncaught exceptions
 
 // Get default configuration variables stored in ./conf/server.json
 const config = require("./lib/conf.js").configVars(argv);
@@ -38,94 +32,14 @@ for (key in config) {
 }
 
 const FILE        = argv.file;
-const PORT        = argv.port;
 const FORCE_START = argv.ignore;
 const SKIP_CHECKS = argv.skipchecks;
-const OPEN        = argv.open;
-const TEST        = argv.test;
-const VERIFY      = argv.verify;
-const LOGDIR      = argv.logdir;
 const VERIFIER    = argv.verifier;
 const PLOTSERVER  = argv.plotserver;
-const HTTPS       = argv.https;
-const KEY_PATH    = argv.key;
-const CERT_PATH   = argv.cert;
 const METADIR     = __dirname + "/public/meta";
 
 const PROXY_WHITELIST   = argv["proxy-whitelist"];
 const SERVER_UI_INCLUDE = argv["server-ui-include"];
-
-let options = {};
-if (HTTPS === false) {
-  log.info("Server will use http.");
-} else {
-  log.info("Starting HTTPS Server");
-  if (KEY_PATH  == undefined && CERT_PATH != undefined) {
-    console.log(clc.red("If cert is given, key must be given. Exiting."));
-    process.exit(1);
-  }
-  if (KEY_PATH  != undefined && CERT_PATH == undefined) {
-    console.log(clc.red("If key is given, cert must be given. Exiting."));
-    process.exit(1);
-  }
-  if (KEY_PATH && !fs.existsSync(KEY_PATH )) {
-    console.log(clc.red("Could not find https key file " + KEY_PATH));
-    process.exit(1);
-  }
-  if (CERT_PATH && !fs.existsSync(CERT_PATH)) {
-    console.log(clc.red("Could not find https cert file " + CERT_PATH));
-    process.exit(1);
-  }
-
-  if (CERT_PATH && KEY_PATH) {
-    // Both cert and key file given
-    options = {
-      key:  fs.readFileSync(KEY_PATH),
-      cert: fs.readFileSync(CERT_PATH)
-    };
-    server = require("https").createServer(options, app);
-  } else {
-    // Genererate key and cert file
-    if (process.platform.startsWith("win")) {
-      console.log(clc.red("Generation of SSL key and certifications files not implemented on Windows"));
-      process.exit(1);
-    }
-    let com = 'sh \"' + __dirname + '/ssl/gen_ssl.sh' + '\"';
-
-    // execSync requires a callback. Replaced it with spawnSync.
-    let child;
-    try {
-      child = require('child_process').spawnSync('sh', ['-c', com], {stdio: 'pipe'});
-    } catch (ex) {
-      console.log(clc.red("Error when executing: " + com + "."));
-      if (ex.stderr) {
-        console.log(clc.red(ex.stderr.toString()));
-      }
-      if (exit_if_fail) {
-        process.exit(1);
-      } else {
-        return false;
-      }
-    }
-
-    if (child.status !== 0) {
-      console.log(clc.red("Command returned non-zero status: " + com + "."));
-      if (child.stdout.toString().trim().length > 0)
-        console.log("\nstdout:\n" + child.stdout.toString());
-      if (child.stderr)
-        console.log("\nstderr:\n" + child.stderr.toString());
-      console.log("Exiting.");
-      process.exit(1);
-    }
-    // TODO: Report error and exit if key.pem and cert.pem not found.
-    options = {
-      key:  fs.readFileSync(require("path").resolve(__dirname, "./ssl/key.pem")),
-      cert: fs.readFileSync(require("path").resolve(__dirname, "./ssl/cert.pem"))
-    };
-  }
-}
-
-let server = require("https").createServer(options, app);
 
 let FILES;
 if (typeof(FILE) == 'string') {
@@ -134,23 +48,9 @@ if (typeof(FILE) == 'string') {
   FILES = FILE;
 }
 
-// Deal with file patterns.
+// Handle file patterns.
 const expandglob = require("./lib/expandglob.js").expandglob;
 FILES = expandglob(FILES);
-
-exceptions(); // Catch common start-up exceptions and un--caught exceptions
-
-if (!fs.existsSync(LOGDIR)) {
-  fs.mkdirSync(LOGDIR);
-  log.info("Created " + LOGDIR);
-} else {
-  log.info("Log directory = " + LOGDIR);
-}
-log.LOGDIR = LOGDIR;
-
-//const proxy = require('./lib/proxy.js');
-//proxy.proxyInit(PROXY_WHITELIST, SERVER_UI_INCLUDE, '');
-//process.exit(0);
 
 // Populate metadata.cache array, which has elements of catalog objects
 // main() is callback.
@@ -173,8 +73,7 @@ function main() {
       fs.writeFileSync(file, all, "utf8");
       log.info("Finished creation of " + file);
     } catch(e) {
-      console.log(clc.red("Error when writing " + file + ":"));
-      console.log(clc.red(e));
+      log.error("Error when writing " + file + ": " + e.message);
     }
   }
 
@@ -218,65 +117,6 @@ function main() {
   }
 }
 
-function serverInit(CATALOGS, PREFIXES) {
-
-  function startupMessages(url_prefix){
-    log.info(clc.blue("Listening on port " + argv.port));
-
-    let url = url_prefix + argv.port;
-    log.info("HAPI server list is at");
-    log.info("  " + url);
-    log.info("This server provides");
-    for (var i = 0;i < CATALOGS.length;i++) {
-      log.info("  " + url + "/" + PREFIXES[i] + "/hapi");
-    }
-
-    log.info("To open a browser at " + url + ", use the --open option.");
-    log.info("To run test URLs and exit, use the --test option.");
-    log.info("To run command-line verification tests and exit, use the --verify option.");
-
-    if (OPEN) {
-      // Open browser window
-      var start = (process.platform == 'darwin' ? 'open': process.platform == 'win32' ? 'start': 'xdg-open');
-      require('child_process').exec(start + ' ' + url);
-    }
-
-    if (TEST) {
-      // Exits with signal 0 or 1
-      test.urls(CATALOGS, PREFIXES, url, TEST);
-    }
-
-    if (VERIFY) {
-      // Run verifier
-      // TODO: This only verifies first server
-
-      let serverConfig = metadata(PREFIXES[0],'server');
-      // verify() exits with code 1 if error.
-      let vopts = {"url": url + "/" + PREFIXES[0] + "/hapi", "output": "console"}
-      if (serverConfig.verify) {
-        // If server has many datasets, select subset to verify.
-        verify({...vopts, "id": serverConfig.verify});
-      } else {
-        verify(vopts);
-      }
-    }
-  }
-
-  // TODO: Server startup should be a callback to apiInit.
-  if (HTTPS) {
-    // In-case of HTTPS, server.listen is used. app.listen() can only listen to HTTP requests
-    var url_prefix = 'https://localhost:';
-    server.listen(argv.port, function () {
-      startupMessages(url_prefix);
-    });
-  } else {
-    // HTTP connection
-    var url_prefix = 'http://localhost:';
-    app.listen(argv.port, function () {
-      startupMessages(url_prefix);
-    });
-  }
-}
 
 function apiInit(CATALOGS, PREFIXES, i) {
 
@@ -330,7 +170,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
     // Handle uncaught errors in API request code.
     app.use(errorHandler);
     // Start server
-    serverInit(CATALOGS, PREFIXES);
+    require("./lib/serverInit.js").serverInit(CATALOGS, PREFIXES, app, argv);
     return;
   }
 
@@ -341,7 +181,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   let capabilities = metadata(CATALOG,"capabilities");
   let hapiversion = capabilities["HAPI"];
 
-  log.info(clc.green("Initializing endpoints for http://localhost:" + argv.port + PREFIX + "/hapi"));
+  log.info("Initializing endpoints for http://localhost:" + argv.port + PREFIX + "/hapi");
 
   // Serve static files in ./public/data (no directory listing provided)
   app.use(PREFIXe + "/data", express.static(__dirname + '/public/data'));
@@ -367,7 +207,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   // Serve all.json file
   app.get(PREFIXe + '/hapi/all.json', function (req, res) {
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
-    setCORSHeaders(res);
+    setHeaders(res, true);
     res.contentType("application/json");
     var file = __dirname + "/public/meta" + PREFIX + "-all.json";
     fs.createReadStream(file).pipe(res);
@@ -381,7 +221,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
     let landingHTML = metadata(CATALOG, "server", "landingHTML");
     let landingPath = metadata(CATALOG, "server", "landingPath");
 
-    setCORSHeaders(res);
+    setHeaders(res, true);
     if (landingHTML !== "") {
       res.contentType('text/html');
       res.send(landingHTML);
@@ -399,7 +239,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   app.get(PREFIXe + '/hapi/about', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
-    setCORSHeaders(res);
+    setHeaders(res, true);
     res.contentType("application/json");
 
     // Send error if query parameters given
@@ -419,7 +259,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   app.get(PREFIXe + '/hapi/capabilities', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
-    setCORSHeaders(res);
+    setHeaders(res, true);
     res.contentType("application/json");
 
     // Send error if query parameters given
@@ -435,7 +275,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   app.get(PREFIXe + '/hapi/catalog', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
-    setCORSHeaders(res);
+    setHeaders(res, true);
     res.contentType("application/json");
 
     // Send error if query parameters given
@@ -451,7 +291,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   app.get(PREFIXe + '/hapi/info', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
-    setCORSHeaders(res);
+    setHeaders(res, true);
     res.contentType("application/json");
 
     // Check query string and set defaults as needed.
@@ -477,7 +317,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   app.get(PREFIXe + '/hapi/data', function (req, res) {
 
     res.on('finish', () => log.request(req, req.socket.bytesWritten));
-    setCORSHeaders(res);
+    setHeaders(res, true);
 
     // Check query string and set defaults as needed.
     if (!queryCheck(req,res,hapiversion,CATALOG,'data')) {
@@ -572,12 +412,18 @@ function apiInit(CATALOGS, PREFIXES, i) {
   apiInit(CATALOGS, PREFIXES, ++i);
 }
 
-function setCORSHeaders(res) {
-  // CORS headers
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+function setHeaders(res, cors) {
+  let packagejson = require("./package.json");
+  if (cors) {
+    // CORS headers
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+  }
+  res.header("X-Powered-By",packagejson.repository.url + " v" + packagejson.version);
 }
+
 
 function info(req,res,catalog) {
 
@@ -646,6 +492,7 @@ function info(req,res,catalog) {
   // Return JSON object
   return json;
 }
+
 
 function data(req,res,catalog,header,include) {
 
@@ -887,12 +734,12 @@ function data(req,res,catalog,header,include) {
 
     // Call the cmd line command and send output.
     if (process.platform.startsWith("win")) {
-      let opts = {shell: true, stdio: "pipe", encoding: "buffer"};
+      let opts = {"cwd": __dirname, "encoding": "buffer", shell: true, stdio: "pipe"};
       var child = require('child_process').spawn('cmd.exe', ['/s','/c', com], opts);
     } else {
       // See https://azimi.me/2014/12/31/kill-child_process-node-js.html for
       // reason for detached: true
-      let opts = {"encoding": "buffer", detached: true};
+      let opts = {"cwd": __dirname, "encoding": "buffer", detached: true};
       var child = require('child_process').spawn('sh', ['-c', com], opts);
     }
 
@@ -924,6 +771,7 @@ function data(req,res,catalog,header,include) {
 
     if (usePipe) {
 
+      log.debug("Using pipe");
       child.stdout.on('end', function () {
 
         log.info(`Child end event.`);
@@ -978,7 +826,7 @@ function data(req,res,catalog,header,include) {
             if (headerStr === undefined) {
               callback(null, chunk.toString());
             } else {
-              callback(null, headerStr + chunk.toString());                
+              callback(null, headerStr + chunk.toString());
             }
           }
           if (convert === false) {
@@ -986,14 +834,14 @@ function data(req,res,catalog,header,include) {
               if (headerStr === undefined) {
                 callback(null, chunk.toString());
               } else {
-                callback(null, headerStr + chunk.toString());                
+                callback(null, headerStr + chunk.toString());
               }
             }
             if (header["format"] === "binary") {
               if (headerStr === undefined) {
                 callback(null, chunk);
               } else {
-                callback(null, headerStr + chunk);                
+                callback(null, headerStr + chunk);
               }
             }
           } else {
@@ -1013,7 +861,7 @@ function data(req,res,catalog,header,include) {
             if (err.code === 'ERR_STREAM_PREMATURE_CLOSE') {
               log.debug("ERR_STREAM_PREMATURE_CLOSE");
             } else {
-              console.error(err);
+              log.error(err);
             }
           }
         });
@@ -1032,7 +880,6 @@ function data(req,res,catalog,header,include) {
       childFinished = true;
 
       log.info(`Child closed with status ${code}: ${com}`);
-
       if (code !== 0 && connectionClosed === false) {
         dataErrorMessage();
         return;
@@ -1059,7 +906,7 @@ function data(req,res,catalog,header,include) {
           res.status(200).end();
         }
       }
-    })
+    });
 
     child.stdout.on('data', function (buffer) {
       gotData = true;
@@ -1121,7 +968,7 @@ function data(req,res,catalog,header,include) {
 function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
 
 
-function csvTo(records,first,last,header,include) {
+function csvTo(records, first, last, header, include) {
 
   // Helper function
   function append(str,arr,N) {for (var i=0;i<N;i++) {arr.push(str);};return arr;}
@@ -1149,11 +996,11 @@ function csvTo(records,first,last,header,include) {
     po[header.parameters[i].name]["type"] = header.parameters[i].type;
     po[header.parameters[i].name]["size"] = header.parameters[i].size || [1];
     if (po[header.parameters[i].name]["size"].length > 1) {
-      log.info(clc.yellow("Warning. JSON for parameter "
+      log.warn("Warning. JSON for parameter "
                 + name
                 + " will be 1-D array instead of "
                 + po[header.parameters[i].name]["size"].length
-                + "-D"));
+                + "-D");
       po[header.parameters[i].name]["size"] =
       prod(po[header.parameters[i].name]["size"]);
     }
@@ -1215,7 +1062,7 @@ function csvTo(records,first,last,header,include) {
         if (types[j] === 'string' || types[j] === 'isotime') {
           let buffer = Buffer.from(record[j],'utf8');
           if (buffer.length > lengths[j]) {
-            console.log(ds() + clc.red("Truncated:",record[j],buffer.length,"bytes"));
+            log.error("Truncated:",record[j],buffer.length,"bytes");
             truncated = truncated + 1;
           }
           recordbuff.write(record[j],pos,'utf8')
@@ -1224,9 +1071,9 @@ function csvTo(records,first,last,header,include) {
       }
     }
     if (truncated > 0) {
-      log.info(clc.red((truncated) 
-                    + " string(s) were truncated because they"
-                    + " were longer than length given in metadata"));
+      log.error(truncated
+                + " string(s) were truncated because they"
+                + " were longer than length given in metadata");
     }
     return recordbuff;
   }
@@ -1300,6 +1147,7 @@ function csvTo(records,first,last,header,include) {
     return open + records.slice(0,-1) + close;
   }
 }
+
 
 function queryCheck(req, res, hapiversion, catalog, type) {
 
@@ -1390,7 +1238,10 @@ function queryCheck(req, res, hapiversion, catalog, type) {
   return true;
 }
 
+
 function timeCheck(header) {
+
+  const validHAPITime = require('hapi-server-verifier').is.HAPITime;
 
   // TODO: Handle less than milliseconds resolution.
   // TODO: If one of the times had Z and the other does not,
@@ -1477,7 +1328,7 @@ function timeCheck(header) {
 }
 
 // HAPI errors
-function error(req,res,hapiversion,code,message,messageFull) {
+function error(req, res, hapiversion, code, message, messageFull) {
 
   let start = "time.min";
   let stop  = "time.max";
@@ -1558,12 +1409,9 @@ function errorHandler(err, req, res, next) {
 function exceptions() {
   process.on('uncaughtException', function(err) {
     if (err.errno === 'EADDRINUSE') {
-      console.log(clc.red("Port " + argv.port + " already in use."));
-      process.exit(1);
+      log.error("Port " + argv.port + " already in use.",1);
     } else {
-      log.error("Uncaught Exception\n" + err);
-      let logfile = LOGDIR + '/server-error-' + log.ds().split("T")[0] + ".log";
-      fs.appendFileSync(logfile, "\n" + log.ds() + " Uncaught Exception\n" + err.msg);
+      log.error("Uncaught Exception\n" + err,1);
     }
   });
 }
