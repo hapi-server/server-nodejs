@@ -52,8 +52,7 @@ This software handles
 Requires [NodeJS](https://nodejs.org/).
 
 ```
-git clone https://github.com/hapi-server/server-nodejs.git
-cd server-nodejs
+git clone https://github.com/hapi-server/server-nodejs.git && cd server-nodejs
 npm install
 node server.js
 ```
@@ -83,7 +82,8 @@ where `FILENAME.json` is one of the file names listed below (e.g., `Example0.jso
 * [Example9.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example9.json) - A dataset in headerless HAPI CSV format is returned by a URL; the server handles parameter and time subsetting and creation of HAPI JSON and Binary.
 * [AutoplotExample1.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/AutoplotExample1.json) - A dataset is stored in multiple files and AutoplotDataServer is used to subset in time.
 * [AutoplotExample2.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/AutoplotExample2.json) - A dataset is stored in a CDF file and AutoplotDataserver is used to generate HAPI CSV.
-* [TestData2.0.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestData.json) - A test dataset used to test HAPI clients.
+* [TestData2.0.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestData2.0.json) - A test dataset used to test HAPI clients.
+* [TestData2.1.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestData2.1.json) - A test dataset used to test HAPI clients.
 * [SSCWeb.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/SSCWeb.json) - Data from a non-HAPI web service is made available from a HAPI server.
 * [QinDenton.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/QinDenton) - Data in a single ASCII file is converted to headerless HAPI CSV by a Python program. See section 2.5.
 
@@ -287,7 +287,7 @@ Variables set on the command line take precedence over those set in `conf/server
 
 **`$HAPISERVERPATH`**
 
-`$HAPISERVERPATH` can be used in metadata files. For example,
+`$HAPISERVERPATH` can be used in metadata files to reference the absolute path of a directory. For example,
 
 ```javascript
 {
@@ -297,7 +297,7 @@ Variables set on the command line take precedence over those set in `conf/server
 }
 ```
 
-By default, `$HAPISERVERPATH` is the installation directory (the directory containing the shell launch script `hapi-server`). Modify `HAPISERVERPATH` in `conf/server.json` to use a custom path.
+By default, `$HAPISERVERPATH` is the installation directory (the directory containing the shell launch script `hapi-server`). Modify `HAPISERVERPATH` on the commandline or in `conf/server.json` to use a custom path.
 
 All relative paths in commands in metadata files are relative to the directory where `hapi-server` was executed.
 
@@ -369,9 +369,9 @@ The server requires that the `/catalog` response is combined with the `/info` re
 
 The top-level structure of the configuration file is
 
-```
+```javascript
 {
-  "server": // See section 5.1
+  "server": // See section 6.1
   {
     "id": "",
     "prefix": "",
@@ -382,20 +382,28 @@ The top-level structure of the configuration file is
     "verify": "",
     "catalog-update": null
   },
-  "catalog": "array or string" // See section 5.2 
-  "data":  // See section 5.3
+  "catalog_inline": <object>
+  or
+  "catalog_file": <string>
+  or
+  "catalog_url": <string>
+  or
+  "catalog_command": <string>
+  
+  "data":  // See section 6.3
   {
-     "command": "Command line template",
-     or
+     "command": "Command line template", // See metadata/Example{1-7}.json
+     or // See metadata/Example8.json
      "file": "HAPI CSV file"
      "fileformat": "one of 'csv', 'binary', 'json'"
-     or
+     or // See metadata/Example9.json
      "url": "URL that returns HAPI data"
      "urlformat": "one of 'csv', 'binary', 'json'"
+
      "contact": "Email address if error in command line program",
      "testcommands": [
        {
-        "command": string,  
+        "command": string, 
         "Nlines": integer,
         "Nbytes": integer,
         "Ncommas", integer
@@ -417,29 +425,26 @@ The top-level structure of the configuration file is
 
 A variety of examples are given in [`./metadata`](https://github.com/hapi-server/server-nodejs/blob/master/metadata/) and described below along with options for the catalog property.
 
-The string `command` in the data node is a command that produces a headerless HAPI data response and can have placeholders for time range of data to return (using start (`${start}`) and stop (`${stop}`)), a dataset id (`${id}`), a comma-separated list of parameters (`${parameters}`) and an output format (`${format}`). For example,
+The string `command` in the data node is a command that produces a headerless HAPI data response that has optional placeholders. See [metadata/Example{1-7}.json](https://github.com/hapi-server/server-nodejs/tree/master/metadata) for examples usage that includes calling [bin/Example.py](https://github.com/hapi-server/server-nodejs/tree/master/bin/Example.py). For example, in [metadata/Example4.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example4.json), `command` is
 
 ```bash
-python ./bin/Example.py --dataset ${id} --parameters \
-    ${parameters} --start ${start} --stop ${stop} --format ${format}"`
+python ./bin/Example.py --dataset ${id} --params \
+    ${parameters} --start ${start} --stop ${stop} --fmt ${format}"`
 ```
 
 ## 6.1 server
 
 The server node has the form
 
-```
+```javascript
 "server": {
-  "id": "", 		    // Default is file name without extension.
-  "prefix": "", 	  // Default is id.
-  "contact": "",    // Required. Server will not start without this set.
-  "HAPI": "",       // Default is 2.1. HAPI API and schema to use for checking metadata.
-  "contact": "",
-  "landingFile": "",
-  "landingPath": "",
-  "verify": "",
-  "catalog-update": null // How often in seconds to re-read content
-                         // in the catalog node (5.2).
+  "id": "",         // Default is file name without extension.
+  "prefix": "",     // Default is id.
+  "contact": "",    // Required. Server will not start without this set. Displayed when data.command fails.
+  "HAPI": "",       // HAPI API and schema (e.g., 2.1, 3.0) to use for checking metadata.
+  "landingFile": "",   // e.g., index.htm file
+  "landingPath": "",   // relative paths in index.htm will resolve to this path
+  "catalog-update": null // How often in seconds to re-read metadata in the catalog node
 }
 ```
 
@@ -459,7 +464,7 @@ By default, this catalog would be served from
 http://localhost:8999/TestData2.0/hapi
 ```
 
-`TestData2.0` in the URL can be changed to `TestData2.0.0` by using `prefix=TestData2.0.0`.
+`TestData2.0` in the URL can be changed to `TestData2.0.1` by using `prefix=TestData2.0.1`.
 
 ### 6.1.2 contact
 
@@ -477,7 +482,7 @@ By default, the landing page served is [single.htm](https://github.com/hapi-serv
 
 If `landingFile` has local CSS and JS dependencies, set `landingPath` to be the local directory of the referenced files. Several possible settings are
 
-```
+```javascript
 "landingFile": "$HAPISERVERPATH/index.htm", 
 // $HAPISERVERPATH will be replaced with location of hapi-server binary
 "landingPath": "/var/www/public/" // Location of CSS and JS files
@@ -486,7 +491,7 @@ If `landingFile` has local CSS and JS dependencies, set `landingPath` to be the 
 
 To serve a directory listing, use
 
-```
+```javascript
 "landingFile": "",
 "landingPath": "/var/www/public/"
 // Server will look for index.htm and index.html in /var/www/public/. If not
@@ -501,16 +506,16 @@ This is an integer number of seconds corresponding to how often the `catalog` no
 
 The `catalog` node can be either a string or an array. 
 
-In the case that it is an array, it should contain either the combined HAPI `/catalog` and `/info` response (5.2.1) or a `/catalog` response with references to the `\info` response (5.2.1).
+In the case that it is an array, it should contain either the combined HAPI `/catalog` and `/info` response or a `/catalog` response with references to the `\info` response.
 
-In the case that it is a string (5.2.3), the string is either a file containing a catalog array or a command-line template that returns a catalog array. 
+In the case that it is a string, the string is either a file containing a catalog array or a command-line template that returns a catalog array. 
 
-### 6.2.1 Combined HAPI /catalog and /info object
+### 6.2.1 `catalog_inline`
 
 If `catalog` is an array, it should have the same format as a HAPI `/catalog` response (each object in the array has an `id` property and optional `title` property) **with the addition** of an `info` property that is the HAPI response for that `id`, e.g., `/info?id=dataset1`. 
 
 ```json
-"catalog":
+"catalog_inline":
     [
        {
         "id": "dataset1",
@@ -540,26 +545,24 @@ Examples of this type of catalog include
 * [Example1.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example1.json)
 * [TestData2.0.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestData2.0.json)
 
-### 6.2.2 /catalog response with file or command template for info object
-
-The `info` value can be a path to an `info` JSON file
+The `info` value can be one of `info_inline`, `info_file`, `info_url`, or `info_command`. (`info` is treated the same as `info_inline`).
 
 ```json
-"catalog": 
-    [
-    	{
-    		"id": "dataset1",
-    		"title": "a dataset",
-    		"info": "relativepath/to/dataset2/info_file.json"
-    	},
-    	{
-    		"id": "dataset2",
-    		"title": "another dataset",
-    		"info": "/absolutepath/to/dataset2/info_file.json"
-    	}
+"catalog_inline": 
+  [
+     {
+       "id": "dataset1",
+       "title": "a dataset",
+       "info_file": "relativepath/to/dataset2/info_file.json"
+      },
+      {
+        "id": "dataset2",
+        "title": "another dataset",
+        "info_file": "/absolutepath/to/dataset2/info_file.json"
+      }
     ]
 ```
-See also [Example3.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example3.json).
+Relative paths are relative to the location of the directory of `server.js`. See also [Example3.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example3.json).
 
 Alternatively, the metadata for each dataset may be produced by the execution of a command-line program for each dataset. For example, in the following, `program1` should result in a HAPI JSON response from `/info?id=dataset1` to `stdout`. Before execution, the string `${id}`, if found, is replaced with the requested dataset ID. Execution of `program2` should produce the HAPI JSON corresponding to the query `/info?id=dataset2`. 
 
