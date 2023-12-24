@@ -15,6 +15,8 @@ const metadata = require('./lib/metadata.js').metadata;
 // Prepare metadata and store in metadata object
 const prepmetadata = require('./lib/metadata.js').prepmetadata;
 
+const trimPath = require('./lib/log.js').trimPath;
+
 // Command line interface
 const argv = require('./lib/cli.js').argv;
 
@@ -22,6 +24,9 @@ const argv = require('./lib/cli.js').argv;
 const log = require('./lib/log.js');
 log.set('logdir', argv.logdir);      // Sets process.env.HAPILOGDIR and creates, if needed.
 log.set('loglevel', argv.loglevel);  // Sets process.env.HAPILOGLEVEL
+
+log.info(`Relative path in log messages base dir`);
+log.info(`  ${__dirname}`);
 
 exceptions(); // Catch uncaught exceptions
 
@@ -60,20 +65,20 @@ function main() {
 
   if (!fs.existsSync(METADIR)){
     fs.mkdirSync(METADIR);
-    log.info("Created " + METADIR);
+    log.info("Created " + trimPath(METADIR));
   } else {
-    log.info("*-all.json directory = " + METADIR);
+    log.info("*-all.json directory = " + trimPath(METADIR));
   }
 
   // Eventually HAPI spec may support request for all metadata associated
   // with server. This creates it.
   function writeall(file, all) {
-    log.info("Starting creation of " + file);
+    log.info("Starting creation of " + trimPath(file));
     try {
       fs.writeFileSync(file, all, "utf8");
-      log.info("Finished creation of " + file);
+      log.info("Finished creation of " + trimPath(file));
     } catch(e) {
-      log.error("Error when writing " + file + ": " + e.message);
+      log.error("Error when writing " + trimPath(file) + ": " + e.message);
     }
   }
 
@@ -1411,6 +1416,7 @@ function exceptions() {
     if (err.errno === 'EADDRINUSE') {
       log.error("Port " + argv.port + " already in use.",1);
     } else {
+      console.log(err)
       log.error("Uncaught Exception\n" + err,1);
     }
   });

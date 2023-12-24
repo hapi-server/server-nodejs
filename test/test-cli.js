@@ -7,9 +7,18 @@ if (process.platform.startsWith("win")) {
 	nodeexe = "'" + process.execPath + "'";
 }
 
+let pythonexe = require("../lib/conf.js").pythonexe();
 testArray = [
 	{
-		"command": `cd ${__dirname}; ${nodeexe} ../server.js --p 8999 --test`,
+		"command": `cd ${__dirname}; ${nodeexe} ../server.js --test`,
+		"status": 0
+	},
+	{
+		"command": `${nodeexe} server.js --test --nodejs ${nodeexe}`,
+		"status": 0
+	},
+	{
+		"command": `${nodeexe} server.js --test -f metadata/Example2.json --python ${pythonexe}`,
 		"status": 0
 	}
 ];

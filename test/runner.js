@@ -15,7 +15,7 @@ function run(testArray, testName) {
 		let fails = 0; // Number of failures on a given test object
 		let prefix = "Test " + (i+1) + "/" + (testArray.length) + ": ";
 		process.stdout.write(clc.blue(prefix) + testArray[i]["command"] + "\n");
-		let results = test.commands([testArray[i]], "subset.js");
+		let results = test.commands([testArray[i]], testName);
 
 		// https://stackoverflow.com/a/15397506
 		// Flatten results array.
@@ -25,7 +25,7 @@ function run(testArray, testName) {
 		for (let j = 0; j < results.length; j++) {
 			if (results[j].err) {
 				if (results[j].msg != undefined) {
-					console.log(clc.red.bold("\nError Msg: ") + clc.red.bold(results[j].msg + "\n"));
+					console.log(clc.red.bold("\nError: ") + clc.red.bold(results[j].msg + "\n"));
 				}
 				fails = fails + 1;
 			}
