@@ -6,7 +6,7 @@ APPDIR=$USER/git/hapi/server-nodejs
 source ~/opt/anaconda3/etc/profile.d/conda.sh; conda activate
 conda activate base
 
-$USER/.nvm/versions/node/v8.17.0/bin/node \
+$USER/.nvm/versions/node/v12.22.12/bin/node \
     --max-old-space-size=512 \
     $APPDIR/server.js \
     --port 8999 --ignore \
