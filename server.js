@@ -36,30 +36,21 @@ for (key in config) {
   log.info(key + " = " + config[key]);
 }
 
-const FILE        = argv.file;
-const FORCE_START = argv.ignore;
-const SKIP_CHECKS = argv.skipchecks;
-const VERIFIER    = argv.verifier;
-const PLOTSERVER  = argv.plotserver;
-const METADIR     = __dirname + "/public/meta";
+// Where to store *-all files
+const METADIR = __dirname + "/public/meta";
 
-const PROXY_WHITELIST   = argv["proxy-whitelist"];
-const SERVER_UI_INCLUDE = argv["server-ui-include"];
-
-let FILES;
-if (typeof(FILE) == 'string') {
-  FILES = [FILE];
+if (typeof(argv.file) == 'string') {
+  FILES = [argv.file];
 } else {
-  FILES = FILE;
+  FILES = argv.file;
 }
 
 // Handle file patterns.
-const expandglob = require("./lib/expandglob.js").expandglob;
-FILES = expandglob(FILES);
+FILES = require("./lib/expandglob.js").expandglob(FILES);
 
 // Populate metadata.cache array, which has elements of catalog objects
 // main() is callback.
-prepmetadata(FILES, FORCE_START, SKIP_CHECKS, main);
+prepmetadata(FILES, argv.ignore, argv.skipchecks, main);
 
 function main() {
 
@@ -72,6 +63,7 @@ function main() {
 
   // Eventually HAPI spec may support request for all metadata associated
   // with server. This creates it.
+  // TODO: This was added in HAPI 3.2.
   function writeall(file, all) {
     log.info("Starting creation of " + trimPath(file));
     try {
@@ -111,9 +103,9 @@ function main() {
 
   app.get('/all.txt', function (req, res) {res.send(serverlist);});
 
-  if (PROXY_WHITELIST !== '' || SERVER_UI_INCLUDE.length > 0) {
+  if (argv["proxy-whitelist"] !== '' || argv["server-ui-include"].length > 0) {
     const proxy = require('./lib/proxy.js');
-    proxy.proxyInit(PROXY_WHITELIST, SERVER_UI_INCLUDE, serverlist, app, setCORSHeaders, apiInit);
+    proxy.proxyInit(argv["proxy-whitelist"], argv["server-ui-include"], serverlist, app, setHeaders, apiInit);
   } else {
     app.get('/proxy', function (req, res) {
       res.status(403).send("Server is not configured to proxy URLs.");
@@ -126,6 +118,7 @@ function main() {
 function apiInit(CATALOGS, PREFIXES, i) {
 
   if (arguments.length == 0) {
+
     let CATALOGS = [];
     let PREFIXES = [];
     let j = 0;
@@ -139,16 +132,17 @@ function apiInit(CATALOGS, PREFIXES, i) {
 
     let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
     app.get('/', function (req,res) {
+      console.log('req')
       res.on('finish', () => log.request(req, req.socket.bytesWritten));
       // TODO: read file async
       let html = fs.readFileSync(indexFile, "utf8")
-      if (VERIFIER) {
-        html = html.replace(/__VERIFIER__/g, VERIFIER);
+      if (argv.verifier) {
+        html = html.replace(/__VERIFIER__/g, argv.verifier);
       }
-      if (PLOTSERVER) {
-        html = html.replace(/__PLOTSERVER__/g, PLOTSERVER);
+      if (argv.plotserver) {
+        html = html.replace(/__PLOTSERVER__/g, argv.plotserver);
       }
-      if (SERVER_UI_INCLUDE.length > 0) {
+      if (argv["server-ui-include"].length > 0) {
         html = html.replace(/__SERVER_LIST__/g, "all-combined.txt");
       }
       res.send(html);
@@ -430,7 +424,7 @@ function setHeaders(res, cors) {
 }
 
 
-function info(req,res,catalog) {
+function info(req, res, catalog) {
 
   // Read parameter metadata.
   let infoType = 'info';
@@ -499,7 +493,7 @@ function info(req,res,catalog) {
 }
 
 
-function data(req,res,catalog,header,include) {
+function data(req, res, catalog, header, include) {
 
   // Extract command line command and replace placeholders.
   var d = metadata(catalog,'data');
