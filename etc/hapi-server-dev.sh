@@ -2,7 +2,7 @@
 
 APPDIR=.
 
-source /home/ubuntu/.nvm/nvm.sh && nvm use 18
+source /home/ubuntu/.nvm/nvm.sh && nvm use 12.22.12
 
 node \
   --max-old-space-size=256 \
