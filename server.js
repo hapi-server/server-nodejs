@@ -145,6 +145,9 @@ function apiInit(CATALOGS, PREFIXES, i) {
       if (argv["server-ui-include"].length > 0) {
         html = html.replace(/__SERVER_LIST__/g, "all-combined.txt");
       }
+      if (SERVER_UI_INCLUDE) {
+        html = html.replace(/__SERVER_LIST__/g, 'all-combined.txt');
+      }
       res.send(html);
     });
 
