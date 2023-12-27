@@ -131,31 +131,24 @@ function apiInit(CATALOGS, PREFIXES, i) {
     let i = 0;
 
     let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
-    app.get('/', function (req,res) {
-      console.log('req')
+    app.get('/', function (req, res) {
       res.on('finish', () => log.request(req, req.socket.bytesWritten));
-      // TODO: read file async
-      let html = fs.readFileSync(indexFile, "utf8")
-      if (argv.verifier) {
-        html = html.replace(/__VERIFIER__/g, argv.verifier);
-      }
-      if (argv.plotserver) {
-        html = html.replace(/__PLOTSERVER__/g, argv.plotserver);
-      }
-      if (argv["server-ui-include"].length > 0) {
-        html = html.replace(/__SERVER_LIST__/g, "all-combined.txt");
-      }
-      if (SERVER_UI_INCLUDE) {
-        html = html.replace(/__SERVER_LIST__/g, 'all-combined.txt');
-      }
-      res.send(html);
+      fs.readFile(indexFile, "utf8", (err, html) => {
+        if (argv.verifier) {
+          html = html.replace(/__VERIFIER__/g, argv.verifier);
+        }
+        if (argv.plotserver) {
+          html = html.replace(/__PLOTSERVER__/g, argv.plotserver);
+        }
+        if (argv["server-ui-include"].length > 0) {
+          html = html.replace(/__SERVER_LIST__/g, "all-combined.txt");
+        }
+        if (argv["server-ui-include"]) {
+          html = html.replace(/__SERVER_LIST__/g, 'all-combined.txt');
+        }
+        res.send(html);
+      });
     });
-
-    // Read at start-up only.
-    if (false) {
-      let html = fs.readFileSync(indexFile, "utf8").toString()
-      app.get('/', function (req,res) {res.send(html);});
-    }
 
     // Serve static files in ./public/data (no directory listing provided)
     app.use("/data", express.static(__dirname + '/public/data'));
