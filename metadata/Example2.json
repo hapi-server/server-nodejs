@@ -2,7 +2,7 @@
 	"server": {
 		"id": "Example2",
 		"contact": "rweigel@gmu.edu",
-		"HAPI": "2.0"		
+		"HAPI": "2.0"
 	},
 	"data": {
 		"command": "\"$PYTHONEXE\" \"$HAPISERVERPATH/bin/Example.py\" --params ${parameters} --start ${start} --stop ${stop} --fmt ${format}",

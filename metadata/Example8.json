@@ -50,7 +50,7 @@
 										"description": "Minutes since 1970-01-01 + i, where i is vector index component 1,2, or 3."
 									}
 								]
-						}				
+						}
 			}
 		]
 }

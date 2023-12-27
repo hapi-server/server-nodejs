@@ -2,7 +2,7 @@
   "server": {
     "id": "SSCWeb",
     "contact": "rweigel@gmu.edu",
-    "HAPI": "2.0"
+    "HAPI": "2.0",
     "catalog-update": 86400,
     "verify": "ace"
   },

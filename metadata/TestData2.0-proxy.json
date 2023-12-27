@@ -1,6 +1,6 @@
 {
     "server": {
-        "id": "TestData2.0",
+        "id": "TestData2.0-proxy",
         "contact": "rweigel@gmu.edu",
         "HAPI": "2.0"
     },
