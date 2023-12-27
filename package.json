@@ -4,7 +4,7 @@
   "license": "MIT",
   "engine-strict": true,
   "engines": {
-    "node": ">=8"
+    "node": ">=12"
   },
   "people": {
     "name": "Bob Weigel",
