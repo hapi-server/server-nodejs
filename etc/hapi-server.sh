@@ -9,5 +9,5 @@
   -f metadata/TestData2.1.json \
   -f metadata/TestData3.0.json \
   -f metadata/TestData3.1.json \
-  -f metadata/SSCWeb.json
+  -f metadata/SSCWeb-chunk.json
   2>&1
