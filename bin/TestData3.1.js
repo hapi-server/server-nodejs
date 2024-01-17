@@ -34,16 +34,16 @@ var records = ""; // Number of records (lines)
 var record  = ""; // A record with comma-separated fields (columns)
 var Nwrote  = 0;  // Number of records flushed
 
-let array = ["Z", "α", "☃", "👍"];
+let array = ["A", "α", "☃", "👍"];
 
 for (var i = startsec; i < stopsec; i++) {
     var record = "";
 
     record = (new Date(i*1000).toISOString());
-    if (all || parameters.includes('unicodescalar-1-byte (Z)') 
+    if (all || parameters.includes('unicodescalar-1-byte (A)') 
             || parameters.includes('unicodescalar-1-byte')
             || parameters.includes('unicodescalar-1-byte-with-3-padding-nulls')) {
-        record = record + ',Z';
+        record = record + ',A';
     }
     if (all || parameters.includes('unicodescalar-2-byte (α)')
             || parameters.includes('unicodescalar-2-byte')
@@ -62,9 +62,9 @@ for (var i = startsec; i < stopsec; i++) {
     if (all || parameters.includes('unicodescalar-1-4-byte')) {
         record = record + ',' + array[i % 4];
     }
-    if (all || parameters.includes('unicodevector (Z;α;☃;👍)')
+    if (all || parameters.includes('unicodevector (A;α;☃;👍)')
             || parameters.includes('unicodevector')) {
-        record = record + ',Z,α,☃,👍';
+        record = record + ',A,α,☃,👍';
     }
 
     if (records.length > 0) {
@@ -80,7 +80,7 @@ for (var i = startsec; i < stopsec; i++) {
 
     if (flush) {
         if (records.length > 0)
-            process.stdout.write(records + "\n"); // Correct way.
+            process.stdout.write(records + "\n");
         records = "";
         Nwrote  = (i-startsec);
     }
