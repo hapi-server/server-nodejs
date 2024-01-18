@@ -6,207 +6,256 @@
   },
   "data": {
     "command": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/TestData3.1.js\" --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
-    "formats": ["csv"],
+    "formats": [
+      "csv"
+    ],
     "contact": "rweigel@gmu.edu"
   },
   "about": {
     "id": "TestData3.1",
     "title": "Server using HAPI 3.1 additions",
     "HAPI": "3.1",
-    "contact": "rweigel@gmu.edu",
-    "dataTest": {
-                  "query": {
-                              "dataset": "dataset1",
-                              "start": "1970-01-01T00:00:00Z",
-                              "stop": "1970-01-01T00:00:10Z",
-                              "parameters": "scalar"
-                            }
-                }
+    "contact": "rweigel@gmu.edu"
   },
-  "catalog_inline" : 
-    [
-      {
-        "id": "dataset1",
-        "title": "Dataset with UTF-8 string parameters.",
-        "info": 
-                {
-                    "startDate": "1970-01-01Z",
-                    "stopDate" : "2016-12-31Z",
-                    "sampleStartDate": "1970-01-01Z",
-                    "sampleStopDate" : "1970-01-01T00:00:11Z",
-                    "cadence": "PT1S",
-                    "parameters":
-                        [
-                            { 
-                                "name": "Time",
-                                "type": "isotime",
-                                "units": "UTC",
-                                "fill": null,
-                                "length": 24
-                            },
-                            { 
-                                "name": "unicodescalar-1-byte",
-                                "type": "string",
-                                "encoding": "utf-8",
-                                "units": null,
-                                "size": [1],
-                                "length": 1,
-                                "fill": null,
-                                "description": "A scalar string where strings are Unicode"
-                            },
-                            { 
-                                "name": "unicodescalar-1-byte-with-3-padding-nulls",
-                                "type": "string",
-                                "encoding": "utf-8",
-                                "units": null,
-                                "size": [1],
-                                "length": 4,
-                                "fill": null,
-                                "description": "A scalar string where strings are Unicode"
-                            },
-                            { 
-                                "name": "unicodescalar-2-byte",
-                                "type": "string",
-                                "encoding": "utf-8",
-                                "units": null,
-                                "size": [1],
-                                "length": 2,
-                                "fill": null,
-                                "description": "A scalar string where strings are Unicode"
-                            },
-                            { 
-                                "name": "unicodescalar-2-byte-with-2-padding-nulls",
-                                "type": "string",
-                                "encoding": "utf-8",
-                                "units": null,
-                                "size": [1],
-                                "length": 4,
-                                "fill": null,
-                                "description": "A scalar string where strings are Unicode"
-                            },                                
-                            { 
-                                "name": "unicodescalar-3-byte",
-                                "type": "string",
-                                "encoding": "utf-8",
-                                "units": null,
-                                "size": [1],
-                                "length": 3,
-                                "fill": null,
-                                "description": "A scalar string where strings are Unicode"
-                            },
-                            { 
-                                "name": "unicodescalar-3-byte-with-1-padding-null",
-                                "type": "string",
-                                "encoding": "utf-8",
-                                "units": null,
-                                "size": [1],
-                                "length": 4,
-                                "fill": null,
-                                "description": "A scalar string where strings are Unicode"
-                            },                                    { 
-                                "name": "unicodescalar-4-byte",
-                                "type": "string",
-                                "encoding": "utf-8",
-                                "units": null,
-                                "size": [1],
-                                "length": 4,
-                                "fill": null,
-                                "description": "A scalar string where strings are Unicode"
-                            },
-                            {
-                                "name": "unicodescalar-1-4-byte",
-                                "type": "string",
-                                "encoding": "utf-8",
-                                "units": null,
-                                "size": [1],
-                                "length": 4,
-                                "fill": null,
-                                "description": "A scalar string where strings are Unicode"
-                            },
-                            { 
-                                "name": "unicodevector",
-                                "type": "string",
-                                "encoding": "utf-8",
-                                "units": null,
-                                "size": [4],
-                                "length": 4,
-                                "fill": null,
-                                "description": "A vector string where strings are Unicode"
-                            }
-                        ]
-                }
+  "catalog_inline": [
+    {
+      "id": "dataset1",
+      "title": "Dataset with UTF-8 string parameters.",
+      "info": {
+        "startDate": "1970-01-01Z",
+        "stopDate": "2016-12-31Z",
+        "sampleStartDate": "1970-01-01Z",
+        "sampleStopDate": "1970-01-01T00:00:11Z",
+        "cadence": "PT1S",
+        "parameters": [
+          {
+            "name": "Time",
+            "type": "isotime",
+            "units": "UTC",
+            "fill": null,
+            "length": 24
+          },
+          {
+            "name": "unicodescalar-1-byte",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 1,
+            "fill": null,
+            "description": "A 1-byte scalar string"
+          },
+          {
+            "name": "unicodescalar-1-byte-with-3-padding-nulls",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 4,
+            "fill": null,
+            "description": "A 4-byte scalar string with 3 padding nulls"
+          },
+          {
+            "name": "unicodescalar-2-byte",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 2,
+            "fill": null,
+            "description": "A 2-byte scalar Unicode string"
+          },
+          {
+            "name": "unicodescalar-2-byte-with-2-padding-nulls",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 4,
+            "fill": null,
+            "description": "A 2-byte scalar Unicode string with two padding nulls"
+          },
+          {
+            "name": "unicodescalar-3-byte",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 3,
+            "fill": null,
+            "description": "A 3-byte scalar Unicode string"
+          },
+          {
+            "name": "unicodescalar-3-byte-with-1-padding-null",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 4,
+            "fill": null,
+            "description": "A 3-byte scalar Unicode string with one padding null"
+          },
+          {
+            "name": "unicodescalar-4-byte",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 4,
+            "fill": null,
+            "description": "A 4-byte scalar Unicode string"
+          },
+          {
+            "name": "unicodescalar-1-4-byte",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 4,
+            "fill": null,
+            "description": "A scalar string where strings are 1-4 bytes Unicode characters"
+          },
+          {
+            "name": "unicodevector",
+            "type": "string",
+            "units": null,
+            "size": [
+              4
+            ],
+            "length": 4,
+            "fill": null,
+            "description": "A vector string where strings are Unicode"
+          }
+        ]
+      }
     },
     {
-      "id": "dataset1-Zα☃",
-      "title": "Dataset with UTF-8 string parameters and UTF-8 in ids and parameter names.",
-      "info": 
-              {
-                "startDate": "1970-01-01Z",
-                "stopDate" : "2016-12-31Z",
-                "sampleStartDate": "1970-01-01Z",
-                "sampleStopDate" : "1970-01-01T00:00:11Z",
-                "cadence": "PT1S",
-                "parameters":
-                    [
-                        { 
-                            "name": "Time",
-                            "type": "isotime",
-                            "units": "UTC",
-                            "fill": null,
-                            "length": 24
-                        },
-                        { 
-                            "name": "unicodescalar-1-byte (Z)",
-                            "type": "string",
-                            "encoding": "utf-8",
-                            "units": null,
-                            "size": [1],
-                            "length": 1,
-                            "fill": null,
-                            "description": "A scalar string where strings are Unicode"
-                        },
-                        { 
-                            "name": "unicodescalar-2-byte (α)",
-                            "type": "string",
-                            "encoding": "utf-8",
-                            "units": null,
-                            "size": [1],
-                            "length": 2,
-                            "fill": null,
-                            "description": "A scalar string where strings are Unicode"
-                        },
-                        { 
-                            "name": "unicodescalar-3-byte (☃)",
-                            "type": "string",
-                            "encoding": "utf-8",
-                            "units": null,
-                            "size": [1],
-                            "length": 3,
-                            "fill": null,
-                            "description": "A scalar string where strings are Unicode"
-                        },
-                        { 
-                            "name": "unicodescalar-4-byte (👍)",
-                            "type": "string",
-                            "encoding": "utf-8",
-                            "units": null,
-                            "size": [1],
-                            "length": 4,
-                            "fill": null,
-                            "description": "A scalar string where strings are Unicode"
-                        },                                
-                        { 
-                            "name": "unicodevector (Z;α;☃;👍)",
-                            "type": "string",
-                            "encoding": "utf-8",
-                            "units": null,
-                            "size": [4],
-                            "length": 4,
-                            "fill": null,
-                            "description": "A vector string where strings are Unicode"
-                        }
-                    ]
-              }
+      "id": "dataset1-Aα☃",
+      "title": "Dataset with UTF-8 string parameters, ids, and parameter names.",
+      "info": {
+        "startDate": "1970-01-01Z",
+        "stopDate": "2016-12-31Z",
+        "sampleStartDate": "1970-01-01Z",
+        "sampleStopDate": "1970-01-01T00:00:11Z",
+        "cadence": "PT1S",
+        "parameters": [
+          {
+            "name": "Time",
+            "type": "isotime",
+            "units": "UTC",
+            "fill": null,
+            "length": 24
+          },
+          {
+            "name": "unicodescalar-1-byte (A)",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 1,
+            "fill": null,
+            "description": "Same as dataset1/unicodescalar-1-byte, but name has space"
+          },
+          {
+            "name": "unicodescalar-2-byte (α)",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 2,
+            "fill": null,
+            "description": "Same as dataset1/unicodescalar-2-byte, but name has space and Unicode"
+          },
+          {
+            "name": "unicodescalar-3-byte (☃)",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 3,
+            "fill": null,
+            "description": "Same as dataset1/unicodescalar-3-byte, but name has space and Unicode"
+          },
+          {
+            "name": "unicodescalar-4-byte (👍)",
+            "type": "string",
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 4,
+            "fill": null,
+            "description": "Same as dataset1/unicodescalar-4-byte, but name has space and Unicode"
+          },
+          {
+            "name": "unicodevector (A;α;☃;👍)",
+            "type": "string",
+            "units": null,
+            "size": [
+              4
+            ],
+            "length": 4,
+            "fill": null,
+            "description": "Same as dataset1/unicodevector, but name has space and Unicode"
+          }
+        ]
       }
+    },
+    {
+      "id": "dataset2",
+      "title": "Dataset with vectorComponents",
+      "info": {
+        "startDate": "1970-01-01Z",
+        "stopDate": "2016-12-31Z",
+        "sampleStartDate": "1970-01-01Z",
+        "sampleStopDate": "1970-01-01T00:00:11Z",
+        "cadence": "PT1S",
+        "parameters": [
+          {
+            "name": "Time",
+            "type": "isotime",
+            "units": "UTC",
+            "fill": null,
+            "length": 24
+          },
+          {
+            "name": "vector",
+            "type": "double",
+            "units": [
+              "nT",
+              "nT",
+              "nT"
+            ],
+            "label": [
+              "Bx",
+              "By",
+              "Bz"
+            ],
+            "coordinateSystemName": "GSE",
+            "vectorComponents": [
+              "x",
+              "y",
+              "z"
+            ],
+            "fill": "-1e31",
+            "size": [
+              3
+            ],
+            "description": "Each vector component has a different unit and label."
+          }
+        ]
+      }
+    }
   ]
 }
