@@ -35,7 +35,6 @@ var record  = ""; // A record with comma-separated fields (columns)
 var Nwrote  = 0;  // Number of records flushed
 
 let array = ["A", "α", "☃", "👍"];
-let array = ["A", "α", "☃", "👍"];
 
 for (var i = startsec; i < stopsec; i++) {
     var record = "";
