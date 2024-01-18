@@ -40,9 +40,9 @@ SSCWeb2HAPI(function (err, catalog) {
 function getUrlo(cb) {
 	// Fetches urlo and writes it to cfile
 	console.error("Getting " + urlo)
-	request({uri: urlo, strictSSL: false},
+	request({uri: urlo, strictSSL: false, "timeout": 10000},
 		function (error, response, body) {
-			if (error) {
+			if (error || response.statusCode !== 200) {
 				console.error(error);
 				if (fs.existsSync(cfile)) {
 					console.error("Could not get " + urlo + ". Returning cached metadata.")
@@ -145,9 +145,8 @@ function makeHAPI(jsonraw, cb) {
 			  catalog[i]["info"]["parameters"][j]["type"] = "string";
 			  catalog[i]["info"]["parameters"][j]["length"] = len;
 		  }
-           
+
 		}
-		
 
 		var Time = {
 			"name": "Time",

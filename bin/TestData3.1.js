@@ -35,6 +35,7 @@ var record  = ""; // A record with comma-separated fields (columns)
 var Nwrote  = 0;  // Number of records flushed
 
 let array = ["A", "α", "☃", "👍"];
+let array = ["A", "α", "☃", "👍"];
 
 for (var i = startsec; i < stopsec; i++) {
     var record = "";
@@ -90,7 +91,7 @@ for (var i = startsec; i < stopsec; i++) {
 
     if (flush) {
         if (records.length > 0)
-            process.stdout.write(records + "\n"); // Correct way.
+            process.stdout.write(records + "\n");
         records = "";
         Nwrote  = (i-startsec);
     }
