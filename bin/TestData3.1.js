@@ -41,39 +41,64 @@ for (var i = startsec; i < stopsec; i++) {
 
     record = (new Date(i*1000).toISOString());
 
-    if (id === 'dataset2') {
-        if (all || parameters.includes('vector')) {
-            record = record 
-                        + "," + Math.sin(Math.PI*(i-startsec)/600) 
-                        + "," + Math.sin(Math.PI*(i-startsec-150)/600) 
-                        + "," + Math.sin(Math.PI*(i-startsec-300)/600)
-        }
-    } else {
-        if (all || parameters.includes('unicodescalar-1-byte (A)') 
-                || parameters.includes('unicodescalar-1-byte')
-                || parameters.includes('unicodescalar-1-byte-with-3-padding-nulls')) {
+    if (id === 'dataset1') {
+        if (all || parameters.includes('unicodescalar-1-byte')) {
             record = record + ',A';
         }
-        if (all || parameters.includes('unicodescalar-2-byte (α)')
-                || parameters.includes('unicodescalar-2-byte')
-                || parameters.includes('unicodescalar-2-byte-with-2-padding-nulls')) {
+        if (all || parameters.includes('unicodescalar-1-byte-with-3-padding-nulls')) {
+            record = record + ',A';
+        }
+
+        if (all || parameters.includes('unicodescalar-2-byte')) {
             record = record + ',α';
         }
-        if (all || parameters.includes('unicodescalar-3-byte (☃)')
-                || parameters.includes('unicodescalar-3-byte')
-                || parameters.includes('unicodescalar-3-byte-with-1-padding-null')) {
+        if (all || parameters.includes('unicodescalar-2-byte-with-2-padding-nulls')) {
+            record = record + ',α';
+        }
+
+        if (all || parameters.includes('unicodescalar-3-byte')) {
             record = record + ',☃';
         }
-        if (all || parameters.includes('unicodescalar-4-byte (👍)')
-                || parameters.includes('unicodescalar-4-byte')) {
+        if (all || parameters.includes('unicodescalar-3-byte-with-1-padding-null')) {
+            record = record + ',☃';
+        }
+
+        if (all || parameters.includes('unicodescalar-4-byte')) {
             record = record + ',👍';
         }
         if (all || parameters.includes('unicodescalar-1-4-byte')) {
             record = record + ',' + array[i % 4];
         }
-        if (all || parameters.includes('unicodevector (A;α;☃;👍)')
-                || parameters.includes('unicodevector')) {
+
+        if (all || parameters.includes('unicodevector')) {
             record = record + ',A,α,☃,👍';
+        }
+    }
+    if (id === 'dataset1-Aα☃') {
+        if (all || parameters.includes('unicodescalar-1-byte (A)')) {
+            record = record + ',A';
+        }
+        if (all || parameters.includes('unicodescalar-2-byte (α)')) {
+            record = record + ',α';
+        }
+        if (all || parameters.includes('unicodescalar-3-byte (☃)')) {
+            record = record + ',☃';
+        }
+
+        if (all || parameters.includes('unicodescalar-4-byte (👍)')) {
+            record = record + ',👍';
+        }
+        if (all || parameters.includes('unicodevector (A;α;☃;👍)')) {
+            record = record + ',A,α,☃,👍';
+        }
+    }
+
+    if (id === 'dataset2') {
+        if (all || parameters.includes('vector')) {
+            record = record 
+                    + "," + Math.sin(Math.PI*(i-startsec)/600) 
+                    + "," + Math.sin(Math.PI*(i-startsec-150)/600) 
+                    + "," + Math.sin(Math.PI*(i-startsec-300)/600)
         }
     }
 
