@@ -9,6 +9,8 @@ const express    = require('express');      // Client/server library
 const app        = express();
 const serveIndex = require('serve-index');
 
+const semver = require('semver');
+
 // Object that stores all metadata
 const metadata = require('./lib/metadata.js').metadata;
 
@@ -273,13 +275,49 @@ function apiInit(CATALOGS, PREFIXES, i) {
     setHeaders(res, true);
     res.contentType("application/json");
 
-    // Send error if query parameters given
-    if (Object.keys(req.query).length > 0) {
-      error(req, res, hapiversion, 1401, "This endpoint takes no query string.");
-      return;
+    if (semver.satisfies(hapiversion + ".0", ">=3.2.0")) {
+      if (Object.keys(req.query).length == 1) {
+        if (req.query.depth) {
+          if (!["all","dataset"].includes(req.query.depth)) {
+            error(req, res, hapiversion, 1412, "depth must be 'dataset' or 'all'");
+            return;
+          }
+          if (req.query.depth === "all") {
+            let json = metadata(CATALOG,"info");
+            let firstDataset = Object.keys(json)[0];
+            let all = {
+              "HAPI": json[firstDataset]["HAPI"],
+              "status": json[firstDataset]["status"],
+              "catalog": []
+            };
+            for (dataset in json) {
+              let infoObj = JSON.parse(JSON.stringify(json[dataset]));
+              delete infoObj["HAPI"];
+              delete infoObj["status"];
+              all["catalog"].push({"id": dataset, "info": infoObj});
+            }
+            console.log(all)
+            res.send(JSON.stringify(all,null,2));
+          } else {
+            res.send(JSON.stringify(metadata(CATALOG,"catalog"),null,2));
+          }
+
+        } else {
+          error(req, res, hapiversion, 1401, "catalog takes one query parameter: 'depth'");
+          return;
+        }
+      } else {
+        res.send(JSON.stringify(metadata(CATALOG,"catalog"),null,2));
+      }
+    } else {
+      // Send error if query parameters given
+      if (Object.keys(req.query).length > 0) {
+        error(req, res, hapiversion, 1401, "This endpoint takes no query string.");
+        return;
+      }
+      res.send(JSON.stringify(metadata(CATALOG,"catalog"),null,2));
     }
 
-    res.send(metadata(CATALOG,"catalog"));
   })
 
   // /info
@@ -726,6 +764,10 @@ function data(req, res, catalog, header, include) {
       // cmd line program can create requested format
       convert = false;
     }
+    if (header["format"] == "csv") {
+      // csv is always supported
+      convert = false;
+    }
 
     // Call the cmd line command and send output.
     if (process.platform.startsWith("win")) {
@@ -746,7 +788,7 @@ function data(req, res, catalog, header, include) {
       log.error(`Command ${com} gave err: '${err.toString().trim()}'`);
     });
 
-    let usePipe = false;
+    let usePipe = false;     // Incomplete implementation.
     let gotData = false;     // First chunk of data received.
     let wroteHeader = false; // If header already sent.
     let childFinished = false;
@@ -764,12 +806,20 @@ function data(req, res, catalog, header, include) {
       log.info("Executed: " + com);
     });
 
-    if (usePipe) {
+    if (header["format"] === "json" || header["format"] === "json") {
+      if (convert) {
+        // piping not yet supported for case where cmd line output needs to 
+        // be converted to binary or json.
+        usePipe = false;
+      }
+    }
+
+    if (usePipe === true) {
 
       log.debug("Using pipe");
       child.stdout.on('end', function () {
 
-        log.info(`Child end event.`);
+        log.debug(`Child end event.`);
         if (gotData === false) {
           header["status"]["code"] = 1201;
           header["status"]["message"] = "OK - No data in interval";
@@ -866,7 +916,7 @@ function data(req, res, catalog, header, include) {
       return;
     }
 
-    let incrementalBinary = false;
+    let incrementalBinary = true;
     let bufferstr = "";
     let bufferstrRemainder = "";
 
@@ -874,21 +924,25 @@ function data(req, res, catalog, header, include) {
 
       childFinished = true;
 
-      log.info(`Child closed with status ${code}: ${com}`);
+      log.debug(`Child closed with status ${code}: ${com}`);
       if (code !== 0 && connectionClosed === false) {
         dataErrorMessage();
         return;
       }
 
       if (gotData) { // Data returned and normal exit.
-        if (!incrementalBinary && convert) {
+        if (incrementalBinary === false && convert === true) {
           // Convert accumulated data and send it.
-          res.send(csvTo(bufferstr,true,true,header,include));
+          log.debug(`Converting and sending data of length ${bufferstr.length}`);
+          res.write(csvTo(bufferstr,true,true,header,include));
+          res.end();
           bufferstr = null;
         } else {
-          res.end(); // Data was being sent incrementally.
+          log.debug(`Closing connection.`);
+          res.end();
         }
       } else { // No data returned and normal exit.
+        log.info(`No data returned.`);
         res.statusMessage = "HAPI 1201: No data in interval";
         if (convert && header["format"] === "json") {
           // Send header only
@@ -904,21 +958,25 @@ function data(req, res, catalog, header, include) {
     });
 
     child.stdout.on('data', function (buffer) {
+      log.debug(`stdout received ${buffer.length} bytes of data.`);
       gotData = true;
       if (!wroteHeader && include && header["format"] !== "json") {
         // If header not written, header requested, and format requested
         // is not JSON, so send header.
         wroteHeader = true;
+        log.debug("Sending header.");
         res.write("#" + JSON.stringify(header) + "\n");
       }
 
       if (header["format"] === "csv") {
         // No conversion needed; dump buffer immediately.
+        log.debug(`Sending ${buffer.length} bytes of CSV.`);
         res.write(buffer.toString());
       }
       if (header["format"] === "json") {
         if (!convert) {
           // No conversion needed; dump buffer immediately.
+          log.debug(`Sending {buffer.length} bytes of JSON.`);
           res.write(buffer.toString());
           return;
         } else {
@@ -933,6 +991,7 @@ function data(req, res, catalog, header, include) {
       if (header["format"] === "binary") {
         if (!convert) {
           // No conversion needed; dump buffer immediately.
+          log.debug(`Sending ${buffer.length} bytes of binary.`);
           res.write(buffer,'binary');
           return;
         } else {
@@ -949,6 +1008,7 @@ function data(req, res, catalog, header, include) {
               bufferstrRemainder = bufferstr.slice(lastnl);
               bufferstr = bufferstr.slice(0,lastnl);
             }
+            log.debug(`Converting ${bufferstr.length} bytes to binary and then sending.`);
             res.write(csvTo(bufferstr,null,null,header,include));
           } else {
             bufferstr = bufferstr + buffer.toString();
@@ -991,11 +1051,13 @@ function csvTo(records, first, last, header, include) {
     po[header.parameters[i].name]["type"] = header.parameters[i].type;
     po[header.parameters[i].name]["size"] = header.parameters[i].size || [1];
     if (po[header.parameters[i].name]["size"].length > 1) {
-      log.warn("Warning. JSON for parameter "
+      if (header["format"] === "json") {
+        log.warn("Warning. JSON for parameter "
                 + name
                 + " will be 1-D array instead of "
                 + po[header.parameters[i].name]["size"].length
                 + "-D");
+      }
       po[header.parameters[i].name]["size"] =
       prod(po[header.parameters[i].name]["size"]);
     }
@@ -1348,6 +1410,7 @@ function error(req, res, hapiversion, code, message, messageFull) {
     "1409": {status: 400, "message": "HAPI error 1409: unsupported output format"},
     "1410": {status: 400, "message": "HAPI error 1410: unsupported include value"},
     "1411": {status: 400, "message": "HAPI error 1411: unsupported resolve_references value"},
+    "1412": {status: 400, "message": "HAPI error 1412: unsupported depth value"},
     "1500": {status: 500, "message": "HAPI error 1500: internal server error"},
     "1501": {status: 500, "message": "HAPI error 1501: upstream request error"}
   }
@@ -1396,7 +1459,7 @@ function error(req, res, hapiversion, code, message, messageFull) {
 // Uncaught errors in API request code.
 function errorHandler(err, req, res, next) {
   let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  let msg = "Request from " + addr + ": " + req.originalUrl;
+  let msg = "Request from " + addr + ": " + req.originalUrl + "\n" + err.stack;
   error(req, res, "", "1500", null, msg);
 }
 
