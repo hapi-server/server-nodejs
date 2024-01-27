@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fs   = require('fs');
+const path = require('path');
 
 const compress   = require('compression');  // Express compression module
 const moment     = require('moment');       // Time library http://moment.js
@@ -56,7 +57,7 @@ prepmetadata(FILES, argv.ignore, argv.skipchecks, main);
 
 function main() {
 
-  if (!fs.existsSync(METADIR)){
+  if (!fs.existsSync(METADIR)) {
     fs.mkdirSync(METADIR);
     log.info("Created " + trimPath(METADIR));
   } else {
@@ -103,7 +104,9 @@ function main() {
                   + d.contact + "\n";
   }
 
-  app.get('/all.txt', function (req, res) {res.send(serverlist);});
+  app.get('/all.txt', function (req, res) {
+    res.send(serverlist);
+  });
 
   if (argv["proxy-whitelist"] !== '' || argv["server-ui-include"].length > 0) {
     const proxy = require('./lib/proxy.js');
@@ -132,7 +135,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
 
     let i = 0;
 
-    let indexFile = __dirname + "/node_modules/hapi-server-ui/index.htm";
+    let indexFile = path.join(__dirname, 'node_modules', 'hapi-server-ui', 'index.htm');
     app.get('/', function (req, res) {
       res.on('finish', () => log.request(req, req.socket.bytesWritten));
       fs.readFile(indexFile, "utf8", (err, html) => {
@@ -172,7 +175,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
   }
 
   let CATALOG = CATALOGS[i];
-  let PREFIX = "/" + PREFIXES[i]
+  let PREFIX = "/" + PREFIXES[i];
   let PREFIXe = encodeURIComponent(PREFIX).replace("%2F","/");
 
   let capabilities = metadata(CATALOG,"capabilities");
@@ -276,7 +279,7 @@ function apiInit(CATALOGS, PREFIXES, i) {
     res.contentType("application/json");
 
     if (semver.satisfies(hapiversion + ".0", ">=3.2.0")) {
-      if (Object.keys(req.query).length == 1) {
+      if (Object.keys(req.query).length === 1) {
         if (req.query.depth) {
           if (!["all","dataset"].includes(req.query.depth)) {
             error(req, res, hapiversion, 1412, "depth must be 'dataset' or 'all'");
@@ -290,18 +293,16 @@ function apiInit(CATALOGS, PREFIXES, i) {
               "status": json[firstDataset]["status"],
               "catalog": []
             };
-            for (dataset in json) {
+            for (let dataset in json) {
               let infoObj = JSON.parse(JSON.stringify(json[dataset]));
               delete infoObj["HAPI"];
               delete infoObj["status"];
               all["catalog"].push({"id": dataset, "info": infoObj});
             }
-            console.log(all)
             res.send(JSON.stringify(all,null,2));
           } else {
             res.send(JSON.stringify(metadata(CATALOG,"catalog"),null,2));
           }
-
         } else {
           error(req, res, hapiversion, 1401, "catalog takes one query parameter: 'depth'");
           return;
@@ -757,42 +758,42 @@ function data(req, res, catalog, header, include) {
 
     log.info("Executing: " + com);
 
-    // See if cmd line program supports requested format
-    let formats = d.formats; // formats supported by cmd line program
+    // See if command line program supports requested format
+    let formats = d.formats; // formats supported by command line program
     let convert = true;      // true if conversion is needed
     if (formats && formats.includes(req.query["format"])) {
-      // cmd line program can create requested format
+      // Command line program can create requested format
       convert = false;
     }
     if (header["format"] == "csv") {
-      // csv is always supported
+      // Command line program must support CSV output, so no conversion needed.
       convert = false;
     }
 
-    // Call the cmd line command and send output.
+    // Call the command line command and send output.
+    let child;
     if (process.platform.startsWith("win")) {
       let opts = {"cwd": __dirname, "encoding": "buffer", shell: true, stdio: "pipe"};
-      var child = require('child_process').spawn('cmd.exe', ['/s','/c', com], opts);
+      child = require('child_process').spawn('cmd.exe', ['/s','/c', com], opts);
     } else {
       // See https://azimi.me/2014/12/31/kill-child_process-node-js.html for
       // reason for detached: true
       let opts = {"cwd": __dirname, "encoding": "buffer", detached: true};
-      var child = require('child_process').spawn('sh', ['-c', com], opts);
+      child = require('child_process').spawn('sh', ['-c', com], opts);
     }
 
-    child.stderr.on('data', function (err) {
-      log.error(`Command ${com} gave stderr: '${err.toString().trim()}'`);
-    });
-
-    child.on('error', function (err) {
-      log.error(`Command ${com} gave err: '${err.toString().trim()}'`);
-    });
-
-    let usePipe = false;     // Incomplete implementation.
+    let usePipe = true;      // If convert is false, use pipe to send data.
     let gotData = false;     // First chunk of data received.
     let wroteHeader = false; // If header already sent.
     let childFinished = false;
     let connectionClosed = false;
+
+    // If converting to binary, send data as chunks arrive if incrementalBinary
+    // is true. Otherwise, accumulate data and send it all at once.
+    let incrementalBinary = true;
+    // The following are only used if incrementalBinary is true.
+    let bufferConcat = Buffer.from('');
+    let bufferConcatRemainder = Buffer.from('');
 
     req.connection.on('close',function () {
       // https://azimi.me/2014/12/31/kill-child_process-node-js.html
@@ -806,119 +807,22 @@ function data(req, res, catalog, header, include) {
       log.info("Executed: " + com);
     });
 
-    if (header["format"] === "json" || header["format"] === "json") {
-      if (convert) {
+    if (usePipe) {
+      if (convert === false) {
         // piping not yet supported for case where cmd line output needs to 
         // be converted to binary or json.
-        usePipe = false;
+        pipeResponse();
+        return;
       }
     }
 
-    if (usePipe === true) {
+    child.stderr.on('data', function (err) {
+      log.error(`Command ${com} gave stderr: '${err.toString().trim()}'`);
+    });
 
-      log.debug("Using pipe");
-      child.stdout.on('end', function () {
-
-        log.debug(`Child end event.`);
-        if (gotData === false) {
-          header["status"]["code"] = 1201;
-          header["status"]["message"] = "OK - No data in interval";
-          if (convert && header["format"] === "json") {
-            // Send header only
-            res.write(csvTo("",true,true,header,include));
-          } else if (include === true) {
-            res.write("#" + JSON.stringify(header) + "\n");
-          }
-        }
-      });
-
-      child.stdout.on('data', function () {
-        gotData = true;
-        log.debug(`Child data event.`);
-        // TODO: Only need this called once. Disable after first call?
-      });
-
-      child.on('close', function (code) {
-
-        childFinished = true;
-        if (code !== 0 && connectionClosed === false) {
-          log.error(`Child closed with status ${code}: ${com}`);
-          dataErrorMessage();
-          return;
-        } else {
-          log.info(`Child closed with status ${code}: ${com}`);
-        }
-
-      });
-
-      // Use pipe to prevent backpressure causing large memory usage.
-      const { Transform } = require("stream");
-
-      const writeTransform = new Transform({
-
-        transform(chunk, encoding, callback) {
-
-          log.debug("Got chunk.")
-          let headerStr = undefined;
-          if (include === true && wroteHeader === false) {
-            // If header requested and header not written
-            wroteHeader = true;
-            if (header["format"] === "csv" || header["format"] === "binary") {
-              headerStr = "#" + JSON.stringify(header) + "\n";
-            }
-          }
-          if (header["format"] === "csv") {
-            if (headerStr === undefined) {
-              callback(null, chunk.toString());
-            } else {
-              callback(null, headerStr + chunk.toString());
-            }
-          }
-          if (convert === false) {
-            if (header["format"] === "json") {
-              if (headerStr === undefined) {
-                callback(null, chunk.toString());
-              } else {
-                callback(null, headerStr + chunk.toString());
-              }
-            }
-            if (header["format"] === "binary") {
-              if (headerStr === undefined) {
-                callback(null, chunk);
-              } else {
-                callback(null, headerStr + chunk);
-              }
-            }
-          } else {
-            if (header["format"] === "json") {
-            }
-            if (header["format"] === "binary") {
-            }
-          }
-
-        }
-      });
-
-      const { pipeline } = require("stream");
-      pipeline(child.stdout, writeTransform, res,
-        (err) => {
-          if (err) {
-            if (err.code === 'ERR_STREAM_PREMATURE_CLOSE') {
-              log.debug("ERR_STREAM_PREMATURE_CLOSE");
-            } else {
-              log.error(err);
-            }
-          }
-        });
-    }
-
-    if (usePipe == true) {
-      return;
-    }
-
-    let incrementalBinary = true;
-    let bufferstr = "";
-    let bufferstrRemainder = "";
+    child.on('error', function (err) {
+      log.error(`Command ${com} gave err: '${err.toString().trim()}'`);
+    });
 
     child.on('close', function (code) {
 
@@ -933,15 +837,16 @@ function data(req, res, catalog, header, include) {
       if (gotData) { // Data returned and normal exit.
         if (incrementalBinary === false && convert === true) {
           // Convert accumulated data and send it.
-          log.debug(`Converting and sending data of length ${bufferstr.length}`);
-          res.write(csvTo(bufferstr,true,true,header,include));
+          log.debug(`Converting and sending data of length ${bufferConcat.length}`);
+          res.write(csvTo(bufferConcat.toString(),true,true,header,include));
           res.end();
-          bufferstr = null;
+          bufferConcat = null; // Technically not needed, but may help w/ gc.
         } else {
           log.debug(`Closing connection.`);
           res.end();
         }
-      } else { // No data returned and normal exit.
+      } else {
+        // No data returned and normal exit.
         log.info(`No data returned.`);
         res.statusMessage = "HAPI 1201: No data in interval";
         if (convert && header["format"] === "json") {
@@ -985,7 +890,7 @@ function data(req, res, catalog, header, include) {
           // TODO: Write incrementally; use
           //    buffer.toString().lastIndexOf(/\n/)
           // along with saving part of string that was not written.
-          bufferstr = bufferstr + buffer.toString();
+          bufferConcat = bufferConcat + buffer.toString();
         }
       }
       if (header["format"] === "binary") {
@@ -996,26 +901,128 @@ function data(req, res, catalog, header, include) {
           return;
         } else {
           // Conversion from CSV to binary needed.
-          if (incrementalBinary) {
-            bufferstr = buffer.toString();
-            if (bufferstrRemainder !== "") {
-              bufferstr = bufferstrRemainder + bufferstr;
-            }
-            var lastnl = bufferstr.lastIndexOf("\n");
-            if (lastnl+1 == bufferstr.length) {
-              bufferstrRemainder = "";
-            } else {
-              bufferstrRemainder = bufferstr.slice(lastnl);
-              bufferstr = bufferstr.slice(0,lastnl);
-            }
-            log.debug(`Converting ${bufferstr.length} bytes to binary and then sending.`);
-            res.write(csvTo(bufferstr,null,null,header,include));
+          if (incrementalBinary === false) {
+            // Accumulate output and send everything at once.
+            bufferConcat = Buffer.concat([bufferConcat, buffer]);
           } else {
-            bufferstr = bufferstr + buffer.toString();
+            if (bufferConcatRemainder !== "") {
+              bufferConcat = Buffer.concat([bufferConcatRemainder, buffer]);
+            }
+            let lastnl = bufferConcat.lastIndexOf("\n");
+            if (lastnl+1 === bufferConcat.length) {
+              bufferConcatRemainder = Buffer.from('');
+            } else {
+              bufferConcatRemainder = bufferConcat.slice(lastnl);
+              bufferConcat = bufferConcat.slice(0,lastnl);
+            }
+            log.debug(`Converting ${bufferConcat.length} bytes to binary and then sending.`);
+            res.write(csvTo(bufferConcat.toString(),null,null,header,include));
           }
         }
       }
     });
+
+    function pipeResponse() {
+      // Use pipe to prevent backpressure from causing large memory usage.
+
+      log.debug("Using pipe");
+      child.stdout.on('end', function () {
+
+        log.debug(`Child end event.`);
+        if (gotData === false) {
+          header["status"]["code"] = 1201;
+          header["status"]["message"] = "OK - No data in interval";
+          if (convert && header["format"] === "json") {
+            // Send header only
+            res.write(csvTo("",true,true,header,include));
+          } else if (include === true) {
+            res.write("#" + JSON.stringify(header) + "\n");
+          }
+        }
+      });
+
+      child.stdout.on('data', function () {
+        gotData = true;
+        log.debug(`Child data event.`);
+        // TODO: Only need this called once. Disable after first call?
+      });
+
+      child.on('close', function (code) {
+
+        childFinished = true;
+        if (code !== 0 && connectionClosed === false) {
+          log.error(`Child closed with status ${code}: ${com}`);
+          dataErrorMessage();
+          return;
+        } else {
+          log.info(`Child closed with status ${code}: ${com}`);
+        }
+
+      });
+
+      const { Transform } = require("stream");
+
+      const writeTransform = new Transform({
+
+        transform(chunk, encoding, callback) {
+
+          log.debug("Got chunk.")
+
+          let headerStr = undefined;
+
+          if (include === true && wroteHeader === false) {
+            // If header requested and header not written
+            wroteHeader = true;
+            if (header["format"] === "csv" || header["format"] === "binary") {
+              headerStr = "#" + JSON.stringify(header) + "\n";
+            }
+          }
+
+          if (header["format"] === "csv") {
+            if (headerStr === undefined) {
+              callback(null, chunk.toString());
+            } else {
+              callback(null, headerStr + chunk.toString());
+            }
+          }
+
+          if (convert === false) {
+            if (header["format"] === "json") {
+              if (headerStr === undefined) {
+                callback(null, chunk.toString());
+              } else {
+                callback(null, headerStr + chunk.toString());
+              }
+            }
+            if (header["format"] === "binary") {
+              if (headerStr === undefined) {
+                callback(null, chunk);
+              } else {
+                callback(null, headerStr + chunk);
+              }
+            }
+          } else {
+            if (header["format"] === "json") {
+            }
+            if (header["format"] === "binary") {
+            }
+          }
+
+        }
+      });
+
+      const { pipeline } = require("stream");
+      pipeline(child.stdout, writeTransform, res,
+        (err) => {
+          if (err) {
+            if (err.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+              log.debug("ERR_STREAM_PREMATURE_CLOSE");
+            } else {
+              log.error(err);
+            }
+          }
+        });
+    }
   }
 }
 
@@ -1101,13 +1108,13 @@ function csvTo(records, first, last, header, include) {
         Nb = Nb + lengths[i];
       }
     }
-
     var recordbuff = new Buffer.alloc(Nr*Nb);
     var pos = 0;
     var truncated = 0;
     for (var i = 0; i < Nr; i++) {
       var record = recordsarr[i].split(re);
       for (var j = 0;j < Nd+1;j++) {
+        //log.debug(`record ${i}, column ${j}: ${record[j]}`);
         if (types[j] === 'double') {
           recordbuff.writeDoubleLE(record[j],pos);
           pos = pos + 8;
@@ -1119,7 +1126,7 @@ function csvTo(records, first, last, header, include) {
         if (types[j] === 'string' || types[j] === 'isotime') {
           let buffer = Buffer.from(record[j],'utf8');
           if (buffer.length > lengths[j]) {
-            log.error("Truncated:",record[j],buffer.length,"bytes");
+            log.error(`${record[j]} was truncated: `,record[j],buffer.length,"bytes");
             truncated = truncated + 1;
           }
           recordbuff.write(record[j],pos,'utf8')
