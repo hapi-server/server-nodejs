@@ -16,6 +16,4 @@ $USER/.nvm/versions/node/v12.22.12/bin/node \
     -f $APPDIR/metadata/TestData3.0.json \
     -f $APPDIR/metadata/TestData3.1.json \
     -f $APPDIR/metadata/SSCWeb-chunk-ltfloats-parallel.json     \
-    -f $APPDIR/metadata/CDAWeb-cdas-cdf-using-pycdf.json        \
-    -f $APPDIR/metadata/CDAWeb-files.json
     2>&1
