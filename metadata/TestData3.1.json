@@ -19,6 +19,7 @@
 		"testurls": [
 			{"url": "data/?id=dataset1&parameters=unicodevector&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10, "Ncommas": 40},
 			{"url": "data/?id=dataset1&parameters=unicodevector&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T01:00:00Z", "Nlines": 3600, "Ncommas": 14400},
+			{"url": "data/?id=dataset1&parameters=unicodevector&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T01:00:00Z&include=header", "Nlines": 3600, "Ncommas": 14400},
 			{"url": "data/?id=dataset1-Aα☃&parameters=unicodevector (A;α;☃;👍)&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z", "Nlines": 1, "Ncommas": 4},
 			{"url": "data/?id=dataset1-Aα☃&parameters=unicodevector (A;α;☃;👍)&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=binary", "Nbytes": 40},
 			{"url": "data/?id=dataset1-Aα☃&parameters=unicodevector (A;α;☃;👍)&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=binary&include=header", "Nbytes": 40, "md5": "5fd05025d262e0df3d35b0756d6bb210"},
