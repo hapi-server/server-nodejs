@@ -1,7 +1,3 @@
-let testAll = true; // If false, only run one test.
-const exampleIncludes = ["^Example*", "^TestData2.0\\.", "^TestData3.0", "^TestData3.1"];
-const testIncludes = ["^Deprecated"];
-
 const fs        = require('fs');
 const path      = require("path");
 const clc       = require('chalk');
@@ -12,6 +8,14 @@ let argv = yargs
             .option('https',{'type': 'boolean'})
             .default({'https': false})
             .argv
+
+let testAll = true; // If false, only run one test.
+let exampleIncludes = ["^Example", "^TestData2\\.0", "^TestData3\\.0", "^TestData3\\.1"];
+let testIncludes = ["^Deprecated"];
+if (argv.https === true || testAll === false) {
+  exampleIncludes = ["^TestData2\\.0"];
+  testIncludes = [];
+}
 
 let server_args = "";
 if (argv.https) {
@@ -53,14 +57,6 @@ for (let i = 0; i < files.length; i++) {
   let comv = nodeexe + " --verify " + server_args + " -f " + '"' + files[i] + '"';
   fails = fails + execute(comv,2*i+1);
 
-  if (argv.https || !testAll) {
-    // Only run one test.
-    if (fails == 0) {
-      process.exit(0);
-    } else {
-      process.exit(1);
-    }
-  }
 }
 
 if (fails == 0) {
