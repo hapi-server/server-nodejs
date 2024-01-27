@@ -1,5 +1,5 @@
 let testAll = true; // If false, only run one test.
-const exampleIncludes = ["^Example*", "^TestData2.0\\."];
+const exampleIncludes = ["^Example*", "^TestData2.0\\.", "^TestData3.0", "^TestData3.1"];
 const testIncludes = ["^Deprecated"];
 
 const fs        = require('fs');

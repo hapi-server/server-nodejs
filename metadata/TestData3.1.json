@@ -9,7 +9,25 @@
     "formats": [
       "csv"
     ],
-    "contact": "rweigel@gmu.edu"
+    "contact": "rweigel@gmu.edu",
+		"xtesturls": [
+			{"url": "data/?id=dataset1-Aα☃&parameters=unicodevector (A;α;☃;👍)&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T01:00:00Z&format=binary&include=header", "Nbytes": 144000, "md5sum": "cab3b0c7e4c7f4ac4402b74d11754049"}
+		],
+		"testcommands": [
+			{"command": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/TestData3.1.js\" --id dataset1 --parameters unicodevector --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:00:10.000000000Z", "Nlines": 10, "Ncommas": 40}
+		],
+		"testurls": [
+			{"url": "data/?id=dataset1&parameters=unicodevector&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10, "Ncommas": 40},
+			{"url": "data/?id=dataset1&parameters=unicodevector&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T01:00:00Z", "Nlines": 3600, "Ncommas": 14400},
+			{"url": "data/?id=dataset1-Aα☃&parameters=unicodevector (A;α;☃;👍)&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z", "Nlines": 1, "Ncommas": 4},
+			{"url": "data/?id=dataset1-Aα☃&parameters=unicodevector (A;α;☃;👍)&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=binary", "Nbytes": 40},
+			{"url": "data/?id=dataset1-Aα☃&parameters=unicodevector (A;α;☃;👍)&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=binary&include=header", "Nbytes": 40, "md5": "5fd05025d262e0df3d35b0756d6bb210"},
+			{"url": "data/?id=dataset1-Aα☃&parameters=unicodevector (A;α;☃;👍)&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T01:00:00Z&format=binary&include=header", "Nbytes": 144000, "md5sum": "cab3b0c7e4c7f4ac4402b74d11754049"},
+			{"url": "data/?id=dataset1&parameters=Time&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=binary", "Nbytes": 24},
+			{"url": "data/?id=dataset1&parameters=unicodescalar-1-byte-with-3-padding-nulls&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=binary", "Nbytes": 28},
+			{"url": "data/?id=dataset1&parameters=unicodescalar-1-byte-with-3-padding-nulls&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=binary&include=header", "Nbytes": 28},
+			{"url": "data/?id=dataset1&parameters=unicodescalar-4-byte&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=binary", "Nbytes": 28}
+		]
   },
   "about": {
     "id": "TestData3.1",
@@ -20,7 +38,7 @@
   "catalog_inline": [
     {
       "id": "dataset1",
-      "title": "Dataset with UTF-8 string parameters.",
+      "title": "Dataset with UTF-8 encoded Unicode string parameters.",
       "info": {
         "startDate": "1970-01-01Z",
         "stopDate": "2016-12-31Z",
@@ -66,7 +84,7 @@
             ],
             "length": 2,
             "fill": null,
-            "description": "A 2-byte scalar Unicode string"
+            "description": "A 2-byte scalar UTF-8/Unicode string"
           },
           {
             "name": "unicodescalar-2-byte-with-2-padding-nulls",
@@ -77,7 +95,7 @@
             ],
             "length": 4,
             "fill": null,
-            "description": "A 2-byte scalar Unicode string with two padding nulls"
+            "description": "A 2-byte scalar UTF-8/Unicode string with two padding nulls"
           },
           {
             "name": "unicodescalar-3-byte",
@@ -88,7 +106,7 @@
             ],
             "length": 3,
             "fill": null,
-            "description": "A 3-byte scalar Unicode string"
+            "description": "A 3-byte scalar UTF-8/Unicode string"
           },
           {
             "name": "unicodescalar-3-byte-with-1-padding-null",
@@ -99,7 +117,7 @@
             ],
             "length": 4,
             "fill": null,
-            "description": "A 3-byte scalar Unicode string with one padding null"
+            "description": "A 3-byte scalar UTF-8/Unicode string with one padding null"
           },
           {
             "name": "unicodescalar-4-byte",
@@ -110,7 +128,7 @@
             ],
             "length": 4,
             "fill": null,
-            "description": "A 4-byte scalar Unicode string"
+            "description": "A 4-byte scalar UTF-8/Unicode string"
           },
           {
             "name": "unicodescalar-1-4-byte",
@@ -121,7 +139,7 @@
             ],
             "length": 4,
             "fill": null,
-            "description": "A scalar string where strings are 1-4 bytes Unicode characters"
+            "description": "A scalar string where strings are 1-4 byte(s) UTF-8/Unicode"
           },
           {
             "name": "unicodevector",
@@ -132,14 +150,14 @@
             ],
             "length": 4,
             "fill": null,
-            "description": "A vector string where strings are Unicode"
+            "description": "A vector string where strings are UTF-8/Unicode"
           }
         ]
       }
     },
     {
       "id": "dataset1-Aα☃",
-      "title": "Dataset with UTF-8 string parameters, ids, and parameter names.",
+      "title": "Dataset with UTF-8 encoded Unicode string parameters, ids, and parameter names.",
       "info": {
         "startDate": "1970-01-01Z",
         "stopDate": "2016-12-31Z",
@@ -174,7 +192,7 @@
             ],
             "length": 2,
             "fill": null,
-            "description": "Same as dataset1/unicodescalar-2-byte, but name has space and Unicode"
+            "description": "Same as dataset1/unicodescalar-2-byte, but name has space and Unicode 2-byte character"
           },
           {
             "name": "unicodescalar-3-byte (☃)",
