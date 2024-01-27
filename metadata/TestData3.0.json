@@ -8,7 +8,12 @@
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
 		"testurls": [
-			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10}
+			{"url": "data/?id=dataset1&parameters=spectra&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10},
+			{"url": "data/?id=dataset1&parameters=frequency_ranges_time_varying&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z", "Nlines": 1, "Ncommas": 20}
+		],
+		"testcommands": [
+			{"command": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/TestData3.0.js\" --id dataset1 --parameters spectra --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:00:10.000000000Z", "Nlines": 10},
+			{"command": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/TestData3.0.js\" --id dataset1 --parameters frequency_ranges_time_varying --start 1970-01-01T00:00:00.000000000Z --stop 1970-01-01T00:00:01.000000000Z", "Nlines": 1, "Ncommas": 20}
 		]
 	},
   "about": {
