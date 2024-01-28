@@ -1,6 +1,6 @@
 {
   "server": {
-    "id": "SSCWeb-chunk-ltfloats-parallel",
+    "id": "SSCWeb",
     "contact": "rweigel@gmu.edu",
     "HAPI": "2.0",
     "catalog-update": 86400,
