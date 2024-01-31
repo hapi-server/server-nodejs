@@ -9,11 +9,31 @@
 		"formats": ["csv"],
 		"contact": "rweigel@gmu.edu",
 		"testurls": [
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z", "Nlines": 1, "Ncommas": 1},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=json", "Nlines": 1, "Ncommas": 1},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=json&include=header", "Nlines": 1, "Ncommas": 1},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=binary", "Nbytes": 32},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:01Z&format=binary&include=header", "Nbytes": 32},
+
 			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z", "Nlines": 10},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z&format=json", "Nlines": 10},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z&format=json&include=header", "Nlines": 10},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z&format=binary", "Nbytes": 320},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T00:00:10Z&format=binary&include=header", "Nbytes": 320},
+
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1971-01-01T00:00:00Z&time.max=1971-01-01T01:00:00Z&format=json", "Nlines": 3600},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1971-01-01T00:00:00Z&time.max=1971-01-01T01:00:00Z&format=json&include=header", "Nlines": 3600},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1971-01-01T00:00:00Z&time.max=1971-01-01T01:00:00Z&format=binary", "Nbytes": 115200},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1971-01-01T00:00:00Z&time.max=1971-01-01T01:00:00Z&format=binary&include=header", "Nbytes": 115200},
+
 			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10Z&time.max=1970-01-01T00:00:20Z", "Nlines": 0},
-			{"url": "data/?id=dataset2&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-01T10:00:00Z", "Nlines": 10},
-			{"url": "data/?id=dataset2&parameters=scalar&time.min=1970-01-01T10:00:00Z&time.max=1970-01-01T20:00:00Z", "Nlines": 0},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10Z&time.max=1970-01-01T00:00:20Z&format=json", "Nlines": 0},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10Z&time.max=1970-01-01T00:00:20Z&format=json&include=header", "Nlines": 0},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10Z&time.max=1970-01-01T00:00:20Z&format=binary", "Nbytes": 0},
+			{"url": "data/?id=dataset1&parameters=scalar&time.min=1970-01-01T00:00:10Z&time.max=1970-01-01T00:00:20Z&format=binary&include=header", "Nbytes": 0},
+
 			{"url": "data/?id=dataset3&parameters=scalar&time.min=1970-01-01T00:00:00Z&time.max=1970-01-11T00:00:00Z", "Nlines": 10},
+			{"url": "data/?id=dataset2&parameters=scalar&time.min=1970-01-01T10:00:00Z&time.max=1970-01-01T20:00:00Z", "Nlines": 0},
 			{"url": "data/?id=dataset3&parameters=scalar&time.min=1970-01-11T00:00:00Z&time.max=1970-01-21T00:00:00Z", "Nlines": 0}
 		],
 		"testcommands": [

@@ -760,7 +760,7 @@ function data(req, res, catalog, header, include) {
 
     // See if command line program supports requested format
     let formats = d.formats; // formats supported by command line program
-    let convert = true;      // true if conversion is needed
+    let convert = true;      // true if conversion to requested output format is needed
     if (formats && formats.includes(req.query["format"])) {
       // Command line program can create requested format
       convert = false;
@@ -791,6 +791,7 @@ function data(req, res, catalog, header, include) {
     // If converting to binary, send data as chunks arrive if incrementalBinary
     // is true. Otherwise, accumulate data and send it all at once.
     let incrementalBinary = true;
+    let incrementalJSON = false; // true not implemented
     // The following are only used if incrementalBinary is true.
     let bufferConcat = Buffer.from('');
     let bufferConcatRemainder = Buffer.from('');
@@ -835,26 +836,31 @@ function data(req, res, catalog, header, include) {
       }
 
       if (gotData) { // Data returned and normal exit.
-        if (incrementalBinary === false && convert === true) {
-          // Convert accumulated data and send it.
-          log.debug(`Converting and sending data of length ${bufferConcat.length}`);
-          res.write(csvTo(bufferConcat.toString(),true,true,header,include));
-          res.end();
-          bufferConcat = null; // Technically not needed, but may help w/ gc.
-        } else {
-          log.debug(`Closing connection.`);
-          res.end();
+        if (convert === true) {
+          let dump = req.query["format"] === 'binary' && incrementalBinary === false;
+          dump = dump || (req.query["format"] === 'json' && incrementalJSON === false);
+          if (dump) {
+            // Convert accumulated data and send it.
+            log.debug(`Converting and sending data of length ${bufferConcat.length}`);
+            res.write(csvTo(bufferConcat.toString(),true,true,header,include));
+            res.end();
+            bufferConcat = null; // Technically not needed, but may help w/ gc.
+          }
         }
+        log.debug(`Closing connection.`);
+        res.end();
       } else {
         // No data returned and normal exit.
         log.info(`No data returned.`);
         res.statusMessage = "HAPI 1201: No data in interval";
-        if (convert && header["format"] === "json") {
+        if (convert && header["format"] === "json" && incrementalJSON === false) {
           // Send header only
-          res.write(csvTo("",true,true,header,include));
+          res.status(200).send(csvTo("",true,true,header,include));
           return;
         }
         if (include) {
+          // If this is changed to JSON.stringify(header, null, X), unit
+          // tests will fail.
           res.status(200).send("#" + JSON.stringify(header) + "\n");
         } else {
           res.status(200).end();
@@ -879,7 +885,7 @@ function data(req, res, catalog, header, include) {
         res.write(buffer.toString());
       }
       if (header["format"] === "json") {
-        if (!convert) {
+        if (convert === false) {
           // No conversion needed; dump buffer immediately.
           log.debug(`Sending {buffer.length} bytes of JSON.`);
           res.write(buffer.toString());
@@ -890,15 +896,18 @@ function data(req, res, catalog, header, include) {
           // TODO: Write incrementally; use
           //    buffer.toString().lastIndexOf(/\n/)
           // along with saving part of string that was not written.
-          bufferConcat = bufferConcat + buffer.toString();
+          if (incrementalJSON === false) {
+            bufferConcat = Buffer.concat([bufferConcat, buffer]);
+          } else {
+            // Not implemented
+          }
         }
       }
       if (header["format"] === "binary") {
-        if (!convert) {
+        if (convert === false) {
           // No conversion needed; dump buffer immediately.
           log.debug(`Sending ${buffer.length} bytes of binary.`);
           res.write(buffer,'binary');
-          return;
         } else {
           // Conversion from CSV to binary needed.
           if (incrementalBinary === false) {
@@ -915,7 +924,7 @@ function data(req, res, catalog, header, include) {
               bufferConcatRemainder = bufferConcat.slice(lastnl);
               bufferConcat = bufferConcat.slice(0,lastnl);
             }
-            log.debug(`Converting ${bufferConcat.length} bytes to binary and then sending.`);
+            log.debug(`Converting ${bufferConcat.length} string bytes to binary and then sending.`);
             res.write(csvTo(bufferConcat.toString(),null,null,header,include));
           }
         }
@@ -1139,6 +1148,7 @@ function csvTo(records, first, last, header, include) {
                 + " string(s) were truncated because they"
                 + " were longer than length given in metadata");
     }
+    log.debug("Returning binary data of length " + Buffer.byteLength(recordbuff, 'utf8') + " bytes.");
     return recordbuff;
   }
 
