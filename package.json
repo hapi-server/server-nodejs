@@ -1,10 +1,11 @@
 {
   "name": "@hapi-server/server",
-  "version": "1.0.13",
+  "version": "1.0.14",
+  "type": "commonjs",
   "license": "MIT",
   "engine-strict": true,
   "engines": {
-    "node": ">=12"
+    "node": ">=16"
   },
   "people": {
     "name": "Bob Weigel",
@@ -20,19 +21,19 @@
     "hapi-server-test": "./test/server-test.js"
   },
   "dependencies": {
-    "chalk": "^2.4.1",
     "command-exists": "^1.2.2",
     "compression": "^1.6.2",
     "express": "^4.15.3",
     "glob-fs": "*",
+    "https": "^1.0.0",
     "hapi-server-ui": "git+https://github.com/hapi-server/server-ui.git#master",
     "hapi-server-verifier": "github:hapi-server/verifier-nodejs",
-    "https": "^1.0.0",
+    "log": "git+https://github.com/rweigel/log.git#main",
     "moment": "^2.18.1",
+    "node-fetch-native": "^1.6.2",
     "request": "^2.88.2",
-    "semver": "^7.5.4",
-    "serve-index": "^1.9.1",
     "superagent": "^6.1.0",
+    "semver": "^7.5.4",
     "yargs": "^8.0.1"
   },
   "scripts": {
@@ -60,5 +61,8 @@
         "pkg/dist/*.tgz"
       ]
     }
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0"
   }
 }
