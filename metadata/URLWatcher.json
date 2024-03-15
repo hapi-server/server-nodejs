@@ -1,9 +1,11 @@
 {
   "server": {
+  },
+  "about": {
     "id": "URLWatcher",
-    "HAPI": "3.0",
-    "contact": "rweigel@gmu.edu",
-    "catalog-update": 86400
+    "title": "Serve URLWatcher data from https://hapi-server.org/urlwatcher",
+    "HAPI": "3.1",
+    "contact": "rweigel@gmu.edu"
   },
   "data": {
       "command": "python3 \"$HAPISERVERPATH/bin/URLWatcher.py\" --dataset ${id} --start ${start} --stop ${stop} --parameters ${parameters}",

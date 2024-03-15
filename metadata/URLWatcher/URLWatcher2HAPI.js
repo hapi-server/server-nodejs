@@ -68,7 +68,15 @@ if (parseInt(ver) < 12) {
 superagent
   .get(urlwatcher + 'log/tests.json')
   .end((err, res) => {
-    processDirs(err, res.body)
+    let testCategories = Object.keys(res.body);
+    let allPaths = [];
+    for (let testCategory of testCategories) {
+      let categoryPaths = res.body[testCategory];
+      for (let test of categoryPaths) {
+        allPaths.push(testCategory + "/" + test)
+      }
+    }
+    processDirs(err, allPaths);
   });
 
 function processDirs(err, dirs) {
