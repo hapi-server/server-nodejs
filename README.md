@@ -31,10 +31,10 @@
 <a name="About"></a>
 # 1 About
 
-The intended use for this server-side software is a data provider that wants to serve data through a [HAPI API](https://github.com/hapi-server/data-specification). To be able to serve data from a HAPI API from their server using this software, the data provider only needs
+The intended user for this server-side software is a data provider that wants to serve data through a [HAPI API](https://github.com/hapi-server/data-specification). To be able to serve data from a HAPI API from their server using this software, the data provider only needs
 
 1. [HAPI](https://github.com/hapi-server/data-specification) metadata, in one of a [variety of forms](#Metadata), for a collection of datasets and
-2. a command-line program that returns at least [headerless HAPI CSV](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) for all parameters in the dataset over the full time range of available data. Optionally, the command line program can take inputs of a start and stop time, a list of one or more parameters to output, and an output format.
+2. a command-line program that returns at least a [headerless HAPI CSV stream](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) for all parameters in the dataset over the full time range of available data. Optionally, the command line program can take inputs of a start and stop time, a list of one or more parameters to output, and a HAPI stream format.
 
 This software handles
 
@@ -49,7 +49,7 @@ This software handles
 <a name="Installation"></a>
 # 2 Installation
 
-Requires [NodeJS](https://nodejs.org/).
+Requires [NodeJS v16+](https://nodejs.org/).
 
 ```
 git clone https://github.com/hapi-server/server-nodejs.git && cd server-nodejs
@@ -168,11 +168,11 @@ To run this example, use
 
 ## 3.6 Serve data read by Autoplot
 
-Nearly any data file that can be read by [Autoplot](http://autoplot.org/) can be served using this server. 
+Nearly data file that can be read by [Autoplot](http://autoplot.org/) can be served using this server. 
 
 Serving data requires at most two steps:
 
-1. Generating an Autoplot URI for each parameter; and (in some cases)
+1. Generating an Autoplot URI for each parameter, and (in some cases)
 2. Writing (by hand) metadata for each parameter.
 
 **Example 1**
@@ -208,46 +208,66 @@ List command-line options:
 Usage: node server.js [options]
 
 Options:
-  --help, -h           Show help                                       [boolean]
-  --https              Start https server             [boolean] [default: false]
-  --cert               https certificate file path
-  --key                https key file path
-  --file, -f           Catalog configuration file or file pattern [string]
-                       [default: "/tmp/server-nodejs/metadata/TestData2.0.json"]
-  --port, -p           Server port                               [default: 8999]
-  --conf, -c           Server configuration file   
-                                [default: "/tmp/server-nodejs/conf/server.json"]
-  --ignore, -i         Start server even if metadata validation errors
-                                                      [boolean] [default: false]
+  --help               Show help                                       [boolean]
+
+  --file, -f           Catalog configuration file or file pattern
+                                 [string] [default: /metadata/TestData2.0.json"]
+
+  --port, -p           Server port                      [number] [default: 8999]
+
+  --conf, -c           Server configuration file
+                                          [string] [default: "conf/server.json"]
+
+  --ignore, -i         Start server even if metadata validation errors [boolean]
+
   --skipchecks, -s     Skip startup metadata validation and command line tests
                                                       [boolean] [default: false]
-  --logdir, -l         Log directory
-                           [default: "/Users/weigel/git/hapi/server-nodejs/log"]
+
+  --logdir, -l         Log directory                   [string] [default: "log"]
+
   --open, -o           Open web page on start         [boolean] [default: false]
+
   --test, -t           Run URL tests and exit         [boolean] [default: false]
-  --verify, -v         Run verification tests on command line and exit
+
+  --verify             Run verification tests on command line and exit
                                                       [boolean] [default: false]
-  --loglevel           info or debug                           [default: "info"]
+
+  --loglevel           info or debug                  [string] [default: "info"]
+
+  --debug              set loglevel to 'debug'        [boolean] [default: false]
+
+  --server-ui-include  Also include these servers in server-ui server drop-down.
+                       Use multiple times for more than one list.
+                                                        [string] [default: null]
+
+  --proxy-whitelist    Allow proxying of servers in this file (so one can use
+                       server=http://... in address bar of server-ui).
+                                                          [string] [default: ""]
+
   --verifier           Verifier server URL on landing page (__VERIFIER__ in html
                        is replaced with this value)
-                                     [default: "http://hapi-server.org/verify/"]
+                            [string] [default: "http://hapi-server.org/verify/"]
+
   --plotserver         Plot server URL on landing page (__PLOTSERVER__ in html
                        is replaced with this value)
-                                       [default: "http://hapi-server.org/plot/"]
+                              [string] [default: "http://hapi-server.org/plot/"]
+
   --hapiserverpath     Absolute path to use for $HAPISERVERPATH in server
-                       metadata files            [default: "/tmp/server-nodejs"]
+                       metadata files                    [string] [default: "."]
+
   --nodejs             Location of NodeJS binary to use for $NODEJSEXE in server
                        metadata files (if needed for command line calls).
-                             [default: "~/.nvm/versions/node/v16.20.0/bin/node"]
+                                                       [string] [default: "node"]
+
   --python             Location of Python binary to use for $PYTHONEXE in server
                        metadata files (if needed for command line calls).
-                                                                   [default: ""]
-  --server-ui-include  Also include these servers in server-ui server drop-down.
-                       Use multiple times for more than one list.  [default: ""]
-  --proxy-whitelist    Allow proxying of these servers (so one can use
-                       server=http://... in address bar of server-ui).
-                                                                   [default: ""]
+                                                                        [string]
 
+  --https              Start https server                              [boolean]
+
+  --cert               https certificate file path                      [string]
+
+  --key                https key file path                              [string]
 ```
 
 Basic usage:
@@ -285,7 +305,7 @@ And the page at `http://localhost:8999/` will point to these two URLs.
 
 The variables `$HAPISERVERPATH`, `$PYTHONEXE`, and `$NODEJSEXE` can be used in commands, files, and URLs in the server metadata (which are files passed using the command-line `--file` switch). See [the examples](https://github.com/hapi-server/server-nodejs/tree/master/metadata) for use cases.
 
-These variables can be passed as command line arguments or set in the default configuration file `conf/server.json`; an alternative location can be set using a command-line argument, e.g.,
+These variables can be passed as command-line arguments or set in the default configuration file `conf/server.json`; an alternative location can be set using a command-line argument, e.g.,
 
 ```
 ./hapiserver -c /tmp/config.json
@@ -305,13 +325,13 @@ Variables set on the command line take precedence over those set in `conf/server
 }
 ```
 
-By default, `$HAPISERVERPATH` is the installation directory (the directory containing the shell launch script `hapi-server`). To use a custom path, modify `HAPISERVERPATH` on the command line or in `conf/server.json`.
+By default, `$HAPISERVERPATH` is the installation directory (the directory containing the shell launch script `hapi-server`). To use a custom path, set `hapiserverpath` on the command line or in `conf/server.json`.
 
 All relative paths in commands in metadata files are relative to the directory where `hapi-server` was executed.
 
-**`PYTHONEXE`**
+**`$PYTHONEXE`**
 
-This is the command used to call Python. By default, it is `python`. If `python` is not in the path, this can be set using a relative or absolute path. Python is used by several of the demonstration catalogs.
+This is the command used to start Python. By default, it is `python`. If `python` is not in the path, this can be set using a relative or absolute path. Python is used by several of the demonstration catalogs.
 
 This variable can also be set using the `--python` command line switch, which has the highest precedence.
 
@@ -323,7 +343,7 @@ data: {
 }
 ```
 
-**`NODEJSEXE`**
+**`$NODEJSEXE`**
 
 This variable can also be set using the `--nodejs` command line switch, which has the highest precedence.
 
@@ -331,7 +351,7 @@ This is the command used to call NodeJS. By default, it is the command used to s
 
 ## 5.2 Apache
 
-To expose a URL through Apache, (1) enable `mod_proxy` and `mod_proxy_http`, (2) add the following in a `<VirtualHost>` node in a [Apache Virtual Hosts](https://httpd.apache.org/docs/2.4/vhosts/examples.html) file
+To expose a URL through Apache, (1) enable `mod_proxy` and `mod_proxy_http` and (2) add the following in a `<VirtualHost>` node in a [Apache Virtual Hosts](https://httpd.apache.org/docs/2.4/vhosts/examples.html) file
 
 ```
 <VirtualHost *:80>
@@ -340,9 +360,7 @@ ProxyPassReverse /TestData2.0 http://localhost:8999/TestData2.0
 </VirtualHost>
 ```
 
-and (3) `Include` this file in the Apache start-up configuration file.
-
-If serving multiple catalogs, use
+If serving multiple catalogs (`--file` used more than once on the command line), use
 
 ```
 <VirtualHost *:80>
@@ -368,7 +386,7 @@ location /servers {proxy_pass http://localhost:8999/servers;}
 <a name="Metadata"></a>
 # 6 Metadata
 
-The metadata required for this server is similar to the `/catalog` and `/info` response of a HAPI server. 
+The metadata required for this server is similar to a HAPI server's `/catalog` and `/info` response. 
 
 * Example HAPI [`/catalog`](http://hapi-server.org/servers/TestData2.1/hapi/catalog) response
 * Example HAPI [`/info`](http://http://hapi-server.org/servers/TestData2.1/hapi/info?id=dataset1) response
@@ -459,7 +477,7 @@ The server node has the form
 }
 ```
 
-### 6.1.1 id and prefix
+### 6.1.1 `id` and `prefix`
 
 The `id` is by default the name of the server configuration file, e.g.,
 
@@ -477,11 +495,11 @@ http://localhost:8999/TestData2.0/hapi
 
 `TestData2.0` in the URL can be changed to `TestData2.0.1` by using `prefix=TestData2.0.1`.
 
-### 6.1.2 contact
+### 6.1.2 `contact`
 
-It should be at minimum the email address of a system administrator.
+It should be, at minimum, the email address of a system administrator.
 
-### 6.1.3 landingFile and landingPath
+### 6.1.3 `landingFile` and `landingPath`
 
 `landingFile` is the file to serve in response to requests for
 
@@ -489,7 +507,7 @@ It should be at minimum the email address of a system administrator.
 http://localhost:8999/TestData2.0/hapi
 ```
 
-By default, the landing page served is the stand--alone file [single.htm](https://github.com/hapi-server/server-ui/blob/master/single.htm) from the HAPI server UI codebase. The double underscore variables in this file are replaced using the information in the metadata file (e.g., `__CONTACT__` is replaced with the `server.contact` value. A different landing page can be served by setting the `landingFile` configuration variable, e.g. `"landingFile": "$HAPISERVERPATH/public/index.htm"`, where `$HAPISERVERPATH` is described in [Server Configuration](#Server_Configuration). 
+By default, the landing page served is the stand-alone file [single.htm](https://github.com/hapi-server/server-ui/blob/master/single.htm) from the HAPI server UI codebase. The double underscore variables in this file are replaced using the information in the metadata file (e.g., `__CONTACT__` is replaced with the `server.contact` value. A different landing page can be served by setting the `landingFile` configuration variable, e.g. `"landingFile": "$HAPISERVERPATH/public/index.htm"`, where `$HAPISERVERPATH` is described in [Server Configuration](#Server_Configuration). 
 
 If `landingFile` has local CSS and JS dependencies, set `landingPath` to be the local directory of the referenced files. Several possible settings are
 
@@ -509,7 +527,7 @@ To serve a directory listing, use
 // found, directory listing of /var/www/public/ will be served.
 ```
 
-### 6.1.4 catalog-update
+### 6.1.4 `catalog-update`
 
 This is an integer number of seconds corresponding to how often the `catalog` node should be updated. Use this if the `catalog` node is not static.
 
@@ -521,7 +539,7 @@ Instead of a `catalog` node, nodes of `catalog_inline`, `catalog_file`, `catalog
 
 The catalog array should have the same format as a HAPI `/catalog` response (each object in the array has an `id` property and optional `title` property) **with the addition** of an `info` property that is the HAPI response for that `id`, e.g., `/info?id=dataset1`. 
 
-```json
+```javascript
 "catalog": // or "catalog_inline"
     [
        {
@@ -580,23 +598,23 @@ Instead of an `info` node, nodes of `info_inline`, `info_file`, `info_url`, or `
 
 Relative paths in `info_file` and `info_command` are relative to the location of the directory of `server.js`. See [Example3.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example3.json).
 
-### 6.2.2 catalog_file
+### 6.2.2 `catalog_file`
 
 The file should contain an array with content of the form shown above in `catalog_inline`.
 See also [Example3.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example6.json).
 
-### 6.2.3 catalog_url
+### 6.2.3 `catalog_url`
 
 The URL should return a HAPI catalog response. The content for the `info` node is populated automatically. See [Example7.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example7.json)
 
-### 6.2.4 catalog_command
+### 6.2.4 `catalog_command`
 
-`stdout` should contain an array with content of the form shown above in `catalog_inline`. See [Example10.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example10.json). 
+`stdout` should contain an array with content of the form shown above in `catalog_inline`. See [Example10.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example10.json).
 
 <a name="Development"></a>
 # 7 Development
 
-Install [nodejs](https://nodejs.org/en/download/) (tested with v8+) using either the [standard installer](https://nodejs.org/en/download/) or [NVM](https://github.com/creationix/nvm#install--update-script).
+Install [nodejs](https://nodejs.org/en/download/) (tested with v16+) using either the [standard installer](https://nodejs.org/en/download/) or [NVM](https://github.com/creationix/nvm#install--update-script).
 
 ```bash
 # Install Node Version Manager
@@ -604,10 +622,9 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
 
 # Open a new shell (see displayed instructions from above command)
 
-# Install and use node.js version 8
-nvm install 8
+# Install and use node.js version 16
+nvm install 16
 ```
-
 
 ```bash
 # Clone the server repository
