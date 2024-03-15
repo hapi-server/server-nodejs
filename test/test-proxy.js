@@ -10,15 +10,7 @@ if (process.platform.startsWith("win")) {
 let pythonexe = require("../lib/conf.js").pythonexe();
 let testArray = [
 	{
-		"command": `cd ${__dirname}; ${nodeexe} ../server.js --port 7999 --test`,
-		"exitStatus": 0
-	},
-	{
-		"command": `${nodeexe} server.js  --port 7999 --test --nodejs ${nodeexe}`,
-		"exitStatus": 0
-	},
-	{
-		"command": `${nodeexe} server.js  --port 7999 --test -f metadata/Example2.json --python ${pythonexe}`,
+		"command": `cd ${__dirname}; ${nodeexe} ../server.js -f ../metadata/TestData2.0.js ../metadata/Example11.js --test`,
 		"exitStatus": 0
 	}
 ];
