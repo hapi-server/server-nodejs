@@ -32,7 +32,7 @@
             "type": "isotime",
             "units": "UTC",
             "fill": null,
-            "length": 15
+            "length": 17
           },
           {
             "name": "TimeEnd",
@@ -40,7 +40,14 @@
             "type": "isotime",
             "units": "UTC",
             "fill": null,
-            "length": 15
+            "length": 17
+          },
+          {
+            "name": "OrbitStart",
+            "description": "Orbit for first data in image",
+            "type": "integer",
+            "units": "dimensionless",
+            "fill": null
           },
           {
             "name": "Dataset of URLs not using stringType",
