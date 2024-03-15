@@ -2,9 +2,9 @@
 
 APPDIR=.
 
-source /home/ubuntu/.nvm/nvm.sh && nvm use 12.22.12
+#source /home/ubuntu/.nvm/nvm.sh && nvm use 12.22.12
 
-node \
+~/.nvm/versions/node/v16.20.0/bin/node \
   --max-old-space-size=256 \
   $APPDIR/server.js \
   --port 8998 \
