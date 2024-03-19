@@ -9,6 +9,9 @@
 		"fileformat": "csv",
     "contact": "rweigel@gmu.edu",
 		"testurls": [
+			{"url": "data/?id=DE1/PWI/B_H&start=1981-09-16T02:19Z&stop=1981-09-17T19:24Z", "Nlines": 6, "Ncommas": 18, "md5sum": "c436db33916df4354c18a6ec910c5743"}
+    ],
+    "xtesturls": [
 			{"url": "data/?id=DE1/PWI/B_H&parameters=TimeEnd&start=1981-09-16T02:19Z&stop=1981-09-17T19:24Z", "Nlines": 6, "Ncommas": 6, "md5sum": "85f7b59f87c40e8558dfec61d28f76e9"},
 			{"url": "data/?id=DE1/PWI/B_H&parameters=TimeEnd&start=1981-09-16T02:19Z&stop=1981-09-16T16:01Z", "Nlines": 2, "Ncommas": 2, "md5sum": "c802251178889083fd5c6d071129de0b"},
 			{"url": "data/?id=DE1/PWI/B_H&start=1981-09-16T02:19Z&stop=1981-09-17T19:24Z", "Nlines": 6, "Ncommas": 18, "md5sum": "c436db33916df4354c18a6ec910c5743"},
@@ -58,15 +61,31 @@
             "fill": null
           },
           {
-            "name": "Dataset of URLs not using stringType",
+            "name": "URLs not using stringType",
+            "description": "First seven B_H images from https://cdaweb.gsfc.nasa.gov/pub/pre_generated_plots/de/pwi/1981/",
             "type": "string",
             "units": null,
             "size": [
               1
             ],
             "length": 99,
-            "fill": null,
-            "description": "First seven B_H images from https://cdaweb.gsfc.nasa.gov/pub/pre_generated_plots/de/pwi/1981/"
+            "fill": null
+          },
+          {
+            "name": "URLs using stringType",
+            "description": "First seven B_H images from https://cdaweb.gsfc.nasa.gov/pub/pre_generated_plots/de/pwi/1981/",
+            "type": "string",
+            "stringType": {
+              "type": "uri",
+              "mediaType": "image/png",
+              "base": "https://cdaweb.gsfc.nasa.gov/pub/pre_generated_plots/de/pwi/1981/"
+            },
+            "units": null,
+            "size": [
+              1
+            ],
+            "length": 99,
+            "fill": null
           }
         ]
       }
