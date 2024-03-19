@@ -597,7 +597,7 @@ function data(req, res, catalog, header, include) {
       if (columns !== "" && d.url && !/\$\{{1,2}parameters\}{1,2}/.test(d.url)) {
         com = com + " --columns " + columns;
       }
-      com = com + " --format " + header["format"];
+      //com = com + " --format " + header["format"];
     }
 
     if (d.command) {

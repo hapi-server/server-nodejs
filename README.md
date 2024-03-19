@@ -53,7 +53,7 @@ Requires [NodeJS v16+](https://nodejs.org/).
 
 ```
 git clone https://github.com/hapi-server/server-nodejs.git && cd server-nodejs
-npm install
+npm install; npm update;
 node server.js
 ```
 
