@@ -16,6 +16,7 @@ APPDIR=.
   -f $APPDIR/metadata/TestData2.1.json  \
   -f $APPDIR/metadata/TestData3.0.json  \
   -f $APPDIR/metadata/TestData3.1.json  \
+  -f $APPDIR/metadata/TestData3.2.json  \
   -f $APPDIR/metadata/URLWatcher.json   \
   -f $APPDIR/metadata/SSCWeb-chunk-ltfloats-parallel.json \
   -f $APPDIR/metadata/Example0.json \
