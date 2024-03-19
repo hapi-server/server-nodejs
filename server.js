@@ -121,9 +121,11 @@ function apiInit(CATALOG, PREFIX) {
     if (landingHTML !== "") {
       res.contentType('text/html');
       res.send(landingHTML);
+      return;
     }
     if (landingPath !== "") {
-      app.use(PREFIX + '/hapi');
+      app.use(PREFIX + '/hapi', express.static(landingPath));
+      return;
     }
     if (landingPath === "" && landingHTML === "") {
       // This will only occur if force=true; otherwise server will not start.
