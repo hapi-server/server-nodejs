@@ -10,7 +10,7 @@ let argv = yargs
             .argv
 
 let testAll = true; // If false, only run one test.
-let exampleIncludes = ["^Example", "^TestData2\\.0", "^TestData3\\.0", "^TestData3\\.1"];
+let exampleIncludes = ["^Example", "^TestData2\\.0", "^TestData3\\.0", "^TestData3\\.1", "^TestData3\\.2"];
 let testIncludes = ["^Deprecated"];
 if (argv.https === true || testAll === false) {
   exampleIncludes = ["^TestData2\\.0"];

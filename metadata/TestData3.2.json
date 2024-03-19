@@ -14,7 +14,7 @@
 			{"url": "data/?id=DE1/PWI/B_H&start=1981-09-16T02:19Z&stop=1981-09-17T19:24Z", "Nlines": 6, "Ncommas": 18, "md5sum": "c436db33916df4354c18a6ec910c5743"},
 			{"url": "data/?id=DE1/PWI/B_H&parameters=TimeEnd&start=1981-09-16T02:19Z&stop=1981-09-16T16:01Z", "Nlines": 2, "Ncommas": 2, "md5sum": "c802251178889083fd5c6d071129de0b"},
 			{"url": "data/?id=DE1/PWI/B_H&parameters=TimeEnd&start=1981-09-16T02:19Z&stop=1981-09-17T19:24Z&format=binary", "Nbytes": 204},
-			{"url": "data/?id=DE1/PWI/B_H&start=1981-09-16T02:19Z&stop=1981-09-17T19:24Z&format=binary", "Nbytes": 204}
+			{"url": "data/?id=DE1/PWI/B_H&start=1981-09-16T02:19Z&stop=1981-09-17T19:24Z&format=binary", "Nbytes": 822}
     ]
   },
   "about": {

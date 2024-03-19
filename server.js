@@ -696,11 +696,12 @@ function data(req, res, catalog, header, include) {
     let bufferConcatRemainder = Buffer.from('');
 
     req.connection.on('close',function () {
-      // https://azimi.me/2014/12/31/kill-child_process-node-js.html
       connectionClosed = true;
       if (childFinished === false) {
-        log.info(`HTTP Connection closed before child finished. Killing ${com}`);
-        process.kill(-child.pid);
+        log.info(`HTTP Connection closed before child finished. Killing pid = ${pid} for ${com}`);
+        // https://azimi.me/2014/12/31/kill-child_process-node-js.html
+        // previously used -child.pid, but this was killing the main process.
+        process.kill(child.pid);
       } else {
         log.debug(`HTTP Connection closed.`);
       }
