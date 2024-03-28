@@ -1,6 +1,7 @@
 // Call the SPDF/SSCWeb API and respond with HAPI CSV.
 // Adds ability to parallelize requests.
 const fs      = require('fs');
+const path    = require('path')
 const request = require('request');
 const moment  = require('moment');
 const argv    = require('yargs')
@@ -60,9 +61,9 @@ if (argv.parameters === '') {
     timeonly = true;
   }
 
-  let cfile = __dirname + '/../metadata/SSCWeb/SSCWeb-catalog.json';
+  let cfile = path.join(__dirname, '..', 'metadata', 'SSCWeb', 'SSCWeb-catalog.json');
   if (LTFLOATS) {
-    cfile = __dirname + '/../metadata/SSCWeb/SSCWeb-catalog-ltfloats.json';
+    cfile = cfile = path.join(__dirname, '..', 'metadata', 'SSCWeb', 'SSCWeb-catalog-ltfloats.json');
   }
 
   let json = JSON.parse(fs.readFileSync(cfile, 'utf8'));

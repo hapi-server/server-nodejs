@@ -1,11 +1,13 @@
 // Call the SSCWeb API and respond with HAPI CSV.
 // Splits request into chunks of less than 6 days.
+// This code parses the HTML response from the SSCWeb API because at 
+// the time of writing certain outputs were not available from the API.
 var fs      = require('fs');
+const path  = require('path')
 var request = require('request');
 var moment  = require('moment');
 var argv    = require('yargs')
-                .default
-                ({
+                .default({
                     'id': '',
                     'parameters': '',
                     'start': '',
@@ -22,10 +24,11 @@ if (argv.parameters === true || argv.parameters === '') {
 
     var timeonly = false;
     if (PARAMETERS.length == 1 && PARAMETERS[0] === 'Time') {
-        var timeonly = true;
+        timeonly = true;
     }
 
-    var json = JSON.parse(fs.readFileSync('metadata/SSCWeb/SSCWeb-catalog.json', 'utf8'));
+    let jsonFile = path.join(__dirname, '..', 'metadata', 'SSCWeb', 'SSCWeb-catalog.json');
+    var json = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
     var parameters = json[0].info.parameters;
     if (PARAMETERS[0] !== "Time") {
         PARAMETERS.push("Time");
@@ -42,7 +45,6 @@ var SPCR = 'ace';
 if (argv.id !== '') {
     SPCR = argv.id;
 }
-//console.log(SPCR);
 
 var START_TIME = '2000+001+00:00:00';
 var STOP_TIME = '2000+001+23:59:59';
@@ -51,7 +53,7 @@ if (argv.start !== '') {
     START_TIME = moment(argv.start).utc().format('YYYY+DDDD+HH:mm:ss');
 }
 if (argv.stop !== '') {
-    var STOP_TIME = moment(argv.stop).utc().format('YYYY+DDDD+HH:mm:ss');
+    STOP_TIME = moment(argv.stop).utc().format('YYYY+DDDD+HH:mm:ss');
 }
 
 
@@ -66,8 +68,6 @@ if (STOP.diff(start,'days') > MAX_DAYS) {
 } else {
     stop = STOP.clone();
 }
-//console.log(start)
-//console.log(stop)
 
 makeRequest(start, stop);
 
@@ -106,14 +106,6 @@ function makeRequest(start, stop) {
 }
 
 function extractData(data,stop) {
-
-    if (false) {
-        let used = process.memoryUsage();
-        for (let key in used) {
-          console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
-        } 
-        console.log((Math.round(1000*data.length/1024/1024)/1000) + " MB");
-    }
 
     // Input `data` string is output of web call (HTML page with data embedded)
 
