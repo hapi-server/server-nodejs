@@ -8,11 +8,13 @@ const app        = express();
 
 const semver = require('semver');
 
-// Object that stores all metadata
+// Object that contains all metadata
 const metadata = require('./lib/metadata.js').metadata;
 
 // Prepare metadata and store in metadata object
 const prepmetadata = require('./lib/metadata.js').prepmetadata;
+
+const executeCommand = require('./lib/executeCommand.js');
 
 // Command line interface
 const argv = require('./lib/cli.js').argv;
@@ -35,11 +37,17 @@ for (let key in config) {
 // Handle file patterns.
 let files = require("./lib/expandglob.js").expandglob(argv.file);
 
-// Populate metadata.cache array, which has elements of catalog objects
+// Populate metadata.cache array, which has elements of catalog objects.
 // main() is callback.
 prepmetadata(files, argv.ignore, argv.skipchecks, main);
 
 function main() {
+
+  if (0) {
+    setInterval(() => {
+      log.memory();
+    }, 1000);
+  }
 
   // Compress responses using gzip
   app.use(compress());
@@ -216,7 +224,6 @@ function apiInit(CATALOG, PREFIX) {
       }
       res.send(JSON.stringify(metadata(CATALOG,"catalog"),null,2));
     }
-
   })
 
   // /info
@@ -430,10 +437,11 @@ function info(req, res, catalog) {
 function data(req, res, catalog, header, include) {
 
   // Extract command line command and replace placeholders.
-  var d = metadata(catalog,'data');
+  let dataConfig = metadata(catalog,'data');
 
-  if (d.proxy) {
-    let url = replacevars(d.proxy).replace(/\/$/,"") + req.originalUrl;
+  if (dataConfig.proxy) {
+    // Not used
+    let url = replacevars(dataConfig.proxy).replace(/\/$/,"") + req.originalUrl;
     log.info("Responding with proxy of " + url);
     let httpProxy = require('http-proxy');
     let proxy = httpProxy.createProxyServer({});
@@ -445,137 +453,29 @@ function data(req, res, catalog, header, include) {
         error(req, res, header["HAPI"], 1500, null,
               "Proxy " + url + " error: " + err);
       })
-      .web(req, res, {target: d.proxy});
-    return;
+      .web(req, res, {target: dataConfig.proxy});
   } else {
-    let com = buildcom(d, header, req);
-    executecom(com, d, req, res, header, include);
-    return;
-  }
-
-  function normalizeTime(timestr) {
-
-    // Convert to YYYY-MM-DDTHH:MM:SS.FFFFFFFFFZ
-    // (nanosecond precision). All command line programs
-    // will be given this format.
-
-    // Need to extract it here and then insert at end
-    // because moment.utc(timestr).toISOString()
-    // ignores sub-millisecond parts of time string.
-    var re = new RegExp(/.*\.[0-9]{3}([0-9].*)Z/);
-    var submilli = "000000";
-    if (re.test(timestr)) {
-      submilli = timestr.replace(/.*\.[0-9]{3}([0-9].*)Z$/,"$1");
-      var pad = "0".repeat(6-submilli.length);
-      submilli = submilli + pad;
-    }
-
-    if (/^[0-9]{4}Z$/.test(timestr)) {
-      timestr = timestr.slice(0,-1) + "-01-01T00:00:00.000Z";
-    }
-    if (/^[0-9]{4}-[0-9]{2}Z$/.test(timestr)) {
-      timestr = timestr.slice(0,-1) + "-01T00:00:00.000Z";
-    }
-    if (/^[0-9]{4}-[0-9]{3}Z$/.test(timestr)) {
-      timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
-    }
-    if (/^[0-9]{4}-[0-9]{2}-[0-9]{2}Z$/.test(timestr)) {
-      timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
-    }
-    timestr = moment.utc(timestr).toISOString();
-    timestr = timestr.slice(0,-1) + submilli + "Z";
-    return timestr;
-  }
-
-  function replacevars(com, isURL) {
-
-    let dataset = req.query["id"] || req.query["dataset"];
-
-    // Double {{ }} means don't quote
-    com = com.replace("${{id}}", dataset);
-    com = com.replace("${{dataset}}", dataset);
-    if (req.query["parameters"]) {   
-      com = com.replace("${{parameters}}",req.query["parameters"]);
-    } else {
-      com = com.replace("${{parameters}}",'');
-    }
-
-    let start = req.query["time.min"] || req.query["start"];
-    let stop = req.query["time.max"] || req.query["stop"];
-    // Times don't need to be quoted
-    com = com.replace("${start}",normalizeTime(start));
-    com = com.replace("${stop}",normalizeTime(stop));
-    com = com.replace("${{start}}",normalizeTime(start));
-    com = com.replace("${{stop}}",normalizeTime(stop));
-
-    if (!isURL) {
-      if (process.platform.startsWith("win")) {
-        com = com.replace("${id}",'"' + dataset + '"');
-        com = com.replace("${dataset}",'"' + dataset + '"');
-      } else {
-        com = com.replace("${id}","'" + dataset + "'");
-        com = com.replace("${dataset}",'"' + dataset + '"');
+    let com = buildcom(dataConfig, header, req);
+    executeCommand(com, req, res, dataConfig.timeout, dataConfig.formats, header, include, (err) => {
+      if (!err) {
+        return;
       }
-    }
-    if (req.query["parameters"]) {
-      if (process.platform.startsWith("win")) {
-        if (isURL) {
-          com = com.replace("${parameters}",'"' + req.query["parameters"] + '"');
-        } else {
-          com = com.replace("${parameters}",req.query["parameters"]);
-        }
-      } else {
-        if (isURL === true) {
-          com = com.replace("${parameters}",req.query["parameters"]);
-        } else {
-          com = com.replace("${parameters}","'" + req.query["parameters"] + "'");
-        }
+      let code = 1500;
+      let msg = "Problem with the data server.";
+      if (typeof(err) === "string") {
+        code = parseInt(err.split(",")[0]);
+        msg =  err.split(",")[1] || "";
       }
-    } else {
-      com = com.replace("${parameters}",'""');
-    }
-    com = com.replace("${format}",header["format"]);
-    return com;
+      if (dataConfig.contact) {
+        msg += " Please send URL to " + dataConfig.contact + ".";
+        error(req, res, header["HAPI"], code, msg.trim());
+      } else {
+        error(req, res, header["HAPI"], code, "Problem with the data server.");
+      }
+    });
   }
 
   function buildcom(d, header, req) {
-
-    function columnsstr() {
-      // If command does not contain ${parameters} or ${{parameters}}, assume CL program
-      // always outputs all variables. Subset the output using subset.js.
-
-      let fieldstr = "";
-      if (req.query["parameters"] && !/\$\{{1,2}parameters\}{1,2}/.test(d.command)) {
-        var params = req.query["parameters"].split(",");
-        var headerfull = metadata(catalog,'info',req.query.id || req.query.dataset);
-        if (params[0] !== headerfull.parameters[0].name) {
-          // If time variable was not requested, add it
-          // so first column is always output.
-          params.unshift(headerfull.parameters[0].name);
-        }
-
-        var fields = {};
-        var col = 1;
-        var df = 0;
-
-        // Generate comma separated list of columns to output, e.g.,
-        // 1,2-4,7
-        for (let i = 0;i < headerfull.parameters.length;i++) {
-          df = prod(headerfull.parameters[i].size || [1]);
-          if (df > 1) {
-            fields[headerfull.parameters[i].name] = col + "-" + (col+df-1);
-          } else {
-            fields[headerfull.parameters[i].name] = col;
-          }
-          col = col + df;
-        }
-        for (let i = 0;i < params.length;i++) {
-          fieldstr = fieldstr + fields[params[i]] + ",";
-        }
-        fieldstr = fieldstr.slice(0, -1); // Remove last comma.
-      }
-      return fieldstr;
-    }
 
     var start = normalizeTime(req.query["time.min"] || req.query["start"]);
     var stop = normalizeTime(req.query["time.max"] || req.query["stop"]);
@@ -640,491 +540,137 @@ function data(req, res, catalog, header, include) {
     } else {
       //com = "cpulimit -l 30 -q -- nice -n -20 " + com;
     }
+
     return com;
   }
 
-  function executecom(com, d, req, res, header, include) {
+  function columnsstr() {
+    let fieldstr = "";
 
-    function dataErrorMessage() {
-      let msg = "Problem with the data server.";
-      if (d.contact) {
-        error(req, res, header["HAPI"], 1500, 
-              msg + " Please send URL to " + d.contact + ".");
-      } else {
-        error(req, res, header["HAPI"], 1500, "Problem with the data server.");
+    if (req.query["parameters"] && !/\$\{{1,2}parameters\}{1,2}/.test(dataConfig.command)) {
+      // If command does not contain ${parameters} or ${{parameters}}, assume CL program
+      // always outputs all variables. Subset the output using subset.js.
+      var params = req.query["parameters"].split(",");
+      var headerfull = metadata(catalog,'info',req.query.id || req.query.dataset);
+      if (params[0] !== headerfull.parameters[0].name) {
+        // If time variable was not requested, add it
+        // so first column is always output.
+        params.unshift(headerfull.parameters[0].name);
       }
+
+      var fields = {};
+      var col = 1;
+      var df = 0;
+
+      // Generate comma separated list of columns to output, e.g.,
+      // 1,2-4,7
+      for (let i = 0;i < headerfull.parameters.length;i++) {
+        df = prod(headerfull.parameters[i].size || [1]);
+        if (df > 1) {
+          fields[headerfull.parameters[i].name] = col + "-" + (col+df-1);
+        } else {
+          fields[headerfull.parameters[i].name] = col;
+        }
+        col = col + df;
+      }
+      for (let i = 0;i < params.length;i++) {
+        fieldstr = fieldstr + fields[params[i]] + ",";
+      }
+      fieldstr = fieldstr.slice(0, -1); // Remove last comma.
+    }
+    return fieldstr;
+  }
+
+  function normalizeTime(timestr) {
+
+    // Convert to YYYY-MM-DDTHH:MM:SS.FFFFFFFFFZ
+    // (nanosecond precision). All command line programs
+    // will be given this format.
+
+    // Need to extract it here and then insert at end
+    // because moment.utc(timestr).toISOString()
+    // ignores sub-millisecond parts of time string.
+    var re = new RegExp(/.*\.[0-9]{3}([0-9].*)Z/);
+    var submilli = "000000";
+    if (re.test(timestr)) {
+      submilli = timestr.replace(/.*\.[0-9]{3}([0-9].*)Z$/,"$1");
+      var pad = "0".repeat(6-submilli.length);
+      submilli = submilli + pad;
     }
 
-    log.info("Executing: " + com);
-
-    // See if command line program supports requested format
-    let formats = d.formats; // formats supported by command line program
-    let convert = true;      // true if conversion to requested output format is needed
-    if (formats && formats.includes(req.query["format"])) {
-      // Command line program can create requested format
-      convert = false;
+    if (/^[0-9]{4}Z$/.test(timestr)) {
+      timestr = timestr.slice(0,-1) + "-01-01T00:00:00.000Z";
     }
-    if (header["format"] == "csv") {
-      // Command line program must support CSV output, so no conversion needed.
-      convert = false;
+    if (/^[0-9]{4}-[0-9]{2}Z$/.test(timestr)) {
+      timestr = timestr.slice(0,-1) + "-01T00:00:00.000Z";
     }
+    if (/^[0-9]{4}-[0-9]{3}Z$/.test(timestr)) {
+      timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
+    }
+    if (/^[0-9]{4}-[0-9]{2}-[0-9]{2}Z$/.test(timestr)) {
+      timestr = timestr.slice(0,-1) + "T00:00:00.000Z";
+    }
+    timestr = moment.utc(timestr).toISOString();
+    timestr = timestr.slice(0,-1) + submilli + "Z";
+    return timestr;
+  }
 
-    // Call the command line command and send output.
-    let child;
-    if (process.platform.startsWith("win")) {
-      let opts = {"cwd": __dirname, "encoding": "buffer", shell: true, stdio: "pipe"};
-      child = require('child_process').spawn('cmd.exe', ['/s','/c', com], opts);
+  function replacevars(com, isURL) {
+
+    let dataset = req.query["id"] || req.query["dataset"];
+
+    // Double {{ }} means don't quote
+    com = com.replace("${{id}}", dataset);
+    com = com.replace("${{dataset}}", dataset);
+    if (req.query["parameters"]) {
+      com = com.replace("${{parameters}}",req.query["parameters"]);
     } else {
-      // See https://azimi.me/2014/12/31/kill-child_process-node-js.html for
-      // reason for detached: true
-      let opts = {"cwd": __dirname, "encoding": "buffer", detached: true};
-      child = require('child_process').spawn('sh', ['-c', com], opts);
+      com = com.replace("${{parameters}}",'');
     }
 
-    let usePipe = true;      // If convert is false, use pipe to send data.
-    let gotData = false;     // First chunk of data received.
-    let wroteHeader = false; // If header already sent.
-    let childFinished = false;
-    let connectionClosed = false;
+    let start = req.query["time.min"] || req.query["start"];
+    let stop = req.query["time.max"] || req.query["stop"];
+    // Times don't need to be quoted
+    com = com.replace("${start}",normalizeTime(start));
+    com = com.replace("${stop}",normalizeTime(stop));
+    com = com.replace("${{start}}",normalizeTime(start));
+    com = com.replace("${{stop}}",normalizeTime(stop));
 
-    // If converting to binary, send data as chunks arrive if incrementalBinary
-    // is true. Otherwise, accumulate data and send it all at once.
-    let incrementalBinary = true;
-    let incrementalJSON = false; // true not implemented
-    // The following are only used if incrementalBinary is true.
-    let bufferConcat = Buffer.from('');
-    let bufferConcatRemainder = Buffer.from('');
-
-    req.connection.on('close',function () {
-      connectionClosed = true;
-      if (childFinished === false) {
-        log.info(`HTTP Connection closed before child finished. Killing pid = ${pid} for ${com}`);
-        // https://azimi.me/2014/12/31/kill-child_process-node-js.html
-        // previously used -child.pid, but this was killing the main process.
-        process.kill(child.pid);
+    if (!isURL) {
+      if (process.platform.startsWith("win")) {
+        com = com.replace("${id}",'"' + dataset + '"');
+        com = com.replace("${dataset}",'"' + dataset + '"');
       } else {
-        log.debug(`HTTP Connection closed.`);
-      }
-      log.info("Executed: " + com);
-    });
-
-    if (usePipe) {
-      if (convert === false) {
-        // piping not yet supported for case where cmd line output needs to 
-        // be converted to binary or json.
-        pipeResponse();
-        return;
+        com = com.replace("${id}","'" + dataset + "'");
+        com = com.replace("${dataset}",'"' + dataset + '"');
       }
     }
-
-    child.stderr.on('data', function (err) {
-      log.error(`Command ${com} gave stderr: '${err.toString().trim()}'`);
-    });
-
-    child.on('error', function (err) {
-      log.error(`Command ${com} gave err: '${err.toString().trim()}'`);
-    });
-
-    child.on('close', function (code) {
-
-      childFinished = true;
-
-      log.debug(`Child closed with status ${code}: ${com}`);
-      if (code !== 0 && connectionClosed === false) {
-        dataErrorMessage();
-        return;
-      }
-
-      if (gotData) { // Data returned and normal exit.
-        if (convert === true) {
-          let dump = req.query["format"] === 'binary' && incrementalBinary === false;
-          dump = dump || (req.query["format"] === 'json' && incrementalJSON === false);
-          if (dump) {
-            // Convert accumulated data and send it.
-            log.debug(`Converting and sending data of length ${bufferConcat.length}`);
-            res.write(csvTo(bufferConcat.toString(),true,true,header,include));
-            res.end();
-            bufferConcat = null; // Technically not needed, but may help w/ gc.
-          }
+    if (req.query["parameters"]) {
+      if (process.platform.startsWith("win")) {
+        if (isURL) {
+          com = com.replace("${parameters}",'"' + req.query["parameters"] + '"');
+        } else {
+          com = com.replace("${parameters}",req.query["parameters"]);
         }
-        log.debug(`Closing connection.`);
-        res.end();
       } else {
-        // No data returned and normal exit.
-        log.info(`No data returned.`);
-        res.statusMessage = "HAPI 1201: No data in interval";
-        if (convert && header["format"] === "json" && incrementalJSON === false) {
-          // Send header only
-          res.status(200).send(csvTo("",true,true,header,include));
-          return;
-        }
-        if (include) {
-          // If this is changed to JSON.stringify(header, null, X), unit
-          // tests will fail.
-          res.status(200).send("#" + JSON.stringify(header) + "\n");
+        if (isURL === true) {
+          com = com.replace("${parameters}",req.query["parameters"]);
         } else {
-          res.status(200).end();
+          com = com.replace("${parameters}","'" + req.query["parameters"] + "'");
         }
       }
-    });
-
-    child.stdout.on('data', function (buffer) {
-      log.debug(`stdout received ${buffer.length} bytes of data.`);
-      gotData = true;
-      if (!wroteHeader && include && header["format"] !== "json") {
-        // If header not written, header requested, and format requested
-        // is not JSON, so send header.
-        wroteHeader = true;
-        log.debug("Sending header.");
-        res.write("#" + JSON.stringify(header) + "\n");
-      }
-
-      if (header["format"] === "csv") {
-        // No conversion needed; dump buffer immediately.
-        log.debug(`Sending ${buffer.length} bytes of CSV.`);
-        res.write(buffer.toString());
-      }
-      if (header["format"] === "json") {
-        if (convert === false) {
-          // No conversion needed; dump buffer immediately.
-          log.debug(`Sending {buffer.length} bytes of JSON.`);
-          res.write(buffer.toString());
-          return;
-        } else {
-          // JSON requested and command line program cannot produce it.
-          // Accumulate output and send everything at once.
-          // TODO: Write incrementally; use
-          //    buffer.toString().lastIndexOf(/\n/)
-          // along with saving part of string that was not written.
-          if (incrementalJSON === false) {
-            bufferConcat = Buffer.concat([bufferConcat, buffer]);
-          } else {
-            // Not implemented
-          }
-        }
-      }
-      if (header["format"] === "binary") {
-        if (convert === false) {
-          // No conversion needed; dump buffer immediately.
-          log.debug(`Sending ${buffer.length} bytes of binary.`);
-          res.write(buffer,'binary');
-        } else {
-          // Conversion from CSV to binary needed.
-          if (incrementalBinary === false) {
-            // Accumulate output and send everything at once.
-            bufferConcat = Buffer.concat([bufferConcat, buffer]);
-          } else {
-            if (bufferConcatRemainder !== "") {
-              bufferConcat = Buffer.concat([bufferConcatRemainder, buffer]);
-            }
-            let lastnl = bufferConcat.lastIndexOf("\n");
-            if (lastnl+1 === bufferConcat.length) {
-              bufferConcatRemainder = Buffer.from('');
-            } else {
-              bufferConcatRemainder = bufferConcat.slice(lastnl);
-              bufferConcat = bufferConcat.slice(0,lastnl);
-            }
-            log.debug(`Converting ${bufferConcat.length} string bytes to binary and then sending.`);
-            res.write(csvTo(bufferConcat.toString(),null,null,header,include));
-          }
-        }
-      }
-    });
-
-    function pipeResponse() {
-      // Use pipe to prevent backpressure from causing large memory usage.
-
-      log.debug("Using pipe");
-      child.stdout.on('end', function () {
-
-        log.debug(`Child end event.`);
-        if (gotData === false) {
-          header["status"]["code"] = 1201;
-          header["status"]["message"] = "OK - No data in interval";
-          if (convert && header["format"] === "json") {
-            // Send header only
-            res.write(csvTo("",true,true,header,include));
-          } else if (include === true) {
-            res.write("#" + JSON.stringify(header) + "\n");
-          }
-        }
-      });
-
-      child.stdout.on('data', function () {
-        gotData = true;
-        log.debug(`Child data event.`);
-        // TODO: Only need this called once. Disable after first call?
-      });
-
-      child.on('close', function (code) {
-
-        childFinished = true;
-        if (code !== 0 && connectionClosed === false) {
-          log.error(`Child closed with status ${code}: ${com}`);
-          dataErrorMessage();
-          return;
-        } else {
-          log.info(`Child closed with status ${code}: ${com}`);
-        }
-
-      });
-
-      const { Transform } = require("stream");
-
-      const writeTransform = new Transform({
-
-        transform(chunk, encoding, callback) {
-
-          log.debug("Got chunk.")
-
-          let headerStr = undefined;
-
-          if (include === true && wroteHeader === false) {
-            // If header requested and header not written
-            wroteHeader = true;
-            if (header["format"] === "csv" || header["format"] === "binary") {
-              headerStr = "#" + JSON.stringify(header) + "\n";
-            }
-          }
-
-          if (header["format"] === "csv") {
-            if (headerStr === undefined) {
-              callback(null, chunk.toString());
-            } else {
-              callback(null, headerStr + chunk.toString());
-            }
-          }
-
-          if (convert === false) {
-            if (header["format"] === "json") {
-              if (headerStr === undefined) {
-                callback(null, chunk.toString());
-              } else {
-                callback(null, headerStr + chunk.toString());
-              }
-            }
-            if (header["format"] === "binary") {
-              if (headerStr === undefined) {
-                callback(null, chunk);
-              } else {
-                callback(null, headerStr + chunk);
-              }
-            }
-          } else {
-            if (header["format"] === "json") {
-            }
-            if (header["format"] === "binary") {
-            }
-          }
-
-        }
-      });
-
-      const { pipeline } = require("stream");
-      pipeline(child.stdout, writeTransform, res,
-        (err) => {
-          if (err) {
-            if (err.code === 'ERR_STREAM_PREMATURE_CLOSE') {
-              log.debug("ERR_STREAM_PREMATURE_CLOSE");
-            } else {
-              log.error(err);
-            }
-          }
-        });
+    } else {
+      com = com.replace("${parameters}",'""');
     }
+    com = com.replace("${format}",header["format"]);
+    return com;
   }
 }
 
-// Multiply all elements in array
-function prod(arr) {return arr.reduce(function(a,b){return a*b;})}
 
-
-function csvTo(records, first, last, header, include) {
-
-  // Helper function
-  function append(str,arr,N) {
-    for (var i=0;i<N;i++) {
-      arr.push(str);
-    }
-    return arr;
-  }
-
-  // TODO: Do this on first call only.
-  var size    = [];
-  var sizes   = [];
-  var name    = "";
-  var names   = []; // Name associated with number in each column
-  var type    = "";
-  var types   = []; // Type associated with number in each column
-  var length  = -1;
-  var lengths = [];
-  var po      = {}; // Parameter object
-  for (var i = 0;i < header.parameters.length; i++) {
-    size  = header.parameters[i]["size"] || [1];
-    sizes = append(size,sizes,prod(size));
-    name  = header.parameters[i]["name"];
-    names = append(name,names,prod(size));
-    type  = header.parameters[i]["type"];
-    types = append(type,types,prod(size));
-    length  = header.parameters[i]["length"] || -1;
-    lengths = append(length,lengths,prod(size));
-    po[header.parameters[i].name] = {};
-    po[header.parameters[i].name]["type"] = header.parameters[i].type;
-    po[header.parameters[i].name]["size"] = header.parameters[i].size || [1];
-    if (po[header.parameters[i].name]["size"].length > 1) {
-      if (header["format"] === "json") {
-        log.warn("Warning. JSON for parameter "
-                + name
-                + " will be 1-D array instead of "
-                + po[header.parameters[i].name]["size"].length
-                + "-D");
-      }
-      po[header.parameters[i].name]["size"] =
-      prod(po[header.parameters[i].name]["size"]);
-    }
-  }
-
-  if (header["format"] === "json") {
-    return csv2json(records, po, names, first, last, header, include);
-  }
-
-  if (header["format"] === "binary") {
-    return csv2bin(records, types, lengths, sizes);
-  }
-
-  function csv2bin(records, types, lengths) {
-
-    // TODO: Only handles integer and double.
-    // TODO: Make this a command line program.
-
-    // Does not use length info for Time variable - it is inferred
-    // from input (so no padding).
-
-    records = records.trim();
-    var recordsarr = records.split("\n");
-    var Nr = recordsarr.length; // Number of rows
-
-    // Regex that handles quoted commas
-    // from: https://stackoverflow.com/a/23582323
-    var re = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/g;
-    var record1 = recordsarr[0].split(re);
-    var Nd = record1.length - 1; // Number of data columns
-
-    var Nb = 0;
-    for (let i = 0;i < types.length;i++) {
-      if (types[i] === 'double') {
-        Nb = Nb + 8;
-      }
-      if (types[i] === 'integer') {
-        Nb = Nb + 4;
-      }
-      if (types[i] === 'string' || types[i] === 'isotime') {
-        Nb = Nb + lengths[i];
-      }
-    }
-    var recordbuff = new Buffer.alloc(Nr*Nb);
-    var pos = 0;
-    var truncated = 0;
-    for (let i = 0; i < Nr; i++) {
-      var record = recordsarr[i].split(re);
-      for (var j = 0;j < Nd+1;j++) {
-        //log.debug(`record ${i}, column ${j}: ${record[j]}`);
-        if (types[j] === 'double') {
-          recordbuff.writeDoubleLE(record[j],pos);
-          pos = pos + 8;
-        }
-        if (types[j] === 'integer') {
-          recordbuff.writeInt32LE(record[j],pos);
-          pos = pos + 4;
-        }
-        if (types[j] === 'string' || types[j] === 'isotime') {
-          let buffer = Buffer.from(record[j],'utf8');
-          if (buffer.length > lengths[j]) {
-            log.error(`${record[j]} was truncated: `,record[j],buffer.length,"bytes");
-            truncated = truncated + 1;
-          }
-          recordbuff.write(record[j],pos,'utf8')
-          pos = pos + lengths[j];
-        }
-      }
-    }
-    if (truncated > 0) {
-      log.error(truncated
-                + " string(s) were truncated because they"
-                + " were longer than length given in metadata");
-    }
-    log.debug("Returning binary data of length " + Buffer.byteLength(recordbuff, 'utf8') + " bytes.");
-    return recordbuff;
-  }
-
-  function csv2json(records, po, names, first, last, header, include) {
-
-    // Only handles 1-D arrays, e.g., size = [N], N integer.
-
-    let recordsarr = records.split("\n");
-    if (recordsarr[recordsarr.length-1] === '') {
-      // Empty element due to trailing newline.
-      recordsarr.pop();
-    }
-
-    records = "";
-    var cols    = [];
-    var open    = "";
-    var close   = "";
-    var nw      = 0;
-    for (var i = 0;i < recordsarr.length;i++) {
-      cols    = recordsarr[i].split(",");
-      let record  = "";
-      nw      = 0;
-      for (var j = 0;j < cols.length;j++) {
-        if (j == 0) {
-          record = "[";
-        }
-        open  = "";
-        close = "";
-        if (po[names[j]].size[0] > 1) {
-          if (open.length == 0 && nw == 0) {open = "["}
-          nw = nw + 1;
-        }
-        if (po[names[j]].size[0] > 1 && nw == po[names[j]].size[0]) {
-          close = "]";
-          open = "";
-          nw = 0;
-        }
-        if (types[j] === "integer") {
-          record = record + open + parseInt(cols[j])   + close + ",";
-        } else if (types[j] === "double") {
-          record = record + open + parseFloat(cols[j]) + close + ",";
-        } else {
-          record = record + open + '"' + cols[j] + '"' + close + ",";
-        }
-      }
-      if (i > 0) {
-        records = records + "\n" + record.slice(0,-1) + "],";
-      } else {
-        records = record.slice(0,-1) + "],";
-      }
-    }
-    open = "";close = "";
-    if (first == true) {
-      if (include) {
-        // Remove closing } and replace with new element.
-        open = JSON
-        .stringify(header,null,4)
-        .replace(/}\s*$/,"") + ',\n"data":\n[\n';
-      } else {
-        open = '[\n';
-      }
-    }
-    if (last == true) {
-      if (include) {
-        close = "\n]\n}\n";
-      } else {
-        close = "\n]\n";
-      }
-    }
-    return open + records.slice(0,-1) + close;
-  }
+function prod(arr) {
+  // Multiply all elements in array
+  return arr.reduce(function(a,b){return a*b;})
 }
 
 
@@ -1217,7 +763,6 @@ function queryCheck(req, res, hapiVersion, catalog, type) {
   return true;
 }
 
-
 function timeCheck(header) {
 
   const validHAPITime = require('hapi-server-verifier').is.HAPITime;
@@ -1227,12 +772,12 @@ function timeCheck(header) {
   // should warn that all time stamps are interpreted as Z.
 
   var times = [
- header["status"]["x_startDateRequested"],
- header["status"]["x_stopDateRequested"],
- header.startDate,header.stopDate
- ];
+    header["status"]["x_startDateRequested"],
+    header["status"]["x_stopDateRequested"],
+    header.startDate,header.stopDate
+  ];
 
- for (var i = 0;i < times.length;i++) {
+ for (let i = 0;i < times.length;i++) {
     // moment.js says YYYY-MM-DD and YYYY-DOY with no Z is
     // "... not in a recognized RFC2822 or ISO format. moment
     // construction falls back to js Date(), which is not reliable
@@ -1255,7 +800,7 @@ function timeCheck(header) {
   if (r.error) {
     return 1402;
   }
-  var r = validHAPITime(times[1],header["HAPI"]);
+  r = validHAPITime(times[1],header["HAPI"]);
   if (r.error) {
     return 1403;
   }
@@ -1278,7 +823,7 @@ function timeCheck(header) {
   }
 
   var timesms = [];
-  for (var i = 0;i < 4;i++) {
+  for (let i = 0;i < 4;i++) {
     var shift = 0;
     if (!moment(times[0], moment.ISO_8601).isValid()) {
       // Change 60th second to 59.
@@ -1363,15 +908,18 @@ function error(req, res, hapiVersion, code, message, messageFull) {
     log.error("HTTP/HAPI error " + ecode + "; " + messageFull);
   }
 
-  if (res.headersSent) {
-    res.end();
-    return;
-  }
-
   res.on('finish', () => log.request(req));
-  res.contentType("application/json");
-  res.statusMessage = httpmesg;
-  res.status(httpcode).send(JSON.stringify(json, null, 4) + "\n");
+
+  if (res.headersSent) {
+    log.error("HTTP headers were already sent. Not setting status code, but appending JSON error message.");
+    res.write(JSON.stringify(json, null, 4) + "\n");
+    res.end();
+  } else {
+    res.contentType("application/json");
+    res.statusMessage = httpmesg;
+    log.error("Sending JSON error message.");
+    res.status(httpcode).send(JSON.stringify(json, null, 4) + "\n");
+  }
 
   let addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   let msg = "Responded with " + ecode + " to " + addr + ": " + req.originalUrl;
@@ -1392,7 +940,8 @@ function exceptions() {
       log.error("Port " + argv.port + " already in use.",1);
     } else {
       console.log(err)
-      log.error("Uncaught Exception\n" + err,1);
+      console.log(argv['test'])
+      log.error("Uncaught Exception\n" + err, argv['test'] === undefined ? 0 : 1);
     }
   });
 }

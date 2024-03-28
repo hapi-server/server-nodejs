@@ -7,11 +7,14 @@ function run(testArray, testName) {
   console.log('_'.repeat(process.stdout.columns) + "\n");
 	console.log(testName);
 	console.log('_'.repeat(process.stdout.columns) + "\n");
+
 	let pass = true;
 	for (let i = 0;i < testArray.length; i++) {
+
 		if (process.platform.startsWith("win")) {
 			testArray[i].command = testArray[i].command.replace(/&/g,"^&");
 		}
+
 		let fails = 0; // Number of failures on a given test object
 		let prefix = "Test " + (i+1) + "/" + (testArray.length) + ": ";
 		process.stdout.write(clc.blue(prefix) + testArray[i]["command"] + "\n");
@@ -30,13 +33,15 @@ function run(testArray, testName) {
 				fails = fails + 1;
 			}
 		}
-		if (fails == 0) {
+
+		if (fails === 0) {
 			console.log(clc.blue(prefix) + clc.green.bold("PASS") + "\n");
 		} else {
 			pass = false;
 			console.log(clc.blue(prefix) + clc.red.bold("FAIL") + "\n");
 		}
 	}
+
 	console.log('_'.repeat(process.stdout.columns));
 
 	if (pass) {

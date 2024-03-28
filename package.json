@@ -25,15 +25,15 @@
     "compression": "^1.6.2",
     "express": "^4.15.3",
     "glob-fs": "*",
-    "https": "^1.0.0",
     "hapi-server-ui": "git+https://github.com/hapi-server/server-ui.git#master",
     "hapi-server-verifier": "github:hapi-server/verifier-nodejs",
+    "https": "^1.0.0",
     "log": "git+https://github.com/rweigel/log.git#main",
     "moment": "^2.18.1",
     "node-fetch-native": "^1.6.2",
     "request": "^2.88.2",
-    "superagent": "^6.1.0",
     "semver": "^7.5.4",
+    "superagent": "^6.1.0",
     "yargs": "^8.0.1"
   },
   "scripts": {
@@ -63,6 +63,7 @@
     }
   },
   "devDependencies": {
-    "eslint": "^8.56.0"
+    "eslint": "^8.57.0",
+    "standard": "^17.1.0"
   }
 }
