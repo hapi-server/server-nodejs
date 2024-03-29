@@ -1,4 +1,7 @@
-// Call the SPDF/SSCWeb API and respond with HAPI CSV.
+// Call the SSCWeb API and respond with HAPI CSV.
+// Splits request into chunks of less than 6 days.
+// This code parses the HTML response from the SSCWeb API because at 
+// the time of writing certain outputs were not available from the API.
 // Adds ability to parallelize requests.
 const fs      = require('fs');
 const path    = require('path')
