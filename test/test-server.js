@@ -15,6 +15,12 @@ const opts = {
     type: 'string',
     default: '',
     alias: 'f'
+  },
+  exit: {
+    description: 'Terminate tests and exit if a test fails',
+    type: 'boolean',
+    default: false,
+    alias: 'e',
   }
 }
 const argv = yargs.options(opts).argv
@@ -114,6 +120,9 @@ function execute(cmd) {
     console.log(clc.blue(prefix) + clc.red.bold('FAIL') + '\n')
     console.log('\n' + child.stdout.toString())
     console.log('\n' + child.stderr.toString())
+    if (argv.exit) {
+      process.exit(1)
+    }
   }
   return child.status
 }
