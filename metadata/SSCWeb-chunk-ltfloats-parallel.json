@@ -10,7 +10,20 @@
         "command": "\"$NODEEXE\" --max-old-space-size=96 \"$HAPISERVERPATH/bin/SSCWeb-chunk-ltfloats-parallel.js\" --ltfloats --id ${id} --parameters ${parameters} --start ${start} --stop ${stop}",
         "formats": ["csv"],
         "contact": "rweigel@gmu.edu",
-        "test": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/SSCWeb-chunk-ltfloats-parallel.js\" --ltfloats --id ace --parameters Time --start 2000-01-01T00:00:00.000Z --stop 2000-01-01T23:59:59.000Z"
+        "timeout": 20000,
+        "testcommands": [
+          {
+            "command": "\"$NODEEXE\" \"$HAPISERVERPATH/bin/SSCWeb-chunk.js\" --id ace --parameters Time --start 2000-01-01T00:00:00.000Z --stop 2000-01-01T23:59:59.000Z",
+            "exitCode": 0,
+            "Nlines": 120
+          }
+        ],
+        "testurls": [
+          {
+            "url": "data/?id=ace&parameters=Time&time.min=2000-01-01T00:00:00.000Z&time.max=2000-01-01T23:59:59.000Z",
+            "Nlines": 120
+          }
+        ]
     },
     "catalog_command": "cd \"$HAPISERVERPATH/metadata/SSCWeb\" && \"$NODEEXE\" SSCWeb2HAPI.js --ltfloats"
 }

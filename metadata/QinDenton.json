@@ -7,9 +7,11 @@
 	"data": {
 		"command": "$PYTHONEXE \"$HAPISERVERPATH/bin/QinDenton.py\" --start ${start} --stop ${stop}",
 		"contact": "rweigel@gmu.edu",
-		"test": "$PYTHONEXE \"$HAPISERVERPATH/bin/QinDenton.py\"",
+		"testcommands": "$PYTHONEXE \"$HAPISERVERPATH/bin/QinDenton.py\"",
 		"testurls": [
-			{"url": "data?id=hourly&parameters=ByIMF&time.min=1964-001T00Z&time.max=1964-002T00Z", "Nlines": 24}
+			{"url": "data?id=hourly&parameters=ByIMF&time.min=1964-001T00Z&time.max=1964-002T00Z",
+				"Nlines": 24
+			}
 		]
 	},
 	"catalog_inline" :
