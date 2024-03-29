@@ -31,6 +31,7 @@
     "log": "git+https://github.com/rweigel/log.git#main",
     "moment": "^2.18.1",
     "node-fetch-native": "^1.6.2",
+    "portscanner": "^2.2.0",
     "request": "^2.88.2",
     "semver": "^7.5.4",
     "superagent": "^6.1.0",
