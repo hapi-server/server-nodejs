@@ -41,8 +41,14 @@ This software handles
 1. HAPI metadata validation,
 2. request validation and error responses,
 3. logging and alerts,
-4. time and parameter subsetting (as needed), and
+4. time and parameter sub-setting (as needed), and
 5. generation of [HAPI JSON](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) or [HAPI binary](https://github.com/hapi-server/data-specification/blob/master/hapi-dev/HAPI-data-access-spec-dev.md#data-stream-content) (as needed).
+
+Other features:
+
+1. Backpressure is handled by pausing command-line data generator `stdout`. The server requires only ~100 MB of memory.
+2. Unit tests -- tests on the command line program and HAPI URLs can be specified in a configuration file. By default, the server will not start if any test fails.
+3. Coupling to the the [`server-ui` client](https://github.com/hapi-server/server-ui).
 
 %A list of catalogs that are served using this software is given at [http://hapi-server.org/servers]([http://hapi-server.org/servers]).
 
@@ -56,6 +62,8 @@ git clone https://github.com/hapi-server/server-nodejs.git && cd server-nodejs
 npm install; npm update;
 node server.js
 ```
+
+This server is tested on Linux and OS-X.
 
 <a name="Examples"></a>
 # 3 Examples
@@ -81,8 +89,8 @@ where `FILENAME.json` is one of the file names listed below (e.g., `Example0.jso
 * [Example8.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example8.json) - A dataset in headerless HAPI CSV format is stored in a single file; the server handles parameter and time subsetting and creation of HAPI JSON and Binary.
 * [Example9.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example9.json) - A URL returns a dataset in headerless HAPI CSV format; the server handles parameter and time subsetting and creation of HAPI JSON and Binary.
 * [Example10.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example10.json) - Same as Example9 except catalog is returned by a command.
-* [AutoplotExample1.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/AutoplotExample1.json) - A dataset is stored in multiple files and AutoplotDataServer is used to subset in time.
-* [AutoplotExample2.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/AutoplotExample2.json) - A dataset is stored in a CDF file, and AutoplotDataserver is used to generate HAPI CSV.
+* [AutoplotExample1.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/demos/AutoplotExample1.json) - A dataset is stored in multiple files and AutoplotDataServer is used to subset in time.
+* [AutoplotExample2.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/demos/AutoplotExample2.json) - A dataset is stored in a CDF file, and AutoplotDataserver is used to generate HAPI CSV.
 * [TestData2.0.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestData2.0.json) - A test dataset used to test HAPI clients.
 * [TestData2.1.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/TestData2.1.json) - A test dataset used to test HAPI clients.
 * [SSCWeb.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/SSCWeb.json) - Data from a non-HAPI web service is made available from a HAPI server.
@@ -116,20 +124,20 @@ and then open `http://localhost:8999/Example0/hapi`. You should see the same lan
 
 The Python script [Example.py](https://github.com/hapi-server/server-nodejs/blob/master/bin/Example.py) can subset parameters and time and provide binary output. To force the server to use these capabilities, we need to modify the server configuration metadata in [Example1.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example2.json). The changes are replacing
 
-```
+```javascript
 "command": "python bin/Example.py"
 ```
 
 with
 
-```
+```javascript
 "command": "python bin/Example.py --params ${parameters} --start ${start} --stop ${stop} --fmt ${format}"
 ```
 
 and adding
 
-```
-"formats": ["csv","binary"]
+```javascript
+"formats": ["csv", "binary"]
 ```
 
 The modified file is [Example2.json](https://github.com/hapi-server/server-nodejs/blob/master/metadata/Example2.json). To run this example locally after [installation](#Installation), execute
@@ -162,7 +170,7 @@ The command-line program that produces HAPI CSV from this file is [QinDenton.py]
 
 To run this example, use
 
-```
+```bash
 ./hapi-server --file metadata/QinDenton.json
 ```
 
@@ -425,17 +433,22 @@ The top-level structure of the configuration file is
      "file": "HAPI CSV file"
      "fileformat": "one of 'csv', 'binary', 'json'"
      or // See metadata/Example9.json
-     "url": "URL that returns HAPI data"
+     "url": "URL that returns HAPI data" // and
      "urlformat": "one of 'csv', 'binary', 'json'"
 
+     //  __DATACONTACT__ in landingFile is replaced with this value.",
      "contact": "Email address if error in command line program."
-                //  __DATACONTACT__ in landingFile is replaced with this value.",
+
+     // Number of milliseconds to wait for a response from command line program
+     // before sending 1501. See bin/Example.py for example of sending a custom
+     // error message.
+     "timeout": 59000, 
      "testcommands": [
        {
         "command": <string>, 
         "Nlines": <integer>,
         "Nbytes": <integer>,
-        "Ncommas", <integer>
+        "Ncommas": <integer>
         },
         ...
       ],
@@ -448,8 +461,8 @@ The top-level structure of the configuration file is
         },
         ...
       ]
-        },
     }
+}
 ```
 
 A variety of examples are listed in the [Examples](#Examples) section.
@@ -466,14 +479,27 @@ The server node has the form
 
 ```javascript
 "server": {
-  "id": "",         // Default is file name without extension.
-  "prefix": "",     // Default is id.
-  "contact": "",    // Required. __SERVERCONTACT__ in landingFile is replaced with this value.
-  "HAPI": "",       // HAPI API and schema (e.g., 2.1, 3.0) to use for checking metadata.
-                    // __VERSION__ in landingFile is replaced with this value.
+  // Default is file name without extension.
+  "id": "",
+
+  // Default is id.
+  "prefix": "",
+
+  // Required. __SERVERCONTACT__ in landingFile is replaced with this value.
+  "contact": "",
+
+  // HAPI API and schema (e.g., 2.1, 3.0) to use for checking metadata.
+  // __VERSION__ in landingFile is replaced with this value.
+  "HAPI": "",
+
   "landingFile": "",   // e.g., index.htm file
   "landingPath": "",   // relative paths in index.htm will resolve to this path
-  "catalog-update": null // How often in seconds to re-read metadata in the catalog node
+
+  // Only verify DATASET_NAME when --verify is passed on command line
+  "verify": "DATASET_NAME",
+
+  // How often in seconds to re-read metadata in the catalog node
+  "catalog-update": null 
 }
 ```
 
@@ -518,7 +544,7 @@ If `landingFile` has local CSS and JS dependencies, set `landingPath` to be the 
 // If index.htm has <script src="index.js">, index.js should be in /var/www/public/
 ```
 
-To serve a directory listing, use
+To serve a directory listing, use, e.g.,
 
 ```javascript
 "landingFile": "",
