@@ -64,9 +64,9 @@ let STOP = moment(argv.stop);
 
 let stop;
 if (STOP.diff(start,'days') > MAX_DAYS) {
-    stop = start.clone().add(MAX_DAYS, 'days');
+  stop = start.clone().add(MAX_DAYS, 'days');
 } else {
-    stop = STOP.clone();
+  stop = STOP.clone();
 }
 
 makeRequest(start, stop);
@@ -168,4 +168,4 @@ function extractData(data,stop) {
         } 
     }
     return data.join("\n");
-};
+}
