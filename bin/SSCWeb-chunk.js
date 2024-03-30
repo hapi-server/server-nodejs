@@ -33,7 +33,7 @@ if (argv.parameters === true || argv.parameters === '') {
     PARAMETERS.push("Time");
   }
   var pn = [];
-  for (var i=0;i < parameters.length;i++) {
+  for (var i = 0;i < parameters.length; i++) {
     if (PARAMETERS.includes(parameters[i].name)) {
       pn.push(i);
     }
@@ -80,11 +80,13 @@ function makeRequest(start, stop) {
 
   request({url: url, strictSSL: false},
     function (error, response, body) {
+      let when =  `when connecting to https://sscweb.gsfc.nasa.gov/cgi-bin/Locator.cgi`;
       if (error) {
-        console.log(error);
+        console.error(`1501, ${error.message} ${when}`);
         process.exit(1);
       }
-      if (response && response.statusCode != 200) {
+      if (response && response.statusCode !== 200) {
+        console.error(`1501, HTTP ${response.statusCode} ${when}`);
         process.exit(1);
       }
       console.log(extractData(body,stop));

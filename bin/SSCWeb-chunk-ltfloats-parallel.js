@@ -93,7 +93,7 @@ function makeRequestParallel(start, stop) {
   let urls = [];
   let starts = [];
   let stops = [];
-  let pool = {maxSockets: MAX_SOCKETS};  
+  let pool = {maxSockets: MAX_SOCKETS};
   // pool must be set outside of loop. See
   // https://www.npmjs.com/package/request#requestoptions-callback
   while (1) {
@@ -122,7 +122,7 @@ function makeRequestParallel(start, stop) {
 
   let cidx = 0;
   let chunks = [];
-  for (url of urls) {
+  for (let url of urls) {
     chunks[cidx] = undefined;
     doRequest(cidx, url, starts[cidx], stops[cidx]);
     cidx = cidx + 1;
@@ -171,15 +171,16 @@ function makeRequestParallel(start, stop) {
 
     request(opts,
       function (error, response, body) {
+        let when =  `when connecting to https://sscweb.gsfc.nasa.gov/cgi-bin/Locator.cgi`;
         if (error) {
-          console.log(error);
-          process.exit(1);    
-        }
-        if (response && response.statusCode != 200) {
-          console.error("Non-200 HTTP status code: " + response.statusCode);
+          console.error(`1501, ${error.message} ${when}`);
           process.exit(1);
         }
-        if (DEBUG) {       
+        if (response && response.statusCode !== 200) {
+          console.error(`1501, HTTP ${response.statusCode} ${when}`);
+          process.exit(1);
+        }
+        if (DEBUG) {
           console.log("Finished request " + cidx);
         }
         finished(cidx, extractData(body, stop));
