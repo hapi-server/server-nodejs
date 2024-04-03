@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-const compress   = require('compression');  // Express compression module
-const moment     = require('moment');       // Time library http://moment.js
+const compress = require('compression');  // Express compression module
+const moment   = require('moment');       // Time library http://moment.js
 
-const express    = require('express');      // Client/server library
-const app        = express();
+const express = require('express');  // Client/server library
+const app     = express();
 
 const semver = require('semver');
 
@@ -23,7 +23,7 @@ const argv = require('./lib/cli.js').argv;
 const log = require('log');
 log.logDir = argv.logdir;
 log.logLevel = argv.loglevel;
-log.info(`Relative path in log messages base dir`);
+log.info('Relative path in log messages base dir');
 log.info(`  ${__dirname}`);
 
 exceptions(); // Catch uncaught exceptions
@@ -163,7 +163,6 @@ function apiInit(CATALOG, PREFIX) {
 
   // /capabilities
   app.get(PREFIXe + '/hapi/capabilities', function (req, res) {
-
     res.on('finish', () => log.request(req));
     setHeaders(res, true);
     res.contentType("application/json");
@@ -917,7 +916,7 @@ function error(req, res, hapiVersion, code, message, messageFull) {
   } else {
     res.contentType("application/json");
     res.statusMessage = httpmesg;
-    log.error("Sending JSON error message.");
+    log.debug("Sending JSON error message.");
     res.status(httpcode).send(JSON.stringify(json, null, 4) + "\n");
   }
 
