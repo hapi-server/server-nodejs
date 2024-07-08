@@ -9,7 +9,7 @@ APPDIR=.
   $APPDIR/server.js \
   --port 8998 \
   --ignore \
-  --server-ui-include https://hapi-server.org/all_.txt \
+  --server-ui-include https://hapi-server.org/dev.txt \
   --proxy-whitelist etc/proxy-whitelist.txt \
   -f $APPDIR/metadata/TestData2.0.json  \
   -f $APPDIR/metadata/TestData2.1.json  \
