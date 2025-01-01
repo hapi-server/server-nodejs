@@ -39,7 +39,7 @@ let files = require("./lib/expandglob.js").expandglob(argv.file);
 
 // Populate metadata.cache array, which has elements of catalog objects.
 // main() is callback.
-prepmetadata(files, argv.ignore, argv.skipchecks, main);
+prepmetadata(files, argv.force, argv.ignore, argv.skipchecks, main);
 
 function main() {
 

@@ -1,5 +1,6 @@
 {
   "server": {
+		"catalog-update": 3600
   },
   "about": {
     "id": "URLWatcher",

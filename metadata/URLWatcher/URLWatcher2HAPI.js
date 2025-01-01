@@ -55,10 +55,11 @@ let parameters =
           'fill': "-1"
         }
       ];
+
 const urlwatcher = 'https://hapi-server.org/urlwatcher/';
 //const urlwatcher = 'http://localhost:4444/';
 
-const ver  = parseInt(process.version.slice(1).split('.')[0]);
+const ver = parseInt(process.version.slice(1).split('.')[0]);
 if (parseInt(ver) < 12) {
   // Workaround for Let's Encrypt expiration issue in older 
   // node versions.
