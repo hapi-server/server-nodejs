@@ -1,7 +1,7 @@
 {
-        "server": {
-                "catalog-update": 600
-        },
+  "server": {
+		"catalog-update": 3600
+  },
   "about": {
     "id": "URLWatcher",
     "title": "Serve URLWatcher data from https://hapi-server.org/urlwatcher",

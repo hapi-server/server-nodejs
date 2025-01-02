@@ -13,7 +13,6 @@ http = urllib3.PoolManager()
 # difference in speed if stream = True vs. False; Most
 # time spent on d/l.
 stream = True
-
 ROOT = 'https://hapi-server.org/urlwatcher/'
 #ROOT = 'http://localhost:4444/'
 
