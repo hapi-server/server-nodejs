@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const path = require('path')
 const moment = require('moment') // Time library http://moment.js
 const compress = require('compression') // Express compression module
 
@@ -42,17 +43,13 @@ const files = require('./lib/expandglob.js').expandglob(argv.file)
 prepmetadata(files, argv.force, argv.ignore, argv.skipchecks, main)
 
 function main () {
-  if (0) {
-    setInterval(() => {
-      log.memory()
-    }, 1000)
-  }
+  // setInterval(() => { log.memory() }, 1000)
 
   // Compress responses using gzip
   app.use(compress())
 
   // Serve static files in ./public/data (no directory listing provided)
-  app.use('/data', express.static(__dirname + '/public/data'))
+  app.use('/data', express.static(path.join(__dirname, 'public', 'data')))
 
   const catalogs = []
   const prefixes = []
@@ -95,7 +92,7 @@ function apiInit (CATALOG, PREFIX) {
   log.info('Initializing endpoints for http://localhost:' + argv.port + PREFIX + '/hapi')
 
   // Serve static files in ./public/data (no directory listing provided)
-  app.use(PREFIXe + '/data', express.static(__dirname + '/public/data'))
+  app.use(PREFIXe + '/data', express.static(path.join(__dirname, 'public', 'data')))
 
   app.get(PREFIXe + '/$', function (req, res) {
     res.header('Location', 'hapi')
@@ -384,7 +381,7 @@ function info (req, res, catalog) {
   // Catches case where parameters= is given in query string.
   // Assume it means same as if no parameters field was given
   // (which means all parameters wanted).
-  if (wantedparams.length == 0) { return json }
+  if (wantedparams.length === 0) { return json }
 
   // Determine if any parameters requested are invalid
   const validparams = []; let iv = 0
@@ -401,7 +398,7 @@ function info (req, res, catalog) {
   }
 
   // Invalid parameter found
-  if (validparams.length != wantedparams.length) {
+  if (validparams.length !== wantedparams.length) {
     return 1401
   }
 
@@ -413,7 +410,7 @@ function info (req, res, catalog) {
   }
 
   // Remove nulls placed when array element is deleted
-  json.parameters = json.parameters.filter(function (n) { return n != undefined })
+  json.parameters = json.parameters.filter(function (n) { return n !== undefined })
 
   // Return JSON object
   return json
@@ -571,7 +568,7 @@ function data (req, res, catalog, header, include) {
     // Need to extract it here and then insert at end
     // because moment.utc(timestr).toISOString()
     // ignores sub-millisecond parts of time string.
-    const re = new RegExp(/.*\.[0-9]{3}([0-9].*)Z/)
+    const re = /.*\.[0-9]{3}([0-9].*)Z/
     let submilli = '000000'
     if (re.test(timestr)) {
       submilli = timestr.replace(/.*\.[0-9]{3}([0-9].*)Z$/, '$1')
@@ -760,11 +757,11 @@ function timeCheck (header) {
     // across all browsers and versions."
     // But HAPI says it is valid.
     times[i] = times[i].replace(/Z$/, '')
-    if (times[i].length == 8 || times[i].length == 10) {
+    if (times[i].length === 8 || times[i].length === 10) {
       times[i] = times[i] + 'T00:00:00.000'
     }
     // YYYY or YYYYZ is not valid ISO according to moment.js
-    if (times[i].length == 4) {
+    if (times[i].length === 4) {
       times[i] = times[i] + '-01-01T00:00:00.000'
     }
     // Make all times UTC
