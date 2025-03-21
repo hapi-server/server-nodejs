@@ -12,6 +12,7 @@
   -f metadata/TestData3.0.json \
   -f metadata/TestData3.1.json \
   -f metadata/TestData3.2.json \
+  -f metadata/TestData3.3.json \
   -f metadata/SSCWeb-chunk.json
   2>&1
 #  -f metadata/URLWatcher.json \
