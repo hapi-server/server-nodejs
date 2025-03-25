@@ -35,6 +35,7 @@
     "request": "^2.88.2",
     "semver": "^7.5.4",
     "superagent": "^6.1.0",
+    "ws": "^8.18.1",
     "yargs": "^8.0.1"
   },
   "scripts": {
