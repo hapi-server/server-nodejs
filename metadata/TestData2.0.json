@@ -77,7 +77,7 @@
 										"name": "scalarint",
 										"type": "integer",
 										"units": "m",
-										"fill": "-1e31",
+										"fill": "-2147483648",
 										"description": "Sine wave with 600 s period"
 									},
 									{ 
