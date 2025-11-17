@@ -62,39 +62,47 @@ function getUrlo(cb) {
 		});
 }
 
-function SSCWeb2HAPI(cb) {
-
+function SSCWeb2HAPI (cb) {
 	// Returns HAPI catalog or throws error if it can't reach urlo
 	// and no cached catalog is found. Only updates cached catalog
 	// if it is older than max_age.
-	var age = 0;
 	// Look for cached catalog file
-	if (fs.existsSync(cfile)) {
-		age = new Date().getTime() - fs.statSync(cfile).mtime;
-		age = age / (max_age * 1000);
-		if (!FORCE && age < 1) {
-			// Cache file less than max_age
-			//console.error("Returning cache file " + cfile + " because it is less than " + max_age + " seconds.")
-			console.log(fs.readFileSync(cfile, 'utf8'));
-			// TODO: Could pipe this.
-		} else {
-			// Save current version. Only archived by day.
-			let ymd = new Date().toISOString().substring(0, 10);
-			cfilec = cfile.replace(/\.json/, "-" + ymd + ".json");
-			if (!fs.existsSync(__dirname + "/old/")) {
-				fs.mkdirSync(__dirname + "/old/")
-			}
-			// Later versions of nodejs (8+) have copyFileSync.
-			fs
-				.createReadStream(__dirname + "/" + cfile)
-				.pipe(fs.createWriteStream(__dirname + "/old/" + cfilec))
-				.on('finish', function () {
-					getUrlo(cb);
-				});
+	if (!fs.existsSync(cfile)) {
+		// Get URL and write cfile file
+		getUrlo(cb)
+		return
+	}
+	let age = new Date().getTime() - fs.statSync(cfile).mtime
+	age = age / (max_age * 1000)
+	if (!FORCE && age < 1) {
+		// Cache file less than max_age
+		//console.error("Returning cache file " + cfile + " because it is less than " + max_age + " seconds.")
+	  // Could pipe this.
+		console.log(fs.readFileSync(cfile, 'utf8'));
+		return
+	}
+	let ymd = new Date().toISOString().substring(0, 10)
+	cfilec = cfile.replace(/\.json/, "-" + ymd + ".json")
+	const oldDir = __dirname + "/old/"
+	try {
+		if (!fs.existsSync(oldDir)) {
+   		fs.mkdirSync(oldDir)
+			fs.copyFileSync(cfile, oldDir + "/" + cfilec)
 		}
-	} else {
-		// if there is no cached file
-		getUrlo(cb);
+		const files = fs.readdirSync(oldDir)
+		if (files.length) {
+			files.sort()
+			const last = files[files.length - 1]
+			const lastSize = fs.statSync(oldDir + "/" + last).size
+			const curSize = fs.statSync(cfile).size
+			if (lastSize !== curSize) {
+				// Change in size since last archived file. Write new archive file.
+				fs.copyFileSync(cfile, oldDir + "/" + cfilec)
+			}
+		}
+  	getUrlo(cb)
+	} catch (e) {
+  	getUrlo(cb)
 	}
 }
 exports.SSCWeb2HAPI = SSCWeb2HAPI;
