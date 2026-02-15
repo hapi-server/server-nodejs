@@ -92,7 +92,11 @@ function loop(startsec, stopsec) {
 			record = record + "," + Math.round(tf*Math.sin(Math.PI*i/600));
 		}
 		if (all || parameters.includes('scalarstr')) {
-			record = record + "," + scalarstrs[(i-startsec) % scalarstrs.length];
+			if (i === 5) {
+				record = record + ","
+			} else {
+				record = record + "," + scalarstrs[(i-startsec) % scalarstrs.length];
+			}
 		}
 		if (all || parameters.includes('scalarcats')) {
 			record = record + "," + scalarcats[(i-startsec) % scalarcats.length];
