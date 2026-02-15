@@ -100,7 +100,7 @@
 										"name": "scalariso",
 										"type": "isotime",
 										"units": "UTC",
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"length": 20,
 										"description": "Time parameter + 1 second"
 									},
@@ -143,7 +143,7 @@
 										"type": "isotime",
 										"units": "UTC",
 										"length": 20,
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"size": [3],
 										"description": "Each component is a sine wave with a 600 s period with differing phases."
 									},
@@ -265,7 +265,7 @@
 										"name": "scalariso",
 										"type": "isotime",
 										"units": "UTC",
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"length": 20,
 										"description": "Time parameter + 1 hour"
 									},
@@ -308,7 +308,7 @@
 										"type": "isotime",
 										"units": "UTC",
 										"length": 20,
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"size": [3],
 										"description": "Each component is a sine wave with a 600 s period with differing phases."
 									},
@@ -430,7 +430,7 @@
 										"name": "scalariso",
 										"type": "isotime",
 										"units": "UTC",
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"length": 20,
 										"description": "Time parameter + 1 hour"
 									},
@@ -473,7 +473,7 @@
 										"type": "isotime",
 										"units": "UTC",
 										"length": 20,
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"size": [3],
 										"description": "Each component is a sine wave with a 600 s period with differing phases."
 									},
