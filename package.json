@@ -23,6 +23,7 @@
   "dependencies": {
     "command-exists": "^1.2.2",
     "compression": "^1.6.2",
+    "csv-parse": "^6.1.0",
     "express": "^4.15.3",
     "glob-fs": "*",
     "hapi-server-ui": "git+https://github.com/hapi-server/server-ui.git#master",
