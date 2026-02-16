@@ -92,13 +92,21 @@ function loop(startsec, stopsec) {
 			record = record + "," + Math.round(tf*Math.sin(Math.PI*i/600));
 		}
 		if (all || parameters.includes('scalarstr')) {
-			record = record + "," + scalarstrs[(i-startsec) % scalarstrs.length];
+			if (i === 5) {
+				record = record + ","
+			} else {
+				record = record + "," + scalarstrs[(i-startsec) % scalarstrs.length];
+			}
 		}
 		if (all || parameters.includes('scalarcats')) {
 			record = record + "," + scalarcats[(i-startsec) % scalarcats.length];
 		}
 		if (all || parameters.includes('scalariso')) {
-			record = record + "," + (new Date((i+1)*tf).toISOString()).slice(0,-5) + "Z";
+			if (i === 5) {
+				record = record + ",0001-01-01T00:00:00Z"
+			} else {
+				record = record + "," + (new Date((i+1)*tf).toISOString()).slice(0,-5) + "Z";
+			}
 		}
 		if (id === "dataset0") {
 			if (all || parameters.includes('scalarmulti')) {

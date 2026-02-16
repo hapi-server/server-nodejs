@@ -100,7 +100,7 @@
 										"name": "scalariso",
 										"type": "isotime",
 										"units": "UTC",
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"length": 20,
 										"description": "Time parameter + 1 second"
 									},
@@ -116,7 +116,7 @@
 										"name": "vectorint",
 										"type": "integer",
 										"units": "m",
-										"fill": "-1e31",
+										"fill": "-2147483648",
 										"size": [3],
 										"description": "Each component is a sine wave with a 600 s period with differing phases."
 									},
@@ -143,7 +143,7 @@
 										"type": "isotime",
 										"units": "UTC",
 										"length": 20,
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"size": [3],
 										"description": "Each component is a sine wave with a 600 s period with differing phases."
 									},
@@ -242,7 +242,7 @@
 										"name": "scalarint",
 										"type": "integer",
 										"units": "m",
-										"fill": "-1e31",
+										"fill": "-2147483648",
 										"description": "Sine wave with 600 s period"
 									},
 									{ 
@@ -265,7 +265,7 @@
 										"name": "scalariso",
 										"type": "isotime",
 										"units": "UTC",
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"length": 20,
 										"description": "Time parameter + 1 hour"
 									},
@@ -281,7 +281,7 @@
 										"name": "vectorint",
 										"type": "integer",
 										"units": "m",
-										"fill": "-1e31",
+										"fill": "-2147483648",
 										"size": [3],
 										"description": "Each component is a sine wave with a 600 s period with differing phases."
 									},
@@ -308,7 +308,7 @@
 										"type": "isotime",
 										"units": "UTC",
 										"length": 20,
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"size": [3],
 										"description": "Each component is a sine wave with a 600 s period with differing phases."
 									},
@@ -407,7 +407,7 @@
 										"name": "scalarint",
 										"type": "integer",
 										"units": "m",
-										"fill": "-1e31",
+										"fill": "-2147483648",
 										"description": "Sine wave with 600 s period"
 									},
 									{ 
@@ -430,7 +430,7 @@
 										"name": "scalariso",
 										"type": "isotime",
 										"units": "UTC",
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"length": 20,
 										"description": "Time parameter + 1 hour"
 									},
@@ -446,7 +446,7 @@
 										"name": "vectorint",
 										"type": "integer",
 										"units": "m",
-										"fill": "-1e31",
+										"fill": "-2147483648",
 										"size": [3],
 										"description": "Each component is a sine wave with a 600 s period with differing phases."
 									},
@@ -473,7 +473,7 @@
 										"type": "isotime",
 										"units": "UTC",
 										"length": 20,
-										"fill": "0000-00-00:T00:00:00Z",
+										"fill": "0001-01-01T00:00:00Z",
 										"size": [3],
 										"description": "Each component is a sine wave with a 600 s period with differing phases."
 									},

@@ -72,6 +72,74 @@
           }
         ]
       }
+    },
+    {
+      "id": "dataset2",
+      "title": "dataset2 - same as dataset1 but with geoLocation instead of location",
+      "info": {
+        "startDate": "1970-01-01Z",
+        "stopDate": "1970-01-01T00:02Z",
+        "sampleStartDate": "1970-01-01Z",
+        "sampleStopDate": "1970-01-01T00:01:11Z",
+        "cadence": "PT1S",
+        "datasetCitation": "DOI",
+        "licenseURL": ["https://spdx.org/licenses/CC-BY-1.0", "https://spdx.org/licenses/C-UDA-1.0"],
+        "provenance": "Data providers can add free text here describing where the data came from, upstream sources, etc.",
+        "unitsSchema": "vounits1.1",
+        "note": "a note about dataset",
+        "warning": "a warning about dataset",
+        "geoLocation": [0.0, 0.0, 0.0],
+        "parameters": [
+          {
+            "name": "Time",
+            "type": "isotime",
+            "units": "UTC",
+            "fill": null,
+            "length": 24
+          },
+          {
+            "name": "vector",
+            "type": "double",
+            "units": "m",
+            "fill": "-1e31",
+            "vectorComponents": ["x", "y", "z"],
+            "size": [
+              3
+            ],
+            "description": "Each component is a sine wave with a 600 s period with differing phases."
+          }
+        ]
+      }
+    },
+    {
+      "id": "dataset3",
+      "title": "dataset3 - Same as dataset 2 but with a parameter names with a space.",
+      "info": {
+        "startDate": "1970-01-01Z",
+        "stopDate": "1970-01-01T00:02Z",
+        "sampleStartDate": "1970-01-01Z",
+        "sampleStopDate": "1970-01-01T00:01:11Z",
+        "cadence": "PT1S",
+        "parameters": [
+          {
+            "name": "Time",
+            "type": "isotime",
+            "units": "UTC",
+            "fill": null,
+            "length": 24
+          },
+          {
+            "name": "vector parameter",
+            "type": "double",
+            "units": "m",
+            "fill": "-1e31",
+            "size": [
+              3
+            ],
+            "description": ""
+          }
+        ]
+      }
     }
   ]
 }
