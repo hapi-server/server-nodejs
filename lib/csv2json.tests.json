@@ -25,11 +25,43 @@
     "expected": [["2017-11-13T12:34:56.789Z", "A"]]
   },
   {
+    "comment": "Single string value with leading and trailing spaces, no size given",
+    "type": "string",
+    "csv": "2017-11-13T12:34:56.789Z,   A  ",
+    "expected": [["2017-11-13T12:34:56.789Z", "A"]]
+  },
+  {
+    "comment": "Single string value with extra trailing comma, no size given",
+    "type": "string",
+    "csv": "2017-11-13T12:34:56.789Z,A,",
+    "error": true
+  },
+  {
+    "comment": "Single Unicode value, no size given",
+    "type": "string",
+    "csv": "2017-11-13T12:34:56.789Z, 👍",
+    "expected": [["2017-11-13T12:34:56.789Z", "👍"]]
+  },
+  {
     "comment": "Same as previous, but size given.",
     "size": [1],
     "type": "string",
     "csv": "2017-11-13T12:34:56.789Z, A",
     "expected": [["2017-11-13T12:34:56.789Z", ["A"]]]
+  },
+  {
+    "comment": "Same as previous, but A quoted.",
+    "size": [1],
+    "type": "string",
+    "csv": "2017-11-13T12:34:56.789Z, \"A\"",
+    "expected": [["2017-11-13T12:34:56.789Z", ["A"]]]
+  },
+  {
+    "comment": "Same as previous, but A quoted with leading an trailing spaces.",
+    "size": [1],
+    "type": "string",
+    "csv": "2017-11-13T12:34:56.789Z, \" A \"",
+    "expected": [["2017-11-13T12:34:56.789Z", [" A "]]]
   },
   {
     "comment": "type = isotime is treated in same way as type = string",
@@ -72,7 +104,7 @@
     "size": [2, 1, 1],
     "type": "double",
     "csv": "2017-11-13T12:34:56.789Z, 0.0, 1.0",
-    "expected": [["2017-11-13T12:34:56.789Z", [[[0]],[[1]]]]]
+    "expected": [["2017-11-13T12:34:56.789Z", [[[0.0]],[[1.0]]]]]
   },
   {
     "size": [2, 5],

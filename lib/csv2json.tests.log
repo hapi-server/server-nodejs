@@ -27,62 +27,97 @@
   Reference: [["2017-11-13T12:34:56.789Z","A"]]
   Result:    [["2017-11-13T12:34:56.789Z","A"]]
 5. PASS
+  Size: undefined
+  Type: string
+  CSV:
+             2017-11-13T12:34:56.789Z,   A  
+  Reference: [["2017-11-13T12:34:56.789Z","A"]]
+  Result:    [["2017-11-13T12:34:56.789Z","A"]]
+6. PASS
+  Size: undefined
+  Type: string
+  CSV:
+             2017-11-13T12:34:56.789Z,A,
+  Reference: undefined
+  Result:    "Error, which was expected"
+7. PASS
+  Size: undefined
+  Type: string
+  CSV:
+             2017-11-13T12:34:56.789Z, 👍
+  Reference: [["2017-11-13T12:34:56.789Z","👍"]]
+  Result:    [["2017-11-13T12:34:56.789Z","👍"]]
+8. PASS
   Size: [1]
   Type: string
   CSV:
              2017-11-13T12:34:56.789Z, A
   Reference: [["2017-11-13T12:34:56.789Z",["A"]]]
   Result:    [["2017-11-13T12:34:56.789Z",["A"]]]
-6. PASS
+9. PASS
+  Size: [1]
+  Type: string
+  CSV:
+             2017-11-13T12:34:56.789Z, "A"
+  Reference: [["2017-11-13T12:34:56.789Z",["A"]]]
+  Result:    [["2017-11-13T12:34:56.789Z",["A"]]]
+10. PASS
+  Size: [1]
+  Type: string
+  CSV:
+             2017-11-13T12:34:56.789Z, " A "
+  Reference: [["2017-11-13T12:34:56.789Z",[" A "]]]
+  Result:    [["2017-11-13T12:34:56.789Z",[" A "]]]
+11. PASS
   Size: [1]
   Type: isotime
   CSV:
              2017-11-13T12:34:56.789Z, 2017-11-13T12:34:56.789Z
   Reference: [["2017-11-13T12:34:56.789Z",["2017-11-13T12:34:56.789Z"]]]
   Result:    [["2017-11-13T12:34:56.789Z",["2017-11-13T12:34:56.789Z"]]]
-7. PASS
+12. PASS
   Size: [1,1]
   Type: string
   CSV:
              2017-11-13T12:34:56.789Z, 2017-11-13T12:34:56.789Z
   Reference: [["2017-11-13T12:34:56.789Z",[["2017-11-13T12:34:56.789Z"]]]]
   Result:    [["2017-11-13T12:34:56.789Z",[["2017-11-13T12:34:56.789Z"]]]]
-8. PASS
+13. PASS
   Size: [2]
   Type: double
   CSV:
              2017-11-13T12:34:56.789Z, 0.0, 1.0
   Reference: [["2017-11-13T12:34:56.789Z",[0,1]]]
   Result:    [["2017-11-13T12:34:56.789Z",[0,1]]]
-9. PASS
+14. PASS
   Size: [2,1]
   Type: double
   CSV:
              2017-11-13T12:34:56.789Z, 0.0, 1.0
   Reference: [["2017-11-13T12:34:56.789Z",[[0],[1]]]]
   Result:    [["2017-11-13T12:34:56.789Z",[[0],[1]]]]
-10. PASS
+15. PASS
   Size: [1,2]
   Type: double
   CSV:
              2017-11-13T12:34:56.789Z, 0.0, 1.0
   Reference: [["2017-11-13T12:34:56.789Z",[[0,1]]]]
   Result:    [["2017-11-13T12:34:56.789Z",[[0,1]]]]
-11. PASS
+16. PASS
   Size: [1,2,1]
   Type: double
   CSV:
              2017-11-13T12:34:56.789Z, 0.0, 1.0
   Reference: [["2017-11-13T12:34:56.789Z",[[[0],[1]]]]]
   Result:    [["2017-11-13T12:34:56.789Z",[[[0],[1]]]]]
-12. PASS
+17. PASS
   Size: [2,1,1]
   Type: double
   CSV:
              2017-11-13T12:34:56.789Z, 0.0, 1.0
   Reference: [["2017-11-13T12:34:56.789Z",[[[0]],[[1]]]]]
   Result:    [["2017-11-13T12:34:56.789Z",[[[0]],[[1]]]]]
-13. PASS
+18. PASS
   Size: [2,5]
   Type: double
   CSV:
