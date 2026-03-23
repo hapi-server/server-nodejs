@@ -51,6 +51,9 @@
           "units": "m",
           "coordinateSystemName": "GSM"
         },
+        "additionalMetadata": {
+          "contentURL": "https://hapi-server.org/servers/#server=TestData3.3&dataset=dataset1"
+        },
         "parameters": [
           {
             "name": "Time",
@@ -89,6 +92,9 @@
         "note": "a note about dataset",
         "warning": "a warning about dataset",
         "geoLocation": [0.0, 0.0, 0.0],
+        "additionalMetadata": [{
+          "contentURL": "https://hapi-server.org/servers/#server=TestData3.3&dataset=dataset1"
+        }],
         "parameters": [
           {
             "name": "Time",
