@@ -3,7 +3,7 @@
 ~/.nvm/versions/node/v16.20.0/bin/node \
   --max-old-space-size=256 \
   server.js \
-  --port 8999 --ignore \
+  --port 8999 --force \
   --server-ui-include https://hapi-server.org/all_.txt \
   --proxy-whitelist etc/proxy-whitelist.txt \
   --ignore \
