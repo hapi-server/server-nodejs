@@ -85,7 +85,17 @@ function loop(startsec, stopsec) {
 
 		record = (new Date(i*tf).toISOString());
 		if (all || parameters.includes('scalar')) {
-			record = record + "," + Math.sin(Math.PI*i/600);
+			if (i === 25) {
+				record = record + ", nan";
+			} else if (i === 26) {
+				record = record + ", NaN";
+			} else if (i === 27) {
+				record = record + ', "nan"';
+			} else if (i === 28) {
+				record = record + ', "NaN"';
+			} else {
+				record = record + "," + Math.sin(Math.PI*i/600);
+			}
 		}
 
 		if (all || parameters.includes('scalarint')) {
