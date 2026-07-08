@@ -28,7 +28,6 @@ if (LTFLOATS) {
 
 var urlo = "https://sscweb.gsfc.nasa.gov/WS/sscr/2/observatories";
 
-
 SSCWeb2HAPI(function (err, catalog) {
 	if (err) {
 		console.error(err);
@@ -38,7 +37,7 @@ SSCWeb2HAPI(function (err, catalog) {
 });
 
 function getUrlo(cb) {
-	// Fetches urlo and writes it to cfile
+    // Fetches urlo and writes it to cfile
 	console.error("Getting " + urlo)
 	request({uri: urlo, strictSSL: false, "timeout": 10000},
 		function (error, response, body) {
@@ -68,7 +67,7 @@ function SSCWeb2HAPI (cb) {
 	// if it is older than max_age.
 	// Look for cached catalog file
 	if (!fs.existsSync(cfile)) {
-		// Get URL and write cfile file
+	    // Get URL and write cfile file
 		getUrlo(cb)
 		return
 	}
