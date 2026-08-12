@@ -1,6 +1,6 @@
 // Call the SSCWeb API and respond with HAPI CSV.
 
-// Old version. Do not uses. Does not handle last record properly if last
+// Old version. Do not use. Does not handle last record properly if last
 // record does not have same timestamp of stop time in request.
 process.exit(0);
 

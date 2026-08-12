@@ -69,6 +69,7 @@ function SSCWeb2HAPI (cb) {
 	// Look for cached catalog file
 	if (!fs.existsSync(cfile)) {
 		// Get URL and write cfile file
+		console.error("Cache file " + cfile + " not found. Getting " + urlo);
 		getUrlo(cb)
 		return
 	}
