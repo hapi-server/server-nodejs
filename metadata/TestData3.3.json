@@ -46,7 +46,7 @@
         "note": "a note about dataset",
         "warning": "a warning about dataset",
         "location": {
-          "point": [0.0, 0.0, 0.0],
+          "point": [1.0, 2.0, 3.0],
           "vectorComponents": ["x", "y", "z"],
           "units": "m",
           "coordinateSystemName": "GSM"
@@ -91,7 +91,7 @@
         "unitsSchema": "vounits1.1",
         "note": "a note about dataset",
         "warning": "a warning about dataset",
-        "geoLocation": [0.0, 0.0, 0.0],
+        "geoLocation": [1.0, 2.0, 3.0],
         "additionalMetadata": [{
           "contentURL": "https://hapi-server.org/servers/#server=TestData3.3&dataset=dataset1"
         }],
