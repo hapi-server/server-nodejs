@@ -60,7 +60,7 @@
           "coordinateSystemName": "GSM"
         },
         "additionalMetadata": {
-          "contentURL": "https://hapi-server.org/servers/#server=TestData3.3&dataset=dataset1"
+          "contentURL": "https://hapi-server.org/servers/#dataset=dataset1&server=TestData3.3"
         },
         "parameters": [
           {
