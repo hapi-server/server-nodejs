@@ -27,6 +27,10 @@
     "status": {
       "code": 1200,
       "message": "OK"
+    },
+    "x_SPASE": {
+      "PersonID": "spase://SMWG/Robert.S.Weigel",
+      "RepositoryID": "spase://SMWG/Repository/UNKNOWN"
     }
   },
   "catalog_inline": [
@@ -34,12 +38,16 @@
       "id": "dataset1",
       "title": "dataset1",
       "info": {
+        "description": "A sample dataset containing a vector parameter.",
         "startDate": "1970-01-01Z",
         "stopDate": "1970-01-01T00:02Z",
         "sampleStartDate": "1970-01-01Z",
         "sampleStopDate": "1970-01-01T00:01:11Z",
         "cadence": "PT1S",
         "datasetCitation": "DOI",
+        "resourceURL": "https://hapi-server.org/servers/#server=TestData3.3&dataset=dataset1",
+        "resourceID": "TestData3.3/dataset1",
+        "citation": "Please use the DOI given in datasetCitation and thank your parents in the acknowledgements of any paper.",
         "licenseURL": ["https://spdx.org/licenses/CC-BY-1.0", "https://spdx.org/licenses/C-UDA-1.0"],
         "provenance": "Data providers can add free text here describing where the data came from, upstream sources, etc.",
         "unitsSchema": "vounits1.1",
@@ -92,9 +100,21 @@
         "note": "a note about dataset",
         "warning": "a warning about dataset",
         "geoLocation": [1.0, 2.0, 3.0],
-        "additionalMetadata": [{
-          "contentURL": "https://hapi-server.org/servers/#server=TestData3.3&dataset=dataset1"
-        }],
+        "additionalMetadata": [
+          {
+            "name": "Other metadata",
+            "schemaURL": "https://raw.githubusercontent.com/hapi-server/data-specification-schema/refs/heads/main/HAPI-data-access-schema-3.3.json",
+            "aboutURL": "https://raw.githubusercontent.com/hapi-server/data-specification",
+            "contentURL": "https://hapi-server.org/servers/#server=TestData3.3&dataset=dataset2"
+          },
+          {
+            "name": "Other metadata",
+            "content": {
+              "key1": "value1",
+              "key2": "value2"
+            }
+          }
+        ],
         "parameters": [
           {
             "name": "Time",
