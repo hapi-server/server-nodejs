@@ -93,7 +93,7 @@
         "sampleStartDate": "1970-01-01Z",
         "sampleStopDate": "1970-01-01T00:01:11Z",
         "cadence": "PT1S",
-        "resourceID": "https://doi.org/10.1186/1742-9994-10-80",
+        "resourceID": "https://doi.org/10.1901/jaba.1974.7-497a",
         "licenseURL": ["https://spdx.org/licenses/CC-BY-1.0", "https://spdx.org/licenses/C-UDA-1.0"],
         "provenance": "Data providers can add free text here describing where the data came from, upstream sources, etc.",
         "unitsSchema": "vounits1.1",
@@ -145,7 +145,7 @@
         "stopDate": "1970-01-01T00:02Z",
         "sampleStartDate": "1970-01-01Z",
         "sampleStopDate": "1970-01-01T00:01:11Z",
-        "citation": "https://doi.org/10.1186/1742-9994-10-80",
+        "citation": "https://doi.org/10.1901/jaba.1974.7-497a",
         "cadence": "PT1S",
         "parameters": [
           {
